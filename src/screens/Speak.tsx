@@ -5,6 +5,7 @@ import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import { getProduct, patchProduct } from '../services/db'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
+import { speak, stopSpeaking } from '../lib/speak'
 import { t } from '../lib/i18n'
 import type { LangCode } from '../types'
 
@@ -20,13 +21,24 @@ export default function SpeakScreen() {
 
   useEffect(() => {
     getProduct(id).then(p => { if (p?.transcript) setText(p.transcript); if (p?.lang) setLang(p.lang) })
+    return () => { recRef.current?.stop(); stopSpeaking() }
   }, [id])
 
   function start() {
-    setError(undefined); setRecording(true)
+    // Never let the phone's own voice bleed into the microphone.
+    stopSpeaking()
+    // Clear first. Without this, a failed attempt leaves the old words on
+    // screen and she cannot tell whether the new attempt registered at all.
+    setText('')
+    setError(undefined)
+    setRecording(true)
+
     recRef.current = listen(lang, {
       onPartial: setText,
-      onFinal: t => { if (t) setText(t) },
+      onFinal: final => {
+        if (final) setText(final)
+        else { setError(t('nothingHeard')); speak(t('nothingHeard'), lang) }
+      },
       onError: e => { setError(e); setRecording(false) },
       onEnd: () => setRecording(false),
     })
@@ -34,15 +46,21 @@ export default function SpeakScreen() {
 
   function stop() { recRef.current?.stop(); setRecording(false) }
 
+  /** She cannot read the transcript, so this is the only way she can check it. */
+  function playBack() { speak(text, lang) }
+
   async function next() {
+    stopSpeaking()
     await patchProduct(id, { transcript: text, lang })
     nav(`/p/${id}/review`)
   }
 
+  const hasText = text.trim().length > 0
+
   return (
     <Screen
-      title="बोलिए" step={3} onBack={() => {}}
-      action={<BigButton icon="👉" label={t('next')} onClick={next} disabled={!text.trim()} />}
+      title="बोलिए" step={3} onBack={() => { recRef.current?.stop(); stopSpeaking() }}
+      action={<BigButton icon="👉" label={t('next')} onClick={next} disabled={!hasText || recording} />}
     >
       <Speakable text={t('speakHint')} className="mb-5 text-lg" />
 
@@ -55,14 +73,14 @@ export default function SpeakScreen() {
       <button
         onClick={recording ? stop : start}
         className={
-          'mx-auto mb-6 flex h-40 w-40 min-h-0 flex-col items-center justify-center gap-1 rounded-full ' +
+          'mx-auto mb-5 flex h-40 w-40 min-h-0 flex-col items-center justify-center gap-1 rounded-full ' +
           'text-white transition-transform active:scale-95 ' +
           (recording ? 'animate-pulse bg-danger' : 'bg-indigo')
         }
       >
-        <span aria-hidden className="text-5xl">{recording ? '⏹' : '🎤'}</span>
+        <span aria-hidden className="text-5xl">{recording ? '⏹' : hasText ? '🔄' : '🎤'}</span>
         <span className="text-base font-semibold">
-          {recording ? t('stopSpeaking') : t('speakNow')}
+          {recording ? t('stopSpeaking') : hasText ? t('sayAgain') : t('speakNow')}
         </span>
       </button>
 
@@ -73,6 +91,28 @@ export default function SpeakScreen() {
       <div className="min-h-[110px] rounded-xl border border-line bg-surface p-4 text-lg leading-relaxed">
         {text || <span className="text-ink-3">…</span>}
       </div>
+
+      {/* The check-and-fix pair. Hearing it back is what makes "say it again"
+          useful — otherwise she has no way to know it came out wrong. */}
+      {hasText && !recording && (
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <SmallButton icon="🔊" label={t('hearItBack')} onClick={playBack} />
+          <SmallButton icon="🔄" label={t('sayAgain')} onClick={start} />
+        </div>
+      )}
     </Screen>
+  )
+}
+
+function SmallButton({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex min-h-[60px] items-center justify-center gap-2 rounded-xl border-2 border-line
+                 bg-surface px-3 text-base font-medium active:bg-wash"
+    >
+      <span aria-hidden className="text-xl">{icon}</span>
+      <span>{label}</span>
+    </button>
   )
 }

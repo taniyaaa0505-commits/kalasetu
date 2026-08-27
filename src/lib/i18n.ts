@@ -28,6 +28,9 @@ const hi = {
   published: 'आपका सामान अब बिक्री के लिए तैयार है',
   noProducts: 'अभी कोई सामान नहीं है',
   listenAgain: 'फिर से सुनें',
+  hearItBack: 'सुनकर देखिए',
+  sayAgain: 'फिर से बोलिए',
+  nothingHeard: 'कुछ सुनाई नहीं दिया। फिर से बोलिए।',
 }
 
 const en: typeof hi = {
@@ -50,6 +53,9 @@ const en: typeof hi = {
   published: 'Your product is now ready to sell',
   noProducts: 'Nothing here yet',
   listenAgain: 'Hear it again',
+  hearItBack: 'Hear what we heard',
+  sayAgain: 'Say it again',
+  nothingHeard: 'We did not hear anything. Please speak again.',
 }
 
 export type StringKey = keyof typeof hi
