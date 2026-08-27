@@ -116,6 +116,14 @@ export async function removeBackground(
 
 /* ------------------------------------------------------------------ */
 
+/** Shrink a photo before we store it. A phone camera JPEG is 2-4 MB and we
+ *  only ever show the original as a small "before" thumbnail, so keeping the
+ *  full thing costs storage and load time for nothing. */
+export async function shrink(dataUrl: string, max = 900, quality = 0.85): Promise<string> {
+  const { canvas } = await drawScaled(dataUrl, max)
+  return canvas.toDataURL('image/jpeg', quality)
+}
+
 /** Load a data URL into a canvas, scaled so the long edge is at most `max`. */
 async function drawScaled(dataUrl: string, max: number) {
   const img = new Image()

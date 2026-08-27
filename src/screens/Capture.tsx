@@ -4,7 +4,7 @@ import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import { getProduct, patchProduct } from '../services/db'
-import { removeBackground, preloadModel, type Progress } from '../services/bgRemove'
+import { removeBackground, preloadModel, shrink, type Progress } from '../services/bgRemove'
 import { t } from '../lib/i18n'
 
 export default function Capture() {
@@ -32,10 +32,14 @@ export default function Capture() {
     setPhoto(original); setClean(undefined); setUsedAI(undefined)
     setProgress({ phase: 'thinking' })
 
+    // Cut out from the FULL-resolution photo — quality matters here.
     const result = await removeBackground(original, setProgress)
 
+    // But store only a small copy of the original; it is just a thumbnail.
+    const thumb = await shrink(original)
+
     setClean(result.dataUrl); setUsedAI(result.usedAI); setProgress(undefined)
-    await patchProduct(id, { photo: original, cleanPhoto: result.dataUrl })
+    await patchProduct(id, { photo: thumb, cleanPhoto: result.dataUrl })
   }
 
   const busy = progress !== undefined
