@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------
+   KalaSetu design tokens.
+   Same identity as the team brief: indigo (the dye) + marigold.
+   Everything in the app pulls from these — never hardcode a colour
+   in a component.
+---------------------------------------------------------------- */
+@theme {
+  --color-ink:        #15171F;
+  --color-ink-2:      #4A5064;
+  --color-ink-3:      #787E92;
+  --color-paper:      #FBFAF7;
+  --color-surface:    #FFFFFF;
+  --color-line:       #E4E2DA;
+
+  --color-indigo:     #2B3A8F;
+  --color-indigo-2:   #4C5DC6;
+  --color-wash:       #EDEFF9;
+
+  --color-gold:       #9C6606;
+  --color-gold-wash:  #FAF1DE;
+
+  --color-good:       #1F7A4D;
+  --color-danger:     #A32222;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* Low-literacy rule: nothing in this app is ever smaller than 15px,
+   and every tappable thing is at least 56px tall. Enforced here so
+   nobody has to remember it. */
+button, a[role="button"] { min-height: 56px; }
+
+/* Keyboard focus must stay visible — accessibility is the whole point. */
+:focus-visible { outline: 3px solid var(--color-indigo-2); outline-offset: 2px; }
