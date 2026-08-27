@@ -81,7 +81,7 @@ Without a key the app uses mock listing text, so the flow still works.
 |---|------|-------|-------|
 | 1 | Real background removal | Camera | `npm i @huggingface/transformers`, model `briaai/RMBG-1.4`, run in-browser, composite onto white in `bgRemove.ts` |
 | 2 | Get the Gemini key working | AI | Test with a real craft photo + a Hindi voice clip on day one. If output is poor, we need to know *now* |
-| 3 | Fill in the other 4 languages | Voice | `lib/i18n.ts`. Maithili, Bengali, Marathi, Tamil |
+| 3 | Fill in UI strings for the other 4 languages | Voice | `lib/i18n.ts` has Hindi + English. Maithili, Bengali, Marathi, Tamil fall back to Hindi for interface text, though speech already works in all of them |
 | 4 | Firestore instead of localStorage | Data | Only `db.ts` changes. Buyer view then listens live instead of polling |
 | 5 | PWA + offline | Data | `vite-plugin-pwa`, then make `queue.ts` real with IndexedDB |
 | 6 | Comparables dataset | Pricing | ~300 rows scraped by hand. Replaces the fake `marketBand()` |
@@ -89,6 +89,21 @@ Without a key the app uses mock listing text, so the flow still works.
 | 8 | Ministry dashboard | Buyer/pitch | Artisans onboarded, GMV, income delta |
 
 ---
+
+## Languages — what actually works
+
+The picker sets one app-wide language (`lib/i18n.ts`), remembered in localStorage.
+It drives three separate things, and they are NOT all at the same level:
+
+| | Status |
+|---|---|
+| Speech in / out | Hindi, English, Bengali, Marathi, Tamil — all real |
+| Maithili speech | Goes through the **Hindi** recogniser. Chrome has no Maithili model. The transcript comes out phonetically rough; Gemini is told this and reads it generously. Real Maithili ASR needs Bhashini or Whisper — a later task |
+| Interface text | Hindi and English only. The rest fall back to Hindi |
+| Listing output | Always both English and Hindi. She sees her own language first; the other is labelled "for the buyer" |
+
+Say this plainly if a judge asks. Do not claim five working languages when the
+honest answer is four plus a documented fallback.
 
 ## Things that are deliberately fake (be honest about these)
 

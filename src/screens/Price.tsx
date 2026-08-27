@@ -34,18 +34,18 @@ export default function Price() {
       action={<BigButton icon="👉" label={t('next')} onClick={next} />}
     >
       {/* No typing. She taps + and - . */}
-      <Stepper label="सामान का खर्च" unit="₹" value={cost.materialCost} step={50}
+      <Stepper label={t('materialCost')} unit="₹" value={cost.materialCost} step={50}
         onChange={v => setCost({ ...cost, materialCost: v })} />
-      <Stepper label="कितने घंटे लगे" unit="घंटे" value={cost.hours} step={2}
+      <Stepper label={t('hoursTaken')} unit={t('hours')} value={cost.hours} step={2}
         onChange={v => setCost({ ...cost, hours: v })} />
 
       {price && (
         <div className="mt-6 flex flex-col gap-3">
-          <Row label={t('yourCost')} value={`₹${price.floor}`} hint="इससे कम मत बेचिए" />
+          <Row label={t('yourCost')} value={`₹${price.floor}`} hint={t('dontSellBelow')} />
           <Row label={t('marketRange')} value={`₹${price.marketLow} – ₹${price.marketHigh}`} />
 
           <button
-            onClick={() => speak(`हमारा सुझाव ${price.suggested} रुपये। ${price.reason}`)}
+            onClick={() => speak(`${t('weSuggest')} ${price.suggested} ${t('rupees')}. ${price.reason}`)}
             className="rounded-2xl border-2 border-indigo bg-wash p-5 text-left active:opacity-80"
           >
             <p className="text-xs font-semibold uppercase tracking-widest text-indigo">

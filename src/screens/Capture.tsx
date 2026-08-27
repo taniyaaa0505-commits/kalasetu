@@ -42,7 +42,7 @@ export default function Capture() {
 
   return (
     <Screen
-      title="फोटो" step={photo ? 2 : 1} onBack={() => {}}
+      title={t('screenPhoto')} step={photo ? 2 : 1} onBack={() => {}}
       action={
         photo
           ? <div className="flex flex-col gap-2">
@@ -62,17 +62,17 @@ export default function Capture() {
       {!photo && (
         <div className="flex flex-col items-center gap-5 py-10 text-center">
           <span className="text-7xl" aria-hidden>📷</span>
-          <Speakable text="अपने सामान की फोटो लीजिए" className="text-xl font-medium" />
-          <p className="text-sm text-ink-3">सादे रंग की जगह पर रखिए तो और अच्छा आएगा</p>
+          <Speakable text={t('photoPrompt')} className="text-xl font-medium" />
+          <p className="text-sm text-ink-3">{t('photoTip')}</p>
         </div>
       )}
 
       {photo && (
         <div className="flex flex-col gap-4">
-          <Panel label="पहले" src={photo} />
+          <Panel label={t('before')} src={photo} />
           {busy ? <Working progress={progress!} /> : clean && (
             <>
-              <Panel label="बाद में" src={clean} highlight />
+              <Panel label={t('after')} src={clean} highlight />
               {usedAI === false && (
                 <p className="rounded-lg bg-gold-wash p-3 text-sm text-gold">
                   Background not removed this time — showing the squared photo instead.
@@ -90,9 +90,9 @@ export default function Capture() {
 /** What she sees while the model works. The first run downloads ~25 MB once. */
 function Working({ progress }: { progress: Progress }) {
   const text =
-    progress.phase === 'downloading' ? 'पहली बार तैयार हो रहा है…'
+    progress.phase === 'downloading' ? t('firstTimeSetup')
     : progress.phase === 'thinking'  ? t('cleaning')
-    : 'सफ़ेद पर लगाया जा रहा है…'
+    : t('composingPhoto')
 
   return (
     <div className="rounded-xl bg-wash p-6 text-center">
@@ -103,7 +103,7 @@ function Working({ progress }: { progress: Progress }) {
             <div className="h-full bg-indigo transition-all" style={{ width: `${progress.percent}%` }} />
           </div>
           <p className="mt-2 text-xs text-ink-3">
-            {progress.percent}% · सिर्फ़ पहली बार, फिर हमेशा के लिए तैयार
+            {progress.percent}% · {t('onlyFirstTime')}
           </p>
         </>
       )}

@@ -3,17 +3,20 @@ import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import { listProducts, saveProduct, newId } from '../services/db'
-import { t } from '../lib/i18n'
+import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
+import LanguagePicker from '../components/LanguagePicker'
 import type { Product } from '../types'
 
 export default function Home() {
   const nav = useNavigate()
+  const lang = useLang()
+  const mine = prefersEnglish(lang)
   const [products, setProducts] = useState<Product[]>([])
 
   useEffect(() => { listProducts().then(setProducts) }, [])
 
   async function startNew() {
-    const p: Product = { id: newId(), createdAt: Date.now(), status: 'draft', lang: 'hi-IN' }
+    const p: Product = { id: newId(), createdAt: Date.now(), status: 'draft', lang: getLang() }
     await saveProduct(p)
     nav(`/p/${p.id}/capture`)
   }
@@ -45,9 +48,9 @@ export default function Home() {
                     : <span className="flex h-full w-full items-center justify-center text-2xl">📦</span>}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{p.listing?.titleHi ?? 'बिना नाम का सामान'}</p>
+                  <p className="truncate font-semibold">{(mine ? p.listing?.titleEn : p.listing?.titleHi) ?? t('untitled')}</p>
                   <p className="text-sm text-ink-3">
-                    {p.status === 'published' ? '✅ बिक्री पर' : '✏️ अधूरा'}
+                    {p.status === 'published' ? `✅ ${t('onSale')}` : `✏️ ${t('incomplete')}`}
                     {p.price && ` · ₹${p.price.suggested}`}
                   </p>
                 </div>
@@ -57,7 +60,14 @@ export default function Home() {
         </ul>
       )}
 
-      <button onClick={() => nav('/buyer')} className="mt-8 w-full text-sm text-ink-3 underline">
+      <section className="mt-8 border-t border-line pt-5">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-3">
+          {t('language')}
+        </h2>
+        <LanguagePicker compact />
+      </section>
+
+      <button onClick={() => nav('/buyer')} className="mt-6 w-full text-sm text-ink-3 underline">
         Buyer view (for the demo) →
       </button>
     </Screen>

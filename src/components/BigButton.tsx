@@ -7,6 +7,8 @@
  *  - says its own label out loud when tapped, so a non-reader knows what it does
  */
 import { speak } from '../lib/speak'
+import { useLang } from '../lib/i18n'
+import { asrCode } from '../types'
 
 type Variant = 'primary' | 'quiet' | 'good'
 
@@ -17,7 +19,7 @@ const STYLES: Record<Variant, string> = {
 }
 
 export default function BigButton({
-  icon, label, onClick, variant = 'primary', disabled, lang = 'hi-IN', speakOnTap = true,
+  icon, label, onClick, variant = 'primary', disabled, lang, speakOnTap = true,
 }: {
   icon: string
   label: string
@@ -27,10 +29,11 @@ export default function BigButton({
   lang?: string
   speakOnTap?: boolean
 }) {
+  const current = useLang()
   return (
     <button
       disabled={disabled}
-      onClick={() => { if (speakOnTap) speak(label, lang); onClick?.() }}
+      onClick={() => { if (speakOnTap) speak(label, lang ?? asrCode(current)); onClick?.() }}
       className={
         'flex w-full items-center justify-center gap-3 rounded-2xl px-5 text-xl font-semibold ' +
         'min-h-[64px] transition-colors disabled:opacity-40 ' + STYLES[variant]

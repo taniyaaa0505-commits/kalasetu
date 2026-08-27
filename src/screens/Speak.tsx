@@ -6,21 +6,22 @@ import Speakable from '../components/Speakable'
 import { getProduct, patchProduct } from '../services/db'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
-import { t } from '../lib/i18n'
-import type { LangCode } from '../types'
+import { t, useLang } from '../lib/i18n'
+import LanguagePicker from '../components/LanguagePicker'
+import { asrCode } from '../types'
 
 export default function SpeakScreen() {
   const { id = '' } = useParams()
   const nav = useNavigate()
 
-  const [lang, setLang] = useState<LangCode>('hi-IN')
+  const lang = useLang()          // app-wide, so it survives across screens
   const [text, setText] = useState('')
   const [recording, setRecording] = useState(false)
   const [error, setError] = useState<string>()
   const recRef = useRef<Recogniser | null>(null)
 
   useEffect(() => {
-    getProduct(id).then(p => { if (p?.transcript) setText(p.transcript); if (p?.lang) setLang(p.lang) })
+    getProduct(id).then(p => { if (p?.transcript) setText(p.transcript) })
     return () => { recRef.current?.stop(); stopSpeaking() }
   }, [id])
 
@@ -33,11 +34,11 @@ export default function SpeakScreen() {
     setError(undefined)
     setRecording(true)
 
-    recRef.current = listen(lang, {
+    recRef.current = listen(asrCode(lang), {
       onPartial: setText,
       onFinal: final => {
         if (final) setText(final)
-        else { setError(t('nothingHeard')); speak(t('nothingHeard'), lang) }
+        else { setError(t('nothingHeard')); speak(t('nothingHeard'), asrCode(lang)) }
       },
       onError: e => { setError(e); setRecording(false) },
       onEnd: () => setRecording(false),
@@ -47,7 +48,7 @@ export default function SpeakScreen() {
   function stop() { recRef.current?.stop(); setRecording(false) }
 
   /** She cannot read the transcript, so this is the only way she can check it. */
-  function playBack() { speak(text, lang) }
+  function playBack() { speak(text, asrCode(lang)) }
 
   async function next() {
     stopSpeaking()
@@ -59,10 +60,15 @@ export default function SpeakScreen() {
 
   return (
     <Screen
-      title="बोलिए" step={3} onBack={() => { recRef.current?.stop(); stopSpeaking() }}
+      title={t('screenSpeak')} step={3} onBack={() => { recRef.current?.stop(); stopSpeaking() }}
       action={<BigButton icon="👉" label={t('next')} onClick={next} disabled={!hasText || recording} />}
     >
-      <Speakable text={t('speakHint')} className="mb-5 text-lg" />
+      <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
+        {t('chooseLanguage')}
+      </p>
+      <div className="mb-5"><LanguagePicker compact /></div>
+
+      <Speakable text={t('speakHint')} className="mb-5 text-lg" lang={asrCode(lang)} />
 
       {!listenSupported() && (
         <p className="mb-4 rounded-lg bg-gold-wash p-3 text-sm text-gold">

@@ -5,13 +5,15 @@ import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import { getProduct, patchProduct } from '../services/db'
 import { generateListing, geminiConfigured } from '../services/gemini'
-import { t } from '../lib/i18n'
+import { t, useLang, prefersEnglish } from '../lib/i18n'
 import type { Listing } from '../types'
 
 export default function Review() {
   const { id = '' } = useParams()
   const nav = useNavigate()
 
+  const lang = useLang()
+  const mine = prefersEnglish(lang)      // show her half first, the other half is 'for the buyer'
   const [listing, setListing] = useState<Listing>()
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState<string>()
@@ -22,7 +24,7 @@ export default function Review() {
       if (!p) return
       if (p.listing) { setListing(p.listing); setBusy(false); return }
       try {
-        const l = await generateListing(p.cleanPhoto ?? p.photo ?? '', p.transcript ?? '')
+        const l = await generateListing(p.cleanPhoto ?? p.photo ?? '', p.transcript ?? '', p.lang ?? lang)
         setListing(l)
         await patchProduct(id, { listing: l })
       } catch (e) {
@@ -32,17 +34,17 @@ export default function Review() {
   }, [id])
 
   if (busy) return (
-    <Screen title="तैयार हो रहा है" step={4}>
+    <Screen title={t('preparing')} step={4}>
       <div className="flex flex-col items-center gap-4 py-24 text-center">
         <span className="animate-spin text-5xl" aria-hidden>⚙️</span>
-        <p className="text-ink-2">आपका विवरण लिखा जा रहा है…</p>
+        <p className="text-ink-2">{t('writingListing')}</p>
       </div>
     </Screen>
   )
 
   return (
     <Screen
-      title="विवरण" step={4} onBack={() => {}}
+      title={t('screenListing')} step={4} onBack={() => {}}
       action={<BigButton icon="👉" label={t('next')} onClick={() => nav(`/p/${id}/price`)} disabled={!listing} />}
     >
       {!geminiConfigured() && (
@@ -54,17 +56,20 @@ export default function Review() {
 
       {listing && (
         <div className="flex flex-col gap-5">
-          <Field label="क्या है">
-            <Speakable text={listing.titleHi} className="text-lg font-semibold" />
+          <Field label={t('whatIsIt')}>
+            <Speakable text={mine ? listing.titleEn : listing.titleHi} className="text-lg font-semibold" />
           </Field>
 
-          <Field label="विवरण">
-            <Speakable text={listing.descriptionHi} className="leading-relaxed" />
+          <Field label={t('descriptionLabel')}>
+            <Speakable text={mine ? listing.descriptionEn : listing.descriptionHi} className="leading-relaxed" />
           </Field>
 
-          <Field label="In English (for the buyer)">
-            <p className="font-semibold">{listing.titleEn}</p>
-            <p className="mt-1 text-sm leading-relaxed text-ink-2">{listing.descriptionEn}</p>
+          {/* The other language, for whoever is buying. */}
+          <Field label={`${mine ? 'हिंदी' : 'English'} — ${t('forTheBuyer')}`}>
+            <p className="font-semibold">{mine ? listing.titleHi : listing.titleEn}</p>
+            <p className="mt-1 text-sm leading-relaxed text-ink-2">
+              {mine ? listing.descriptionHi : listing.descriptionEn}
+            </p>
           </Field>
 
           {/* The anti-hallucination rule made visible: anything the AI was not
@@ -72,7 +77,7 @@ export default function Review() {
           {listing.questions.length > 0 && (
             <div className="rounded-xl border-2 border-gold bg-gold-wash p-4">
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gold">
-                हमें यह भी बताइए
+                {t('tellUsMore')}
               </p>
               {listing.questions.map(q => <Speakable key={q} text={q} className="py-1" />)}
             </div>

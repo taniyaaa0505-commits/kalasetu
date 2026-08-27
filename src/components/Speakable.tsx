@@ -4,18 +4,21 @@
  * learns it once and it works everywhere in the app.
  */
 import { speak } from '../lib/speak'
+import { useLang } from '../lib/i18n'
+import { asrCode } from '../types'
 
 export default function Speakable({
-  text, lang = 'hi-IN', className = '', as: Tag = 'p',
+  text, lang, className = '', as: Tag = 'p',
 }: {
   text: string
   lang?: string
   className?: string
   as?: 'p' | 'h2' | 'h3' | 'span'
 }) {
+  const current = useLang()
   return (
     <button
-      onClick={() => speak(text, lang)}
+      onClick={() => speak(text, lang ?? asrCode(current))}
       className="flex w-full min-h-0 items-start gap-2 text-left active:opacity-60"
       aria-label={`Hear: ${text}`}
     >

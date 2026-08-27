@@ -8,6 +8,7 @@
  * The market band is the part that needs data. It is stubbed for now.
  */
 import type { CostInput, PriceSuggestion } from '../types'
+import { t, tf } from '../lib/i18n'
 
 /** Configurable so we can defend the number if a judge asks where it came from.
  *  TODO: source a real figure (state minimum wage for skilled artisan work)
@@ -33,13 +34,17 @@ export function marketBand(floor: number, _craft?: string): { low: number; high:
   return { low: Math.round(floor * 1.8), high: Math.round(floor * 2.6) }
 }
 
-/** Festival demand. Crude on purpose — a real calendar is a later task. */
-function seasonBoost(month = new Date().getMonth()): { factor: number; reason: string } {
-  if (month === 9 || month === 10) return { factor: 1.12, reason: 'दिवाली नज़दीक है'   } // Oct-Nov
-  if (month === 7)                 return { factor: 1.06, reason: 'राखी का मौसम है'    } // Aug
-  if (month === 1 || month === 2)  return { factor: 1.08, reason: 'शादी का मौसम है'    } // Feb-Mar
-  return { factor: 1, reason: '' }
+/** Festival demand. Crude on purpose — a real calendar is a later task.
+ *  Returns a translation KEY, never a sentence, so the reason comes out in
+ *  whichever language she chose. */
+function seasonBoost(month = new Date().getMonth()): { factor: number; key?: SeasonKey } {
+  if (month === 9 || month === 10) return { factor: 1.12, key: 'reasonDiwali'  } // Oct-Nov
+  if (month === 7)                 return { factor: 1.06, key: 'reasonRakhi'   } // Aug
+  if (month === 1 || month === 2)  return { factor: 1.08, key: 'reasonWedding' } // Feb-Mar
+  return { factor: 1 }
 }
+
+type SeasonKey = 'reasonDiwali' | 'reasonRakhi' | 'reasonWedding'
 
 export function suggestPrice(cost: CostInput, craft?: string): PriceSuggestion {
   const floor = fairWageFloor(cost)
@@ -49,15 +54,15 @@ export function suggestPrice(cost: CostInput, craft?: string): PriceSuggestion {
   const mid = (band.low + band.high) / 2
   const suggested = Math.round((mid * season.factor) / 10) * 10   // round to ₹10
 
-  const reasons: string[] = []
-  if (craft) reasons.push(`${craft} हाथ से बना है`)
-  if (season.reason) reasons.push(season.reason)
+  const parts: string[] = []
+  if (craft) parts.push(tf('reasonHandmade', { craft }))
+  if (season.key) parts.push(t(season.key))
 
   return {
     floor,
     marketLow: band.low,
     marketHigh: band.high,
     suggested: Math.max(suggested, floor),
-    reason: reasons.join(', ') || 'बाज़ार के दाम के हिसाब से',
+    reason: parts.join(', ') || t('reasonMarket'),
   }
 }

@@ -1,13 +1,30 @@
-/** The languages we support in round 1. Five done well, not 22 claimed badly. */
+/**
+ * The languages we support.
+ *
+ * `asr` is what we hand the browser's speech recogniser, and it is NOT always
+ * the same as `code`. Chrome's speech API has no Maithili model, so Maithili
+ * speech goes in as Hindi — the two are close enough that the transcript comes
+ * out usable, and Gemini cleans up the rest. Be honest about this if asked:
+ * proper Maithili ASR needs Bhashini or Whisper, which is a later task.
+ *
+ * `sample` is spoken aloud when she taps the language, so she can confirm by
+ * ear that she picked the right one. She cannot read the label.
+ */
 export const LANGS = [
-  { code: 'hi-IN', label: 'हिंदी',    english: 'Hindi'   },
-  { code: 'mai-IN', label: 'मैथिली',   english: 'Maithili' },
-  { code: 'bn-IN', label: 'বাংলা',    english: 'Bengali' },
-  { code: 'mr-IN', label: 'मराठी',    english: 'Marathi' },
-  { code: 'ta-IN', label: 'தமிழ்',    english: 'Tamil'   },
+  { code: 'hi-IN',  asr: 'hi-IN', label: 'हिंदी',   english: 'Hindi',    sample: 'नमस्ते, यह हिंदी है' },
+  { code: 'en-IN',  asr: 'en-IN', label: 'English', english: 'English',  sample: 'Hello, this is English' },
+  { code: 'mai-IN', asr: 'hi-IN', label: 'मैथिली',  english: 'Maithili', sample: 'प्रणाम, ई मैथिली थिक' },
+  { code: 'bn-IN',  asr: 'bn-IN', label: 'বাংলা',   english: 'Bengali',  sample: 'নমস্কার, এটি বাংলা' },
+  { code: 'mr-IN',  asr: 'mr-IN', label: 'मराठी',   english: 'Marathi',  sample: 'नमस्कार, ही मराठी आहे' },
+  { code: 'ta-IN',  asr: 'ta-IN', label: 'தமிழ்',   english: 'Tamil',    sample: 'வணக்கம், இது தமிழ்' },
 ] as const
 
 export type LangCode = typeof LANGS[number]['code']
+
+/** What to hand the speech recogniser for a given language. */
+export function asrCode(code: LangCode): string {
+  return LANGS.find(l => l.code === code)?.asr ?? 'hi-IN'
+}
 
 /** What the AI gives us back after seeing the photo + hearing the voice note. */
 export interface Listing {

@@ -4,6 +4,9 @@
  * KalaSetu usable by someone who cannot read.
  */
 
+import { getLang, t } from './i18n'
+import { asrCode } from '../types'
+
 let enabled = true
 
 export function setSpeechEnabled(v: boolean) { enabled = v }
@@ -14,11 +17,12 @@ export function speechSupported(): boolean {
 }
 
 /** Say something out loud. Cancels whatever was being said before. */
-export function speak(text: string, lang = 'hi-IN') {
+/** `lang` defaults to whatever language the artisan chose. */
+export function speak(text: string, lang?: string) {
   if (!enabled || !speechSupported() || !text) return
   window.speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(text)
-  u.lang = lang
+  u.lang = lang ?? asrCode(getLang())
   u.rate = 0.88          // slower than default — clarity beats speed here
   u.pitch = 1
   window.speechSynthesis.speak(u)
@@ -28,8 +32,7 @@ export function stopSpeaking() {
   if (speechSupported()) window.speechSynthesis.cancel()
 }
 
-/** Rupees, spoken the way a person would say them: "दो हज़ार चार सौ रुपये" is ideal,
- *  but the browser voice handles "2400 रुपये" fine. Keep it simple for now. */
-export function speakRupees(amount: number, lang = 'hi-IN') {
-  speak(`${Math.round(amount)} रुपये`, lang)
+/** Rupees, in whichever language she chose. */
+export function speakRupees(amount: number, lang?: string) {
+  speak(`${Math.round(amount)} ${t('rupees')}`, lang)
 }

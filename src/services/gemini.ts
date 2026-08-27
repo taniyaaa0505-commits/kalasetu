@@ -7,24 +7,28 @@
  * !! VERIFY the model id at https://aistudio.google.com before the demo —
  *    Google renames these. If the call 404s, that is why.
  */
-import type { Listing } from '../types'
+import { LANGS, type Listing, type LangCode } from '../types'
 
 const MODEL = 'gemini-2.0-flash'
 const ENDPOINT = (m: string, k: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${k}`
 
 /** The rule that keeps the AI honest. This paragraph is a slide in the deck. */
-const SYSTEM_RULES = `
-You are helping an Indian artisan who cannot read English list a handmade product.
+function systemRules(langName: string, asrNote: string) {
+  return `
+You are helping an Indian artisan list a handmade product for sale online.
+She spoke to us in ${langName}.${asrNote}
 
 HARD RULES:
 - State ONLY what you can see in the photo or hear in the transcript.
 - Never invent a material, size, dye, technique, or origin claim.
 - If something important is missing or unclear, do NOT guess. Put it in "questions"
-  as a short question in simple Hindi that we will ask her out loud.
+  as a short, simple question in ${langName} that we will read out loud to her.
 - Descriptions must be warm and specific, not marketing fluff.
 - Hindi output must be simple, spoken Hindi. No Sanskritised vocabulary.
+- Always fill in BOTH the English and the Hindi fields, whatever she spoke.
 `.trim()
+}
 
 const SCHEMA = {
   type: 'object',
@@ -52,19 +56,33 @@ export function geminiConfigured(): boolean {
   return Boolean(import.meta.env.VITE_GEMINI_API_KEY)
 }
 
-export async function generateListing(photoDataUrl: string, transcript: string): Promise<Listing> {
+export async function generateListing(
+  photoDataUrl: string,
+  transcript: string,
+  lang: LangCode = 'hi-IN',
+): Promise<Listing> {
   const key = import.meta.env.VITE_GEMINI_API_KEY
-  if (!key) return mockListing(transcript)
+  if (!key) return mockListing(transcript, lang)
+
+  const meta = LANGS.find(l => l.code === lang)
+  const langName = meta?.english ?? 'Hindi'
+
+  // When we had to run her speech through a different language's recogniser,
+  // say so — the transcript will be phonetically mangled and the model needs
+  // to read it generously rather than take it literally.
+  const asrNote = meta && meta.asr !== meta.code
+    ? ` The transcript below was produced by a ${LANGS.find(l => l.asr === meta.asr && l.code === meta.asr)?.english ?? 'Hindi'} speech recogniser listening to ${langName}, so words may be garbled or spelled oddly. Interpret the intent generously.`
+    : ''
 
   const img = splitDataUrl(photoDataUrl)
 
   const body = {
-    systemInstruction: { parts: [{ text: SYSTEM_RULES }] },
+    systemInstruction: { parts: [{ text: systemRules(langName, asrNote) }] },
     contents: [{
       role: 'user',
       parts: [
         { inlineData: { mimeType: img.mimeType, data: img.data } },
-        { text: `The artisan said, in her own language:\n"""${transcript}"""\n\nWrite the listing.` },
+        { text: `The artisan said, in ${langName}:\n"""${transcript}"""\n\nWrite the listing.` },
       ],
     }],
     generationConfig: {
@@ -89,7 +107,10 @@ export async function generateListing(photoDataUrl: string, transcript: string):
 }
 
 /** Used until the key is added — keeps the whole flow clickable. */
-function mockListing(transcript: string): Listing {
+function mockListing(transcript: string, lang: LangCode = 'hi-IN'): Listing {
+  const askIn = lang === 'en-IN'
+    ? ['What size is it?', 'What is it made of?']
+    : ['इसका नाप क्या है?', 'यह किस चीज़ पर बना है?']
   return {
     craft: 'Madhubani painting',
     material: 'handmade paper, natural dye',
@@ -102,6 +123,6 @@ function mockListing(transcript: string): Listing {
       'बिहार की मिथिला परंपरा में हाथ से बनी मधुबनी पेंटिंग। प्राकृतिक रंगों से हस्तनिर्मित कागज़ पर बनाई गई। ' +
       'हर पेंटिंग हाथ से बनती है, इसलिए हर एक अलग होती है।',
     keywords: ['madhubani', 'mithila art', 'handmade painting', 'natural dye', 'bihar handicraft'],
-    questions: transcript ? [] : ['इसका नाप क्या है?', 'यह किस चीज़ पर बना है?'],
+    questions: transcript ? [] : askIn,
   }
 }
