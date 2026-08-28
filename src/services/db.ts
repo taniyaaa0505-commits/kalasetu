@@ -26,6 +26,7 @@ function open(): Promise<IDBDatabase> {
   dbPromise = (async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
       const req = indexedDB.open(DB_NAME, DB_VERSION)
+
       req.onupgradeneeded = () => {
         const upgraded = req.result
         if (!upgraded.objectStoreNames.contains(STORE)) {
@@ -42,13 +43,63 @@ function open(): Promise<IDBDatabase> {
           orders.createIndex('status', 'status')
         }
       }
+
+      /**
+       * Another tab is holding an OLDER version of this database open, so the
+       * upgrade cannot run. Without this handler the request fires `blocked`
+       * and then never resolves and never rejects — every call hangs forever
+       * and the app just sits there empty. That is exactly what happened when
+       * the orders release bumped the version while people had two tabs open
+       * for the buyer demo.
+       */
+      req.onblocked = () => reject(new DbError('blocked'))
+
       req.onsuccess = () => resolve(req.result)
-      req.onerror = () => reject(req.error)
+      req.onerror = () => reject(new DbError('failed', req.error?.message))
+
+      // Last resort. A database call must never hang silently.
+      setTimeout(() => reject(new DbError('timeout')), 8000)
     })
+
+    /**
+     * If a NEWER version of the app opens in another tab, step aside instead
+     * of blocking it — the mirror image of the bug above.
+     */
+    db.onversionchange = () => {
+      db.close()
+      dbPromise = null
+      report(new DbError('superseded'))
+    }
+
     await migrateFromLocalStorage(db)
     return db
-  })().catch(err => { dbPromise = null; throw err })
+  })().catch(err => {
+    dbPromise = null            // let the next call retry
+    report(err)
+    throw err
+  })
   return dbPromise
+}
+
+export type DbFault = 'blocked' | 'timeout' | 'failed' | 'superseded'
+
+export class DbError extends Error {
+  constructor(public fault: DbFault, detail?: string) {
+    super(detail ? `${fault}: ${detail}` : fault)
+    this.name = 'DbError'
+  }
+}
+
+/** Surface storage failures to the UI instead of failing silently. */
+function report(err: unknown) {
+  const fault: DbFault = err instanceof DbError ? err.fault : 'failed'
+  console.error('[db]', err)
+  window.dispatchEvent(new CustomEvent('kalasetu:db-error', { detail: fault }))
+}
+
+/** Drop the cached connection so the next call reopens. Used by "try again". */
+export function resetConnection() {
+  dbPromise = null
 }
 
 /** Small promise wrapper so the rest of the file reads like normal code. */

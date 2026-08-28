@@ -109,6 +109,22 @@ It drives three separate things, and they are NOT all at the same level:
 Say this plainly if a judge asks. Do not claim five working languages when the
 honest answer is four plus a documented fallback.
 
+## If the app opens to a blank screen
+
+Almost certainly **the database is blocked by another tab**. When we add an
+object store we bump `DB_VERSION` in `db.ts`, and IndexedDB cannot upgrade
+while an older connection is still open somewhere.
+
+Fix: **close every tab and window with the app open, then reopen one.**
+
+The app now tells you this instead of sitting there empty — `db.ts` handles
+`onblocked`, steps aside on `onversionchange`, and times out after 8 seconds
+rather than hanging forever. `tools/db-blocked.test.mjs` proves the hang is
+gone.
+
+**When you bump `DB_VERSION`, tell the team.** Everyone with two tabs open
+for the buyer demo will hit this.
+
 ## Orders — how the loop closes
 
 The problem statement asks us to "connect directly with larger B2B buyers", so

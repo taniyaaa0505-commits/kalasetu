@@ -9,6 +9,7 @@ import Buyer from './screens/Buyer'
 import BuyerProduct from './screens/BuyerProduct'
 import Chat from './screens/Chat'
 import Orders from './screens/Orders'
+import StorageError from './components/StorageError'
 
 /**
  * HashRouter, not BrowserRouter, on purpose: URLs look like /#/p/123/capture,
@@ -22,6 +23,7 @@ import Orders from './screens/Orders'
 export default function App() {
   return (
     <HashRouter>
+      <StorageError />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/p/:id/capture" element={<Capture />} />
