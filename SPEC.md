@@ -47,6 +47,7 @@ src/
     bgRemove.ts   cut out the background  ❌ stub — returns the original
     queue.ts      offline job queue       ❌ stub
     messages.ts   artisan <-> buyer chat  ✅ works (translation needs the key)
+    orders.ts     bulk orders             ✅ works (no payments)
   components/   shared UI
   screens/      one file per step of the golden path
                 Chat.tsx and BuyerProduct.tsx are the two sides of the
@@ -107,6 +108,26 @@ It drives three separate things, and they are NOT all at the same level:
 
 Say this plainly if a judge asks. Do not claim five working languages when the
 honest answer is four plus a documented fallback.
+
+## Orders — how the loop closes
+
+The problem statement asks us to "connect directly with larger B2B buyers", so
+an order carries a **quantity**: a gifting company ordering 200 diyas is the
+case we design for, not one person buying one piece.
+
+```
+buyer places order → 🔊 she hears "आपका ऑर्डर आया है"
+                   → ✅ yes / ❌ no    (two buttons, nothing else on screen)
+                   → 📦 she marks it sent
+                   → buyer marks it received
+```
+
+The state machine in `orders.ts` refuses anything else — she cannot ship an
+order she never accepted, a decline cannot be undone, nothing moves backwards.
+`tools/orders.test.mjs` checks all eight rules.
+
+Deliberately NOT built: payments, escrow, shipping labels. An order is enough
+to close the loop and to start the sales history that the credit story needs.
 
 ## The translated conversation
 

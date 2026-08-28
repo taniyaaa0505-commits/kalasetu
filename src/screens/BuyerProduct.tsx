@@ -8,8 +8,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../services/db'
 import { listMessages, sendMessage, translatePending } from '../services/messages'
+import { listOrders, placeOrder, setStatus } from '../services/orders'
 import PriceInNotes from '../components/PriceInNotes'
-import type { Message, Product } from '../types'
+import type { Message, Order, Product } from '../types'
 
 export default function BuyerProduct() {
   const { id = '' } = useParams()
@@ -18,6 +19,12 @@ export default function BuyerProduct() {
   const [msgs, setMsgs] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [qty, setQty] = useState(10)
+  const [buyerName, setBuyerName] = useState('Anand Gupta')
+  const [buyerOrg, setBuyerOrg] = useState('Meridian Corporate Gifting')
+  const [orderNote, setOrderNote] = useState('')
+  const [placing, setPlacing] = useState(false)
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { getProduct(id).then(setP) }, [id])
@@ -25,8 +32,9 @@ export default function BuyerProduct() {
   useEffect(() => {
     let alive = true
     const tick = async () => {
-      const list = await listMessages(id)
-      if (alive) setMsgs(list)
+      const [list, os] = await Promise.all([listMessages(id), listOrders(id)])
+      if (!alive) return
+      setMsgs(list); setOrders(os)
       if (list.some(m => m.untranslated)) translatePending(id)
     }
     tick()
@@ -45,6 +53,17 @@ export default function BuyerProduct() {
     setMsgs(await listMessages(id)); setSending(false)
   }
 
+  async function order(e: React.FormEvent) {
+    e.preventDefault()
+    if (!p?.price) return
+    setPlacing(true)
+    await placeOrder({
+      productId: id, quantity: qty, unitPrice: p.price.suggested,
+      buyerName, buyerOrg, note: orderNote.trim() || undefined, localLang: p.lang,
+    })
+    setOrderNote(''); setOrders(await listOrders(id)); setPlacing(false)
+  }
+
   if (!p) return <div className="p-10 text-center text-ink-3">Loading…</div>
 
   return (
@@ -60,6 +79,49 @@ export default function BuyerProduct() {
           <p className="mt-2 leading-relaxed text-ink-2">{p.listing?.descriptionEn}</p>
           <p className="mt-4 text-3xl font-bold tabular-nums">₹{p.price?.suggested}</p>
           {p.price && <div className="mt-3 max-w-xs"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
+
+          {/* Bulk order form. The problem statement asks for B2B buyers, so
+              quantity is the first thing on screen, not an afterthought. */}
+          <form onSubmit={order} className="mt-6 rounded-xl border border-line p-4">
+            <h2 className="mb-3 font-semibold">Place a bulk order</h2>
+
+            <label className="mb-1 block text-sm text-ink-2">Quantity</label>
+            <div className="mb-3 flex items-center gap-2">
+              <button type="button" onClick={() => setQty(Math.max(1, qty - 5))}
+                className="min-h-0 h-10 w-10 rounded-lg border border-line">−</button>
+              <input type="number" min={1} value={qty}
+                onChange={e => setQty(Math.max(1, +e.target.value || 1))}
+                className="w-24 rounded-lg border border-line px-3 py-2 text-center tabular-nums outline-none focus-visible:border-indigo" />
+              <button type="button" onClick={() => setQty(qty + 5)}
+                className="min-h-0 h-10 w-10 rounded-lg border border-line">+</button>
+              <span className="ml-2 text-ink-3">× ₹{p.price?.suggested}</span>
+            </div>
+
+            <div className="mb-3 grid gap-2 sm:grid-cols-2">
+              <input value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Your name"
+                className="rounded-lg border border-line px-3 py-2 outline-none focus-visible:border-indigo" />
+              <input value={buyerOrg} onChange={e => setBuyerOrg(e.target.value)} placeholder="Company"
+                className="rounded-lg border border-line px-3 py-2 outline-none focus-visible:border-indigo" />
+            </div>
+
+            <input value={orderNote} onChange={e => setOrderNote(e.target.value)}
+              placeholder="Anything she should know? (she will hear this in her language)"
+              className="mb-3 w-full rounded-lg border border-line px-3 py-2 outline-none focus-visible:border-indigo" />
+
+            <div className="flex items-center justify-between">
+              <p className="text-xl font-bold tabular-nums">₹{(qty * (p.price?.suggested ?? 0)).toLocaleString('en-IN')}</p>
+              <button disabled={placing || !p.price}
+                className="min-h-0 rounded-lg bg-indigo px-5 py-2.5 font-semibold text-white disabled:opacity-40">
+                {placing ? 'Placing…' : 'Place order'}
+              </button>
+            </div>
+          </form>
+
+          {orders.length > 0 && (
+            <ul className="mt-4 flex flex-col gap-2">
+              {orders.map(o => <BuyerOrderRow key={o.id} o={o} onRefresh={async () => setOrders(await listOrders(id))} />)}
+            </ul>
+          )}
         </div>
 
         <section className="flex flex-col rounded-xl border border-line">
@@ -110,5 +172,30 @@ export default function BuyerProduct() {
         </section>
       </div>
     </div>
+  )
+}
+
+const STATUS_TEXT: Record<Order['status'], string> = {
+  placed:    'Waiting for the artisan to confirm',
+  accepted:  'She accepted — making it now',
+  declined:  'She cannot take this order',
+  shipped:   'She has sent it',
+  delivered: 'Delivered',
+}
+
+function BuyerOrderRow({ o, onRefresh }: { o: Order; onRefresh: () => void }) {
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3">
+      <div>
+        <p className="font-semibold tabular-nums">{o.quantity} × ₹{o.unitPrice} = ₹{o.total.toLocaleString('en-IN')}</p>
+        <p className="text-sm text-ink-3">{STATUS_TEXT[o.status]}</p>
+      </div>
+      {o.status === 'shipped' && (
+        <button
+          onClick={async () => { await setStatus(o.id, 'delivered'); onRefresh() }}
+          className="min-h-0 shrink-0 rounded-lg border border-line px-3 py-2 text-sm font-medium"
+        >Mark received</button>
+      )}
+    </li>
   )
 }

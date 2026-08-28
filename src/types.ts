@@ -91,3 +91,35 @@ export interface Message {
   /** True while we are still offline and have not translated it yet. */
   untranslated?: boolean
 }
+
+/**
+ * A bulk order from a B2B buyer.
+ *
+ * The problem statement asks us to "connect directly with larger B2B buyers",
+ * so orders carry a quantity and a lead time — a corporate gifting company
+ * ordering 200 diyas is the case we design for, not one person buying one.
+ */
+export type OrderStatus = 'placed' | 'accepted' | 'declined' | 'shipped' | 'delivered'
+
+export interface Order {
+  id: string
+  productId: string
+  createdAt: number
+  updatedAt: number
+  status: OrderStatus
+
+  quantity: number
+  unitPrice: number
+  total: number
+
+  buyerName: string
+  buyerOrg?: string
+  /** The buyer's note, kept in both languages like a chat message. */
+  note?: string
+  noteLocal?: string
+  /** When the buyer needs it, as a timestamp. */
+  needBy?: number
+
+  /** How many days she says it will take, once she accepts. */
+  leadTimeDays?: number
+}

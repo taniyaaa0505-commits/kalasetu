@@ -13,9 +13,10 @@
 import type { Product } from '../types'
 
 const DB_NAME = 'kalasetu'
-const DB_VERSION = 2
+const DB_VERSION = 3
 const STORE = 'products'
 export const MSG_STORE = 'messages'
+export const ORDER_STORE = 'orders'
 const LEGACY_KEY = 'kalasetu.products'      // the old localStorage home
 
 let dbPromise: Promise<IDBDatabase> | null = null
@@ -34,6 +35,11 @@ function open(): Promise<IDBDatabase> {
         if (!upgraded.objectStoreNames.contains(MSG_STORE)) {
           const msgs = upgraded.createObjectStore(MSG_STORE, { keyPath: 'id' })
           msgs.createIndex('productId', 'productId')
+        }
+        if (!upgraded.objectStoreNames.contains(ORDER_STORE)) {
+          const orders = upgraded.createObjectStore(ORDER_STORE, { keyPath: 'id' })
+          orders.createIndex('productId', 'productId')
+          orders.createIndex('status', 'status')
         }
       }
       req.onsuccess = () => resolve(req.result)

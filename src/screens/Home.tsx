@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import { listProducts, saveProduct, newId } from '../services/db'
 import { listMessages } from '../services/messages'
+import { pendingOrders } from '../services/orders'
+import { speak } from '../lib/speak'
+import { asrCode } from '../types'
 import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
 import LanguagePicker from '../components/LanguagePicker'
 import type { Product } from '../types'
@@ -14,6 +17,8 @@ export default function Home() {
   const mine = prefersEnglish(lang)
   const [products, setProducts] = useState<Product[]>([])
   const [msgCounts, setMsgCounts] = useState<Record<string, number>>({})
+  const [waiting, setWaiting] = useState(0)
+  const announced = useRef(false)
 
   useEffect(() => {
     // Poll so a buyer's message shows up without her doing anything.
@@ -25,7 +30,19 @@ export default function Home() {
       setProducts(list)
       const counts: Record<string, number> = {}
       for (const p of list) counts[p.id] = (await listMessages(p.id)).length
-      if (alive) setMsgCounts(counts)
+      if (!alive) return
+      setMsgCounts(counts)
+
+      // An order waiting for her answer is the most important thing in the
+      // app. Say it out loud once — she will not read a badge.
+      const pending = await pendingOrders()
+      if (!alive) return
+      setWaiting(pending.length)
+      if (pending.length > 0 && !announced.current) {
+        announced.current = true
+        speak(t('newOrderCame'), asrCode(getLang()))
+      }
+      if (pending.length === 0) announced.current = false
     }
     tick()
     const timer = setInterval(tick, 2500)
@@ -43,6 +60,20 @@ export default function Home() {
       title={t('appName')}
       action={<BigButton icon="📷" label={t('addProduct')} onClick={startNew} />}
     >
+      {waiting > 0 && (
+        <button
+          onClick={() => nav('/orders')}
+          className="mb-5 flex w-full items-center gap-3 rounded-2xl border-2 border-indigo bg-indigo px-4 py-4 text-left text-white active:opacity-90"
+        >
+          <span aria-hidden className="text-3xl">🔔</span>
+          <span className="flex-1">
+            <span className="block text-lg font-bold">{t('newOrderCame')}</span>
+            <span className="block text-sm text-white/80">{waiting} {t('ordersWaiting')}</span>
+          </span>
+          <span aria-hidden className="text-2xl">›</span>
+        </button>
+      )}
+
       <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-ink-3">
         {t('myProducts')}
       </h2>
@@ -99,7 +130,11 @@ export default function Home() {
         <LanguagePicker compact />
       </section>
 
-      <button onClick={() => nav('/buyer')} className="mt-6 w-full text-sm text-ink-3 underline">
+      <button onClick={() => nav('/orders')} className="mt-6 w-full text-sm text-indigo underline">
+        📦 {t('orders')} →
+      </button>
+
+      <button onClick={() => nav('/buyer')} className="mt-3 w-full text-sm text-ink-3 underline">
         Buyer view (for the demo) →
       </button>
     </Screen>
