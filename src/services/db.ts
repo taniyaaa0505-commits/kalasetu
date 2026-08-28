@@ -13,8 +13,9 @@
 import type { Product } from '../types'
 
 const DB_NAME = 'kalasetu'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE = 'products'
+export const MSG_STORE = 'messages'
 const LEGACY_KEY = 'kalasetu.products'      // the old localStorage home
 
 let dbPromise: Promise<IDBDatabase> | null = null
@@ -30,6 +31,10 @@ function open(): Promise<IDBDatabase> {
           const store = upgraded.createObjectStore(STORE, { keyPath: 'id' })
           store.createIndex('createdAt', 'createdAt')
         }
+        if (!upgraded.objectStoreNames.contains(MSG_STORE)) {
+          const msgs = upgraded.createObjectStore(MSG_STORE, { keyPath: 'id' })
+          msgs.createIndex('productId', 'productId')
+        }
       }
       req.onsuccess = () => resolve(req.result)
       req.onerror = () => reject(req.error)
@@ -41,10 +46,14 @@ function open(): Promise<IDBDatabase> {
 }
 
 /** Small promise wrapper so the rest of the file reads like normal code. */
-function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+export function run<T>(
+  mode: IDBTransactionMode,
+  fn: (s: IDBObjectStore) => IDBRequest<T>,
+  storeName: string = STORE,
+): Promise<T> {
   return open().then(db => new Promise<T>((resolve, reject) => {
-    const tx = db.transaction(STORE, mode)
-    const req = fn(tx.objectStore(STORE))
+    const tx = db.transaction(storeName, mode)
+    const req = fn(tx.objectStore(storeName))
     req.onsuccess = () => resolve(req.result)
     req.onerror = () => reject(req.error)
   }))

@@ -37,13 +37,17 @@ export default function Buyer() {
         ) : (
           <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
             {items.map(p => (
-              <li key={p.id} className="overflow-hidden rounded-xl border border-line">
+              <li key={p.id}>
+                <button onClick={() => nav(`/buyer/${p.id}`)}
+                  className="block w-full overflow-hidden rounded-xl border border-line text-left active:opacity-80">
                 {p.cleanPhoto && <img src={p.cleanPhoto} alt="" className="aspect-square w-full object-cover" />}
                 <div className="p-3">
                   <p className="font-semibold leading-snug">{p.listing?.titleEn}</p>
                   <p className="mt-1 line-clamp-2 text-sm text-ink-3">{p.listing?.descriptionEn}</p>
                   <p className="mt-2 text-lg font-bold tabular-nums">₹{p.price?.suggested}</p>
+                  <p className="mt-1 text-sm text-indigo">Message the artisan →</p>
                 </div>
+                </button>
               </li>
             ))}
           </ul>

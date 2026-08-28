@@ -5,6 +5,7 @@ import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
 import { suggestPrice } from '../services/pricing'
 import { speak } from '../lib/speak'
+import PriceInNotes from '../components/PriceInNotes'
 import { t } from '../lib/i18n'
 import type { CostInput, PriceSuggestion } from '../types'
 
@@ -54,7 +55,11 @@ export default function Price() {
             <p className="my-1 text-5xl font-bold tracking-tight text-indigo tabular-nums">
               ₹{price.suggested}
             </p>
-            <p className="text-sm text-ink-2">{price.reason}</p>
+            <p className="mb-3 text-sm text-ink-2">{price.reason}</p>
+
+            {/* What ₹2,400 actually looks like in her hand. She can count
+                money even when she cannot read the numeral. */}
+            <PriceInNotes amount={price.suggested} />
           </button>
         </div>
       )}

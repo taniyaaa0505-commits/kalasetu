@@ -69,6 +69,13 @@ const hi = {
   onlyFirstTime: 'सिर्फ़ पहली बार, फिर हमेशा के लिए तैयार',
   before: 'पहले',
   after: 'बाद में',
+  messages: 'खरीदार से बात',
+  noMessages: 'अभी कोई बात नहीं हुई',
+  replyByVoice: 'बोलकर जवाब दें',
+  buyerSaid: 'खरीदार ने कहा',
+  youSaid: 'आपने कहा',
+  notTranslated: 'अनुवाद नहीं हो पाया',
+  sending: 'भेजा जा रहा है…',
 }
 
 const en: typeof hi = {
@@ -130,6 +137,13 @@ const en: typeof hi = {
   onlyFirstTime: 'Only the first time, then ready forever',
   before: 'Before',
   after: 'After',
+  messages: 'Talk to the buyer',
+  noMessages: 'No messages yet',
+  replyByVoice: 'Reply by speaking',
+  buyerSaid: 'The buyer said',
+  youSaid: 'You said',
+  notTranslated: 'Could not translate',
+  sending: 'Sending…',
 }
 
 export type StringKey = keyof typeof hi

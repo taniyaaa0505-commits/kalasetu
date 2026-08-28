@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import { listProducts, saveProduct, newId } from '../services/db'
+import { listMessages } from '../services/messages'
 import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
 import LanguagePicker from '../components/LanguagePicker'
 import type { Product } from '../types'
@@ -12,8 +13,24 @@ export default function Home() {
   const lang = useLang()
   const mine = prefersEnglish(lang)
   const [products, setProducts] = useState<Product[]>([])
+  const [msgCounts, setMsgCounts] = useState<Record<string, number>>({})
 
-  useEffect(() => { listProducts().then(setProducts) }, [])
+  useEffect(() => {
+    // Poll so a buyer's message shows up without her doing anything.
+    // Firestore's realtime listener replaces this later.
+    let alive = true
+    const tick = async () => {
+      const list = await listProducts()
+      if (!alive) return
+      setProducts(list)
+      const counts: Record<string, number> = {}
+      for (const p of list) counts[p.id] = (await listMessages(p.id)).length
+      if (alive) setMsgCounts(counts)
+    }
+    tick()
+    const timer = setInterval(tick, 2500)
+    return () => { alive = false; clearInterval(timer) }
+  }, [])
 
   async function startNew() {
     const p: Product = { id: newId(), createdAt: Date.now(), status: 'draft', lang: getLang() }
@@ -38,9 +55,10 @@ export default function Home() {
         <ul className="flex flex-col gap-3">
           {products.map(p => (
             <li key={p.id}>
+              <div className="flex items-center gap-2">
               <button
                 onClick={() => nav(`/p/${p.id}/capture`)}
-                className="flex w-full items-center gap-4 rounded-xl border border-line bg-surface p-3 text-left active:bg-wash"
+                className="flex min-w-0 flex-1 items-center gap-4 rounded-xl border border-line bg-surface p-3 text-left active:bg-wash"
               >
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-wash">
                   {p.cleanPhoto || p.photo
@@ -55,6 +73,20 @@ export default function Home() {
                   </p>
                 </div>
               </button>
+
+              {/* A buyer is talking to her. This has to be impossible to miss. */}
+              {msgCounts[p.id] > 0 && (
+                <button
+                  onClick={() => nav(`/p/${p.id}/chat`)}
+                  aria-label={t('messages')}
+                  className="relative flex h-[76px] w-[76px] shrink-0 flex-col items-center justify-center
+                             gap-0.5 rounded-xl border-2 border-indigo bg-wash active:opacity-80"
+                >
+                  <span aria-hidden className="text-2xl">💬</span>
+                  <span className="text-xs font-bold tabular-nums text-indigo">{msgCounts[p.id]}</span>
+                </button>
+              )}
+              </div>
             </li>
           ))}
         </ul>

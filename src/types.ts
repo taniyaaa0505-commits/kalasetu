@@ -68,3 +68,26 @@ export interface Product {
   listing?: Listing
   price?: PriceSuggestion
 }
+
+/**
+ * One turn of a conversation between an artisan and a buyer.
+ *
+ * We keep BOTH renderings of every message rather than translating on the
+ * fly, so each side always has something to show even when the network is
+ * gone, and so a translation is never recomputed twice.
+ */
+export interface Message {
+  id: string
+  productId: string
+  from: 'artisan' | 'buyer'
+  createdAt: number
+  /** Exactly what they said or typed, untouched. */
+  source: string
+  sourceLang: string
+  /** The same message in each side's language. */
+  english: string
+  local: string
+  localLang: LangCode
+  /** True while we are still offline and have not translated it yet. */
+  untranslated?: boolean
+}

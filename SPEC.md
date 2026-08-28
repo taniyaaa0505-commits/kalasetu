@@ -46,8 +46,11 @@ src/
     gemini.ts     the AI brain            ⚠️  works, but needs a key
     bgRemove.ts   cut out the background  ❌ stub — returns the original
     queue.ts      offline job queue       ❌ stub
+    messages.ts   artisan <-> buyer chat  ✅ works (translation needs the key)
   components/   shared UI
   screens/      one file per step of the golden path
+                Chat.tsx and BuyerProduct.tsx are the two sides of the
+                translated conversation
 ```
 
 **Why services are `async` even when they don't need to be:** so swapping
@@ -105,10 +108,31 @@ It drives three separate things, and they are NOT all at the same level:
 Say this plainly if a judge asks. Do not claim five working languages when the
 honest answer is four plus a documented fallback.
 
+## The translated conversation
+
+She speaks Maithili into her phone. He reads English on a laptop. Neither
+needs a middleman and neither learns the other's language.
+
+- `Chat.tsx` — her side. Voice in, voice out, never a keyboard. A new buyer
+  message is read aloud automatically, because she cannot read it.
+- `BuyerProduct.tsx` — his side. Types English, reads English, and sees her
+  original words quoted under the translation so the exchange stays honest.
+- Both renderings of every message are stored, so neither side is ever left
+  with nothing to show, and a translation is never recomputed.
+- Offline, a message still sends. It is stored untranslated and clearly
+  marked, then retried on reconnect — never lost, never faked.
+
+**To demo it on one machine:** open the app in two windows, one on `/#/buyer`
+and one on the artisan's product. They share the same IndexedDB, so messages
+cross between them. Across two devices this needs Firestore.
+
 ## Things that are deliberately fake (be honest about these)
 
 - **ONDC / GeM** — the `/buyer` page stands in for them. The adapter is designed,
   not built. Seller onboarding needs a registered business entity we don't have.
 - **Market price band** — derived from the floor, not from real data. The *floor*
   is real and needs no data, which is the point.
+- **Chat translation without a Gemini key** — a tiny phrasebook covers a few
+  demo sentences; anything else is stored and clearly marked "not translated".
+  We never invent a translation.
 - **The ₹450/day wage** in `pricing.ts` — replace with a sourced figure and cite it.

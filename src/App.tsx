@@ -6,6 +6,8 @@ import Review from './screens/Review'
 import Price from './screens/Price'
 import Publish from './screens/Publish'
 import Buyer from './screens/Buyer'
+import BuyerProduct from './screens/BuyerProduct'
+import Chat from './screens/Chat'
 
 /**
  * HashRouter, not BrowserRouter, on purpose: URLs look like /#/p/123/capture,
@@ -26,7 +28,9 @@ export default function App() {
         <Route path="/p/:id/review"  element={<Review />} />
         <Route path="/p/:id/price"   element={<Price />} />
         <Route path="/p/:id/publish" element={<Publish />} />
+        <Route path="/p/:id/chat"    element={<Chat />} />
         <Route path="/buyer"         element={<Buyer />} />
+        <Route path="/buyer/:id"     element={<BuyerProduct />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>

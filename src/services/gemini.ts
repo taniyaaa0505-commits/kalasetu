@@ -126,3 +126,67 @@ function mockListing(transcript: string, lang: LangCode = 'hi-IN'): Listing {
     questions: transcript ? [] : askIn,
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Translation — for the artisan <-> buyer conversation                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Translate one chat message.
+ *
+ * Kept deliberately narrow: short, conversational, no explanations, no
+ * transliteration. A buyer asking "can you make 50 of these by Diwali?"
+ * must come out as that question and nothing else.
+ */
+export async function translate(text: string, from: string, to: string): Promise<string> {
+  const key = import.meta.env.VITE_GEMINI_API_KEY
+  if (!key) return mockTranslate(text, to)
+
+  const body = {
+    systemInstruction: {
+      parts: [{ text:
+        `Translate the user's message from ${from} to ${to}.\n` +
+        `Rules: reply with ONLY the translation. No quotes, no notes, no ` +
+        `transliteration, no explanation. Keep it short and conversational, ` +
+        `the way a person actually speaks. Keep numbers, prices and dates exactly as given.`
+      }],
+    },
+    contents: [{ role: 'user', parts: [{ text }] }],
+    generationConfig: { temperature: 0.2 },
+  }
+
+  const res = await fetch(ENDPOINT(MODEL, key), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`Translate failed (${res.status})`)
+
+  const json = await res.json()
+  const out = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+  if (!out) throw new Error('Translate returned nothing')
+  return out
+}
+
+/**
+ * DEMO ONLY. Until the Gemini key is set, a tiny phrasebook so the chat is
+ * still demonstrable. Anything not in here comes back unchanged and the UI
+ * marks it as untranslated — we never pretend a translation happened.
+ */
+const PHRASEBOOK: Record<string, string> = {
+  'is this available?': 'क्या यह उपलब्ध है?',
+  'can you make 50 of these?': 'क्या आप इसके 50 बना सकती हैं?',
+  'what is your best price?': 'आपका सबसे कम दाम क्या है?',
+  'how long will it take?': 'कितना समय लगेगा?',
+  'i will take it': 'मैं इसे ले लूँगा',
+  'हाँ, है': 'Yes, it is available',
+  'दो हफ़्ते लगेंगे': 'It will take two weeks',
+  'ठीक है': 'That is fine',
+}
+
+function mockTranslate(text: string, to: string): string {
+  const hit = PHRASEBOOK[text.trim().toLowerCase()]
+  if (hit) return hit
+  // No pretending. The caller marks this untranslated and the UI says so.
+  throw new Error(`No Gemini key — cannot translate to ${to}`)
+}

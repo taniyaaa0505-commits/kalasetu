@@ -4,6 +4,7 @@ import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
 import { speak } from '../lib/speak'
+import PriceInNotes from '../components/PriceInNotes'
 import { t, useLang, prefersEnglish } from '../lib/i18n'
 import type { Product } from '../types'
 
@@ -34,6 +35,9 @@ export default function Publish() {
         <button onClick={() => nav('/buyer')} className="text-indigo underline">
           {t('buyerViewLink')} →
         </button>
+        <button onClick={() => nav(`/p/${id}/chat`)} className="text-indigo underline">
+          💬 {t('messages')} →
+        </button>
       </div>
     </Screen>
   )
@@ -46,6 +50,7 @@ export default function Publish() {
       {p?.cleanPhoto && <img src={p.cleanPhoto} alt="" className="mb-4 w-full rounded-xl border border-line" />}
       <p className="text-lg font-semibold">{mine ? p?.listing?.titleEn : p?.listing?.titleHi}</p>
       <p className="mt-1 text-3xl font-bold tabular-nums text-indigo">₹{p?.price?.suggested}</p>
+      {p?.price && <div className="mt-3"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
 
       <p className="mt-6 mb-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
         {t('sentTo')}
