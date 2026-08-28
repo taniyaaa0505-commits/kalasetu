@@ -8,8 +8,15 @@ import PriceInNotes from '../components/PriceInNotes'
 import { t, useLang, prefersEnglish } from '../lib/i18n'
 import type { Product } from '../types'
 
-/** Where the listing goes. Mocked for round 1 — say so honestly in the pitch. */
-const CHANNEL_NAMES = ['ONDC', 'GeM', 'Amazon Karigar']
+/**
+ * Channels we have NOT built yet.
+ *
+ * These are rendered as clearly-marked "planned", never as if the listing is
+ * being sent there. Every one of them requires a registered business entity
+ * to onboard, which a student team does not have — see SPEC.md. Do not let
+ * this list drift back into looking live.
+ */
+const PLANNED_CHANNELS = ['ONDC', 'GeM', 'Amazon Karigar', 'Flipkart Samarth']
 
 export default function Publish() {
   const { id = '' } = useParams()
@@ -52,12 +59,26 @@ export default function Publish() {
       <p className="mt-1 text-3xl font-bold tabular-nums text-indigo">₹{p?.price?.suggested}</p>
       {p?.price && <div className="mt-3"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
 
+      {/* What actually happens: it appears on our buyer marketplace. */}
       <p className="mt-6 mb-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
         {t('sentTo')}
       </p>
       <ul className="flex flex-wrap gap-2">
-        {[...CHANNEL_NAMES, t('bulkBuyers')].map(c => (
-          <li key={c} className="rounded-full border border-line bg-surface px-3 py-2 text-sm">{c}</li>
+        <li className="rounded-full border-2 border-good bg-surface px-3 py-2 text-sm font-medium text-good">
+          ✓ {t('ourMarketplace')}
+        </li>
+      </ul>
+
+      {/* What does not happen yet, said plainly. */}
+      <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
+        {t('plannedChannels')} · <span className="text-gold">{t('notConnectedYet')}</span>
+      </p>
+      <ul className="flex flex-wrap gap-2">
+        {PLANNED_CHANNELS.map(c => (
+          <li key={c}
+            className="rounded-full border border-dashed border-line bg-transparent px-3 py-2 text-sm text-ink-3">
+            {c}
+          </li>
         ))}
       </ul>
     </Screen>

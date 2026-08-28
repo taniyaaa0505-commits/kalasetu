@@ -128,8 +128,23 @@ cross between them. Across two devices this needs Firestore.
 
 ## Things that are deliberately fake (be honest about these)
 
-- **ONDC / GeM** — the `/buyer` page stands in for them. The adapter is designed,
-  not built. Seller onboarding needs a registered business entity we don't have.
+- **ONDC / GeM / Amazon Karigar / Flipkart Samarth** — NOT connected. Nothing is
+  sent anywhere. `publish()` sets a local flag and the listing appears on our own
+  `/buyer` page, which is the only real destination.
+
+  The Publish screen shows these as dashed, greyed, and labelled "not connected
+  yet" on purpose. **Do not restyle them to look live.** Every one requires a
+  registered business entity to onboard:
+
+  | Channel | What onboarding actually needs |
+  |---|---|
+  | ONDC | Network Participant agreement, a legal entity, a subscriber ID and key pair registered with the ONDC registry |
+  | GeM | Seller registration with Udyam/MSME, PAN, business bank account |
+  | Amazon Karigar | An Amazon Seller Central account; SP-API needs developer registration |
+  | Flipkart Samarth | Programme enrolment through a registered seller account |
+
+  None of this is available to a student team in two weeks. That is a fact about
+  the platforms, not a shortcoming of the build — say it plainly if asked.
 - **Market price band** — derived from the floor, not from real data. The *floor*
   is real and needs no data, which is the point.
 - **Chat translation without a Gemini key** — a tiny phrasebook covers a few
