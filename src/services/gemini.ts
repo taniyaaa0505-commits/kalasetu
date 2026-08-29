@@ -9,9 +9,33 @@
  */
 import { LANGS, type Listing, type LangCode } from '../types'
 
-const MODEL = 'gemini-2.0-flash'
+/**
+ * Two models, on purpose — measured, not guessed. See tools/bench-gemini.mjs
+ * and tools/bench-listing.mjs.
+ *
+ *   listing     once per product, needs the photo and structured JSON   2.9s
+ *   translate   every chat message, must feel instant                   0.7s
+ *
+ * gemini-3.7-flash was tried and rejected: 17 SECONDS for one short
+ * translation. Do not "upgrade" to it without re-running the benchmark.
+ *
+ * These models also "think" by default, which we turn off everywhere —
+ * it added seconds and changed nothing we care about.
+ */
+const LISTING_MODEL = 'gemini-3.5-flash'
+const TRANSLATE_MODEL = 'gemini-3.1-flash-lite'
+
+/** Thinking costs latency and buys us nothing on these two tasks. */
+const NO_THINKING = { thinkingConfig: { thinkingBudget: 0 } }
+
 const ENDPOINT = (m: string, k: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${k}`
+
+/** Newer models can return several parts. Join every text part, not just the first. */
+function textOf(json: any): string {
+  const parts = json?.candidates?.[0]?.content?.parts ?? []
+  return parts.map((p: any) => p?.text).filter(Boolean).join('').trim()
+}
 
 /** The rule that keeps the AI honest. This paragraph is a slide in the deck. */
 function systemRules(langName: string, asrNote: string) {
@@ -89,10 +113,11 @@ export async function generateListing(
       responseMimeType: 'application/json',
       responseSchema: SCHEMA,
       temperature: 0.4,
+      ...NO_THINKING,
     },
   }
 
-  const res = await fetch(ENDPOINT(MODEL, key), {
+  const res = await fetch(ENDPOINT(LISTING_MODEL, key), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -100,8 +125,7 @@ export async function generateListing(
 
   if (!res.ok) throw new Error(`Gemini failed (${res.status}): ${await res.text()}`)
 
-  const json = await res.json()
-  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text
+  const text = textOf(await res.json())
   if (!text) throw new Error('Gemini returned nothing usable.')
   return JSON.parse(text) as Listing
 }
@@ -148,22 +172,23 @@ export async function translate(text: string, from: string, to: string): Promise
         `Translate the user's message from ${from} to ${to}.\n` +
         `Rules: reply with ONLY the translation. No quotes, no notes, no ` +
         `transliteration, no explanation. Keep it short and conversational, ` +
-        `the way a person actually speaks. Keep numbers, prices and dates exactly as given.`
+        `the way a person actually speaks. Keep numbers, prices and dates exactly ` +
+        `as given, in Arabic numerals — write 200, never २००. A price or a ` +
+        `quantity she misreads is worse than no translation at all.`
       }],
     },
     contents: [{ role: 'user', parts: [{ text }] }],
-    generationConfig: { temperature: 0.2 },
+    generationConfig: { temperature: 0.2, ...NO_THINKING },
   }
 
-  const res = await fetch(ENDPOINT(MODEL, key), {
+  const res = await fetch(ENDPOINT(TRANSLATE_MODEL, key), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(`Translate failed (${res.status})`)
 
-  const json = await res.json()
-  const out = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+  const out = textOf(await res.json())
   if (!out) throw new Error('Translate returned nothing')
   return out
 }

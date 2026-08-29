@@ -84,7 +84,7 @@ Without a key the app uses mock listing text, so the flow still works.
 | # | Task | Owner | Notes |
 |---|------|-------|-------|
 | 1 | Real background removal | Camera | `npm i @huggingface/transformers`, model `briaai/RMBG-1.4`, run in-browser, composite onto white in `bgRemove.ts` |
-| 2 | Get the Gemini key working | AI | Test with a real craft photo + a Hindi voice clip on day one. If output is poor, we need to know *now* |
+| 2 | ~~Get the Gemini key working~~ | AI | **Done.** Key in local `.env`. Models chosen by benchmark, not guesswork — see below |
 | 3 | Fill in UI strings for the other 4 languages | Voice | `lib/i18n.ts` has Hindi + English. Maithili, Bengali, Marathi, Tamil fall back to Hindi for interface text, though speech already works in all of them |
 | 4 | Firestore instead of IndexedDB | Data | Only `db.ts` changes. **This is what makes the demo's best moment possible** — right now the buyer page reads local storage, so a phone and a laptop cannot see each other's products |
 | 5 | PWA + offline | Data | `vite-plugin-pwa`, then make `queue.ts` real with IndexedDB |
@@ -93,6 +93,28 @@ Without a key the app uses mock listing text, so the flow still works.
 | 8 | Ministry dashboard | Buyer/pitch | Artisans onboarded, GMV, income delta |
 
 ---
+
+## Which Gemini model, and why
+
+Measured, not guessed. Re-run `tools/bench-gemini.mjs` and `tools/bench-listing.mjs`
+before changing either.
+
+| Job | Model | Time |
+|---|---|---|
+| Listing (photo + voice -> JSON) | `gemini-3.5-flash` | 2.9s |
+| Chat translation | `gemini-3.1-flash-lite` | 0.7s |
+
+- **`gemini-3.7-flash` was tried and rejected: 17 seconds** for one short
+  translation. Do not "upgrade" to it without re-running the benchmark.
+- **`gemini-2.0-flash` is retired** — the API returns 404. That was our original
+  model, hardcoded from memory.
+- These models **think by default**, which we switch off (`thinkingBudget: 0`).
+  It cost seconds and changed nothing we care about.
+- The translate prompt insists on Arabic numerals. Without it the model wrote
+  the quantity as `२००`, and a price she misreads is worse than no translation.
+
+**Your key is in `.env`, which is gitignored. It is NOT in the deployed app** —
+that build reads a GitHub Actions secret, which is not set. See below.
 
 ## Languages — what actually works
 
