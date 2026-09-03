@@ -25,9 +25,17 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          # Add this in Settings -> Secrets and variables -> Actions.
-          # Without it the app still runs, using the mock listing text.
+          # All of these live in Settings -> Secrets and variables -> Actions.
+          # Without the Gemini key the app falls back to mock listing text.
+          # Without the Firebase block it stores everything on the device and
+          # devices cannot see each other. Either way it still runs.
           VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
 
