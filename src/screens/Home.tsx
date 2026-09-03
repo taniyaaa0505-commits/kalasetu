@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
-import { listProducts, saveProduct, newId } from '../services/db'
+import { listProducts, saveProduct, newId, subscribeProducts } from '../services/db'
 import { listMessages } from '../services/messages'
-import { pendingOrders } from '../services/orders'
+import { pendingOrders, subscribeOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import { tourSeen } from '../lib/tour'
 import ConfirmRemove from '../components/ConfirmRemove'
@@ -27,34 +27,24 @@ export default function Home() {
     if (!tourSeen()) nav('/tour', { replace: true })
   }, [nav])
 
-  useEffect(() => {
-    // Poll so a buyer's message shows up without her doing anything.
-    // Firestore's realtime listener replaces this later.
-    let alive = true
-    const tick = async () => {
-      const list = await listProducts()
-      if (!alive) return
-      setProducts(list)
-      const counts: Record<string, number> = {}
-      for (const p of list) counts[p.id] = (await listMessages(p.id)).length
-      if (!alive) return
-      setMsgCounts(counts)
+  useEffect(() => subscribeProducts(async list => {
+    setProducts(list)
+    const counts: Record<string, number> = {}
+    for (const p of list) counts[p.id] = (await listMessages(p.id)).length
+    setMsgCounts(counts)
+  }), [])
 
-      // An order waiting for her answer is the most important thing in the
-      // app. Say it out loud once — she will not read a badge.
-      const pending = await pendingOrders()
-      if (!alive) return
-      setWaiting(pending.length)
-      if (pending.length > 0 && !announced.current) {
-        announced.current = true
-        speak(t('newOrderCame'), asrCode(getLang()))
-      }
-      if (pending.length === 0) announced.current = false
+  // An order waiting for her answer is the most important thing in the app.
+  // Say it out loud once — she will not read a badge.
+  useEffect(() => subscribeOrders(async () => {
+    const pending = await pendingOrders()
+    setWaiting(pending.length)
+    if (pending.length > 0 && !announced.current) {
+      announced.current = true
+      speak(t('newOrderCame'), asrCode(getLang()))
     }
-    tick()
-    const timer = setInterval(tick, 2500)
-    return () => { alive = false; clearInterval(timer) }
-  }, [])
+    if (pending.length === 0) announced.current = false
+  }), [])
 
   async function startNew() {
     const p: Product = { id: newId(), createdAt: Date.now(), status: 'draft', lang: getLang() }

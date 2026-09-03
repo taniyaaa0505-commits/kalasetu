@@ -6,13 +6,16 @@
  * enough to close the loop and to start building the sales history that the
  * credit story depends on.
  */
-import { run, ORDER_STORE } from './db'
+import { collection, ORDER_STORE } from './store'
 import { translate } from './gemini'
 import { isOnline } from './queue'
 import type { Order, OrderStatus, LangCode } from '../types'
 
+/** Status is the only field a screen redraws for. */
+const orders = collection<Order>(ORDER_STORE, o => `${o.id}:${o.status}`)
+
 export async function listOrders(productId?: string): Promise<Order[]> {
-  const all = await run<Order[]>('readonly', s => s.getAll(), ORDER_STORE)
+  const all = await orders.list()
   return all
     .filter(o => !productId || o.productId === productId)
     .sort((a, b) => b.createdAt - a.createdAt)
@@ -24,11 +27,16 @@ export async function pendingOrders(): Promise<Order[]> {
 }
 
 export async function getOrder(id: string): Promise<Order | undefined> {
-  return run<Order | undefined>('readonly', s => s.get(id), ORDER_STORE)
+  return orders.get(id)
+}
+
+/** Watch every order. Returns an unsubscribe. */
+export function subscribeOrders(cb: (items: Order[]) => void): () => void {
+  return orders.subscribe(items => cb([...items].sort((a, b) => b.createdAt - a.createdAt)))
 }
 
 async function put(o: Order): Promise<Order> {
-  await run('readwrite', s => s.put(o), ORDER_STORE)
+  await orders.put(o)
   return o
 }
 

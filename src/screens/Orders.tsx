@@ -11,7 +11,7 @@ import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import PriceInNotes from '../components/PriceInNotes'
 import Thread, { type Bead } from '../components/Thread'
-import { listOrders, setStatus } from '../services/orders'
+import { listOrders, setStatus, subscribeOrders } from '../services/orders'
 import { listProducts } from '../services/db'
 import { speak } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
@@ -31,22 +31,18 @@ export default function Orders() {
     return os
   }
 
-  useEffect(() => {
-    let alive = true
-    const tick = async () => {
-      const os = await refresh()
-      if (!alive) return
-      // Say a new order out loud, once. She will not read a badge.
-      const fresh = os.find(o => o.status === 'placed' && !announced.current.has(o.id))
-      if (fresh) {
-        announced.current.add(fresh.id)
-        speak(sentence(fresh), asrCode(lang))
-      }
+  useEffect(() => subscribeOrders(async os => {
+    setOrders(os)
+    const ps = await listProducts()
+    setProducts(Object.fromEntries(ps.map(p => [p.id, p])))
+
+    // Say a new order out loud, once. She will not read a badge.
+    const fresh = os.find(o => o.status === 'placed' && !announced.current.has(o.id))
+    if (fresh) {
+      announced.current.add(fresh.id)
+      speak(sentence(fresh), asrCode(lang))
     }
-    tick()
-    const timer = setInterval(tick, 2500)
-    return () => { alive = false; clearInterval(timer) }
-  }, [lang])
+  }), [lang])
 
   async function answer(id: string, status: OrderStatus) {
     await setStatus(id, status)

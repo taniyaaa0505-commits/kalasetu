@@ -9,19 +9,15 @@
  */
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listProducts } from '../services/db'
+import { subscribeProducts } from '../services/db'
 import type { Product } from '../types'
 
 export default function Buyer() {
   const nav = useNavigate()
   const [items, setItems] = useState<Product[]>([])
 
-  useEffect(() => {
-    const load = () => listProducts().then(all => setItems(all.filter(p => p.status === 'published')))
-    load()
-    const timer = setInterval(load, 1500)   // poll for now; Firestore replaces this
-    return () => clearInterval(timer)
-  }, [])
+  // A live subscription, so a listing appears here the instant she publishes.
+  useEffect(() => subscribeProducts(all => setItems(all.filter(p => p.status === 'published'))), [])
 
   return (
     <div className="min-h-full bg-white">

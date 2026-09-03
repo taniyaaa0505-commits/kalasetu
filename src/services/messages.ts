@@ -6,13 +6,16 @@
  * message is stored in both languages and each side is only ever shown
  * the one it can understand.
  */
-import { run, MSG_STORE } from './db'
+import { collection, MSG_STORE } from './store'
 import { translate } from './gemini'
 import { isOnline } from './queue'
 import type { Message, LangCode } from '../types'
 
+/** A message redraws when it arrives, or when its translation lands. */
+const messages = collection<Message>(MSG_STORE, m => `${m.id}:${m.untranslated ? 0 : 1}`)
+
 export async function listMessages(productId: string): Promise<Message[]> {
-  const all = await run<Message[]>('readonly', s => s.getAll(), MSG_STORE)
+  const all = await messages.list()
   return all
     .filter(m => m.productId === productId)
     .sort((a, b) => a.createdAt - b.createdAt)
@@ -23,15 +26,22 @@ export async function countMessages(productId: string): Promise<number> {
 }
 
 async function put(m: Message): Promise<Message> {
-  await run('readwrite', s => s.put(m), MSG_STORE)
+  await messages.put(m)
   return m
+}
+
+/** Watch one product's conversation. Returns an unsubscribe. */
+export function subscribeMessages(productId: string, cb: (items: Message[]) => void): () => void {
+  return messages.subscribe(all => cb(
+    all.filter(m => m.productId === productId).sort((a, b) => a.createdAt - b.createdAt),
+  ))
 }
 
 /** Every message on a product. Used when the product itself is removed —
  *  a conversation about something that no longer exists is just litter. */
 export async function deleteMessagesFor(productId: string): Promise<number> {
   const msgs = await listMessages(productId)
-  for (const m of msgs) await run('readwrite', s => s.delete(m.id), MSG_STORE)
+  for (const m of msgs) await messages.remove(m.id)
   return msgs.length
 }
 

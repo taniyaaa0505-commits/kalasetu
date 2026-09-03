@@ -41,7 +41,10 @@ src/
     listen.ts     speech-to-text          ✅ works (Chrome/Android)
     i18n.ts       all user-facing strings ⚠️  Hindi + English only
   services/     anything that talks to the outside world
-    db.ts         products                ✅ works (IndexedDB)
+    idb.ts        raw IndexedDB plumbing  ✅
+    store/        picks a backend         ✅ local (IndexedDB) or cloud (Firestore)
+    firebase.ts   cloud config            ⚠️  needs .env to switch on
+    db.ts         products                ✅ works
     pricing.ts    fair-price engine       ✅ floor works, band is fake
     gemini.ts     the AI brain            ⚠️  works, but needs a key
     bgRemove.ts   cut out the background  ❌ stub — returns the original
@@ -179,6 +182,43 @@ pixel-for-pixel. Ours never can: the original is whatever shape her camera gave
 us, the cleaned one is a square auto-cropped to the product's bounding box. The
 subject jumps between them, so it read as a glitch. It is now hero + inset,
 tap to swap.
+
+## Storage — one API, two backends
+
+`services/store` decides once, at startup, from whether Firebase is configured:
+
+| | With Firebase config | Without |
+|---|---|---|
+| Where data lives | Firestore | IndexedDB on the device |
+| Updates | live `onSnapshot` | polled every 1.5s |
+| Cross-device | **yes** | no — one device only |
+
+**Domain code never asks which one it got.** `db.ts`, `orders.ts` and
+`messages.ts` are thin layers over a `Collection<T>` with five operations. The
+screens call `subscribeProducts` / `subscribeOrders` / `subscribeMessages` and
+run no timers of their own, so they get realtime the moment config lands
+without a line changing.
+
+To switch it on, fill the `VITE_FIREBASE_*` block in `.env` from
+console.firebase.google.com → your project → add a Web app. Leave it blank and
+the app works exactly as before, on-device.
+
+Two things to know:
+
+- **`tools/store.test.mjs` guards the change-detection.** The polling backend
+  only wakes a screen when fields the screen actually shows have changed —
+  otherwise a list of photos re-renders twice a second forever. That test also
+  caught a real bug: an empty collection has an empty signature, so subscribing
+  to an empty store never fired the callback at all.
+- **Photos travel inside the product document**, about half a megabyte of data
+  URL. Firestore's limit is 1 MB, so it fits, but every read pulls the photos
+  down again. Moving images to Cloudinary and storing URLs is the proper fix.
+  `cloud.ts` warns above 800 KB.
+
+Still open: **no per-artisan accounts.** Everything is one shared shop that
+everyone can see. That is the deferred-identity design we chose, and it is fine
+for a prototype — say so plainly rather than implying otherwise. Firestore
+rules are prototype rules, not production ones.
 
 ## Removing a product
 

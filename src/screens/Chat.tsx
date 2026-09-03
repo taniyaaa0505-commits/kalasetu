@@ -10,7 +10,7 @@ import { useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import { getProduct } from '../services/db'
-import { listMessages, sendMessage, translatePending } from '../services/messages'
+import { listMessages, sendMessage, translatePending, subscribeMessages } from '../services/messages'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
@@ -33,10 +33,7 @@ export default function Chat() {
   // Poll rather than push: the buyer may be typing in another tab, and on
   // one device that is exactly how the demo runs. Firestore replaces this.
   useEffect(() => {
-    let alive = true
-    const tick = async () => {
-      const list = await listMessages(id)
-      if (!alive) return
+    const off = subscribeMessages(id, list => {
       setMsgs(list)
 
       // Read any new buyer message aloud, once. She cannot read it.
@@ -46,10 +43,8 @@ export default function Chat() {
         if (!latest.untranslated) speak(latest.local, asrCode(productLang))
       }
       if (list.some(m => m.untranslated)) translatePending(id)
-    }
-    tick()
-    const timer = setInterval(tick, 1500)
-    return () => { alive = false; clearInterval(timer); recRef.current?.stop(); stopSpeaking() }
+    })
+    return () => { off(); recRef.current?.stop(); stopSpeaking() }
   }, [id, productLang])
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])

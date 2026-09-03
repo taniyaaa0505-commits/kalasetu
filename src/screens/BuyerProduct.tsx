@@ -7,8 +7,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../services/db'
-import { listMessages, sendMessage, translatePending } from '../services/messages'
-import { listOrders, placeOrder, setStatus } from '../services/orders'
+import { listMessages, sendMessage, translatePending, subscribeMessages } from '../services/messages'
+import { listOrders, placeOrder, setStatus, subscribeOrders } from '../services/orders'
 import PriceInNotes from '../components/PriceInNotes'
 import type { Message, Order, Product } from '../types'
 
@@ -30,16 +30,12 @@ export default function BuyerProduct() {
   useEffect(() => { getProduct(id).then(setP) }, [id])
 
   useEffect(() => {
-    let alive = true
-    const tick = async () => {
-      const [list, os] = await Promise.all([listMessages(id), listOrders(id)])
-      if (!alive) return
-      setMsgs(list); setOrders(os)
+    const offMsgs = subscribeMessages(id, list => {
+      setMsgs(list)
       if (list.some(m => m.untranslated)) translatePending(id)
-    }
-    tick()
-    const timer = setInterval(tick, 1500)
-    return () => { alive = false; clearInterval(timer) }
+    })
+    const offOrders = subscribeOrders(all => setOrders(all.filter(o => o.productId === id)))
+    return () => { offMsgs(); offOrders() }
   }, [id])
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])
