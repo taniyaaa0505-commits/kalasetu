@@ -180,6 +180,23 @@ us, the cleaned one is a square auto-cropped to the product's bounding box. The
 subject jumps between them, so it read as a glitch. It is now hero + inset,
 tap to swap.
 
+## The app icon
+
+Two layers on purpose, and the reason is a mistake worth not repeating.
+
+The first icon drew the kolam the same way the publish animation does — thin
+outlines. It was an **unreadable smudge at 16px**, which is the size that
+actually matters, because that is the browser tab.
+
+So `tools/make-icons.mjs` builds it as:
+
+- a **solid six-petal silhouette**, which is all you see at 16px
+- **gold pulli and a fine ring**, which only resolve at 192px and above
+
+The SVG favicon is the silhouette alone. The large PNGs get the detail. If you
+redraw this, check it at 16px before anything else — outlines die there, filled
+shapes survive.
+
 ## The PWA
 
 `vite-plugin-pwa`, `autoUpdate`, `display: standalone`. Installs to the home
