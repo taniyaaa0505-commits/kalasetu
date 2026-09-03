@@ -180,6 +180,26 @@ us, the cleaned one is a square auto-cropped to the product's bounding box. The
 subject jumps between them, so it read as a glitch. It is now hero + inset,
 tap to swap.
 
+## The first-run tour
+
+`/tour`. Shown automatically the first time the app opens, and reachable any
+time from the 🎓 button on Home. `lib/tour.ts` remembers that she has seen it.
+
+Ten steps, each of which **speaks itself the moment it appears**. Four of them
+are hands-on — she presses the real camera, microphone, tap-to-hear and publish
+buttons — because watching is not learning and her hands should know the flow
+before anything is at stake.
+
+**It touches no hardware, no network and no data.** The photos are drawn
+(`tools/make-demo-images.mjs`), the transcript is scripted, the price is fixed.
+That is deliberate: it has to run on a stranger's phone in a hall with bad wifi,
+which is exactly when a demo matters most. `tools/tour.test.mjs` asserts this —
+it fails if anyone adds `getUserMedia`, `fetch`, `listen` or `saveProduct` to
+that screen.
+
+It reuses the real `PriceScale`, `PriceInNotes`, `Kolam` and `Thread`, so what
+she learns is what she later meets rather than a lookalike.
+
 ## The app icon
 
 Two layers on purpose, and the reason is a mistake worth not repeating.

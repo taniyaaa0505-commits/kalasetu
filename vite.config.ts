@@ -33,7 +33,7 @@ export default defineConfig({
 
       workbox: {
         // The app shell — small, and precached so it opens with no signal.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2}'],   // jpg = the tour's demo photos
 
         // The ONNX runtime is 23 MB. Precaching it would make installing the
         // app a punishing download on a metered connection, so it is fetched

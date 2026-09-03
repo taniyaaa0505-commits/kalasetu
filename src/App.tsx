@@ -9,6 +9,7 @@ import Buyer from './screens/Buyer'
 import BuyerProduct from './screens/BuyerProduct'
 import Chat from './screens/Chat'
 import Orders from './screens/Orders'
+import Tour from './screens/Tour'
 import StorageError from './components/StorageError'
 
 /**
@@ -26,6 +27,7 @@ export default function App() {
       <StorageError />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/tour"          element={<Tour />} />
         <Route path="/p/:id/capture" element={<Capture />} />
         <Route path="/p/:id/speak"   element={<SpeakScreen />} />
         <Route path="/p/:id/review"  element={<Review />} />

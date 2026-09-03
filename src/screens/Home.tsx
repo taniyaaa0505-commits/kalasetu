@@ -6,6 +6,7 @@ import { listProducts, saveProduct, newId } from '../services/db'
 import { listMessages } from '../services/messages'
 import { pendingOrders } from '../services/orders'
 import { speak } from '../lib/speak'
+import { tourSeen } from '../lib/tour'
 import { asrCode } from '../types'
 import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
 import type { Product } from '../types'
@@ -18,6 +19,11 @@ export default function Home() {
   const [msgCounts, setMsgCounts] = useState<Record<string, number>>({})
   const [waiting, setWaiting] = useState(0)
   const announced = useRef(false)
+
+  // First time she opens the app, show her how it works before anything else.
+  useEffect(() => {
+    if (!tourSeen()) nav('/tour', { replace: true })
+  }, [nav])
 
   useEffect(() => {
     // Poll so a buyer's message shows up without her doing anything.
@@ -122,7 +128,16 @@ export default function Home() {
         </ul>
       )}
 
-      <button onClick={() => nav('/orders')} className="mt-6 w-full text-sm text-indigo underline">
+      <button
+        onClick={() => nav('/tour')}
+        className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-line
+                   bg-surface py-3 text-base font-medium active:bg-wash"
+      >
+        <span aria-hidden className="text-xl">🎓</span>
+        <span>{t('learnHow')}</span>
+      </button>
+
+      <button onClick={() => nav('/orders')} className="mt-4 w-full text-sm text-indigo underline">
         📦 {t('orders')} →
       </button>
 
