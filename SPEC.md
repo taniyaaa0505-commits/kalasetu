@@ -180,6 +180,32 @@ us, the cleaned one is a square auto-cropped to the product's bounding box. The
 subject jumps between them, so it read as a glitch. It is now hero + inset,
 tap to swap.
 
+## Removing a product
+
+`services/products.ts` owns this, not `db.ts` — `db.ts` knows how to delete a
+row, but only this layer knows what deleting a product *means*.
+
+Two rules:
+
+1. **A product with a live order cannot be removed.** An accepted order is a
+   promise to a buyer, and a delivered one is the sales history the credit
+   story depends on. Only a *declined* order stops blocking. She is told why,
+   out loud, rather than the button silently doing nothing.
+2. **Messages go with the product.** A conversation about a listing that no
+   longer exists is unreadable on both sides.
+
+The safety is the spoken confirmation, not a hidden button. Hiding a
+destructive action from someone who cannot read does not protect her — it means
+she can trigger it without understanding what she did. So the bin is plainly
+visible, the sheet says aloud what is about to happen, shows the photo, and
+puts the safe answer first.
+
+`tools/remove.test.mjs` covers seven cases and fails if removal could ever
+leave an orphaned order or message behind.
+
+Still open: **unlisting is not deleting.** When a real product sells out she
+wants it hidden from buyers, not erased. Do not conflate the two.
+
 ## The first-run tour
 
 `/tour`. Shown automatically the first time the app opens, and reachable any

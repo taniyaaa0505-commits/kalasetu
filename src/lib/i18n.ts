@@ -125,6 +125,15 @@ const hi = {
   demoTranscript: 'यह मिट्टी का घड़ा है, हाथ से बनाया है, पानी ठंडा रहता है',
   demoTitle: 'हाथ से बना मिट्टी का घड़ा',
   demoDesc: 'हाथ से बना मिट्टी का घड़ा, जिसमें पानी प्राकृतिक रूप से ठंडा रहता है।',
+
+  remove: 'हटाइए',
+  removeAsk: 'क्या सच में हटाना है?',
+  removeYes: 'हाँ, हटा दीजिए',
+  removeNo: 'नहीं, रहने दीजिए',
+  removed: 'हटा दिया',
+  cannotRemove: 'यह नहीं हट सकता',
+  cannotRemoveOrders: 'इसका ऑर्डर आया हुआ है। पहले ऑर्डर पूरा कीजिए।',
+  understood: 'ठीक है',
 }
 
 const en: typeof hi = {
@@ -242,6 +251,15 @@ const en: typeof hi = {
   demoTranscript: 'This is a clay pot, made by hand, it keeps water cool',
   demoTitle: 'Handmade clay water pot',
   demoDesc: 'A handmade clay pot that keeps water naturally cool.',
+
+  remove: 'Remove',
+  removeAsk: 'Really remove this?',
+  removeYes: 'Yes, remove it',
+  removeNo: 'No, keep it',
+  removed: 'Removed',
+  cannotRemove: 'This cannot be removed',
+  cannotRemoveOrders: 'It has an order. Finish the order first.',
+  understood: 'All right',
 }
 
 export type StringKey = keyof typeof hi

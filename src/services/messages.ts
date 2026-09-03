@@ -27,6 +27,14 @@ async function put(m: Message): Promise<Message> {
   return m
 }
 
+/** Every message on a product. Used when the product itself is removed —
+ *  a conversation about something that no longer exists is just litter. */
+export async function deleteMessagesFor(productId: string): Promise<number> {
+  const msgs = await listMessages(productId)
+  for (const m of msgs) await run('readwrite', s => s.delete(m.id), MSG_STORE)
+  return msgs.length
+}
+
 function newId() {
   return `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }

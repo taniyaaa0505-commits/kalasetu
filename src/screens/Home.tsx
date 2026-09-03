@@ -7,6 +7,7 @@ import { listMessages } from '../services/messages'
 import { pendingOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import { tourSeen } from '../lib/tour'
+import ConfirmRemove from '../components/ConfirmRemove'
 import { asrCode } from '../types'
 import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
 import type { Product } from '../types'
@@ -19,6 +20,7 @@ export default function Home() {
   const [msgCounts, setMsgCounts] = useState<Record<string, number>>({})
   const [waiting, setWaiting] = useState(0)
   const announced = useRef(false)
+  const [removing, setRemoving] = useState<Product | null>(null)
 
   // First time she opens the app, show her how it works before anything else.
   useEffect(() => {
@@ -110,6 +112,13 @@ export default function Home() {
                 </div>
               </button>
 
+              <button
+                onClick={() => setRemoving(p)}
+                aria-label={`${t('remove')} — ${p.listing?.titleHi ?? t('untitled')}`}
+                className="flex h-[76px] w-[52px] shrink-0 items-center justify-center rounded-xl
+                           border border-line bg-surface text-xl active:bg-wash"
+              >🗑</button>
+
               {/* A buyer is talking to her. This has to be impossible to miss. */}
               {msgCounts[p.id] > 0 && (
                 <button
@@ -126,6 +135,17 @@ export default function Home() {
             </li>
           ))}
         </ul>
+      )}
+
+      {removing && (
+        <ConfirmRemove
+          product={removing}
+          onClose={() => setRemoving(null)}
+          onRemoved={async () => {
+            setRemoving(null)
+            setProducts(await listProducts())
+          }}
+        />
       )}
 
       <button
