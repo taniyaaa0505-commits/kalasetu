@@ -18,6 +18,8 @@ export default function SpeakScreen() {
   const lang = useLang()          // app-wide, so it survives across screens
   const [text, setText] = useState('')
   const [recording, setRecording] = useState(false)
+  const [speaking, setSpeaking] = useState(false)
+  const [pulse, setPulse] = useState(0)   // bumps on each new chunk of speech
   const [error, setError] = useState<string>()
   const recRef = useRef<Recogniser | null>(null)
 
@@ -34,19 +36,21 @@ export default function SpeakScreen() {
     setText('')
     setError(undefined)
     setRecording(true)
+    setSpeaking(false)
 
     recRef.current = listen(asrCode(lang), {
-      onPartial: setText,
+      onPartial: t => { setText(t); setPulse(p => p + 1) },
+      onSpeaking: setSpeaking,
       onFinal: final => {
         if (final) setText(final)
         else { setError(t('nothingHeard')); speak(t('nothingHeard'), asrCode(lang)) }
       },
-      onError: e => { setError(e); setRecording(false) },
-      onEnd: () => setRecording(false),
+      onError: e => { setError(e); setRecording(false); setSpeaking(false) },
+      onEnd: () => { setRecording(false); setSpeaking(false) },
     })
   }
 
-  function stop() { recRef.current?.stop(); setRecording(false) }
+  function stop() { recRef.current?.stop(); setRecording(false); setSpeaking(false) }
 
   /** She cannot read the transcript, so this is the only way she can check it. */
   function playBack() { speak(text, asrCode(lang)) }
@@ -81,6 +85,8 @@ export default function SpeakScreen() {
           transcript, so this is her only proof the phone is hearing her. */}
       <MicRing
         recording={recording}
+        speaking={speaking}
+        pulse={pulse}
         icon={recording ? '⏹' : hasText ? '🔄' : '🎤'}
         label={recording ? t('stopSpeaking') : hasText ? t('sayAgain') : t('speakNow')}
         onClick={() => (recording ? stop() : start())}

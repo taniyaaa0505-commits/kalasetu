@@ -43,3 +43,29 @@ button, a[role="button"] { min-height: 56px; }
 
 /* Keyboard focus must stay visible — accessibility is the whole point. */
 :focus-visible { outline: 3px solid var(--color-indigo-2); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------
+   On a desktop screen the app is a 480px column, which would
+   otherwise float in a sea of white and read as broken. Give it a
+   ground and an edge so it reads as a phone held up deliberately —
+   which is also how it gets demoed on a projector.
+---------------------------------------------------------------- */
+@media (min-width: 620px) {
+  body {
+    background:
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-indigo) 8%, transparent), transparent 60%),
+      var(--color-surface-2, #EFEDE6);
+  }
+  #root > div {
+    min-height: 100dvh;
+    box-shadow: 0 0 0 1px var(--color-line), 0 24px 60px -30px rgba(21, 23, 31, .45);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  @media (min-width: 620px) {
+    body { background:
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-indigo) 14%, transparent), transparent 60%),
+      #0A0C10; }
+  }
+}

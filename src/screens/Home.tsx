@@ -8,7 +8,6 @@ import { pendingOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import { asrCode } from '../types'
 import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
-import LanguagePicker from '../components/LanguagePicker'
 import type { Product } from '../types'
 
 export default function Home() {
@@ -122,13 +121,6 @@ export default function Home() {
           ))}
         </ul>
       )}
-
-      <section className="mt-8 border-t border-line pt-5">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-3">
-          {t('language')}
-        </h2>
-        <LanguagePicker compact />
-      </section>
 
       <button onClick={() => nav('/orders')} className="mt-6 w-full text-sm text-indigo underline">
         📦 {t('orders')} →

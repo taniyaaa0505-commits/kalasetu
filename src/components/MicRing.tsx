@@ -1,68 +1,65 @@
 /**
- * The microphone button, with a ring that moves to her actual voice.
+ * The microphone button, with rings that move while she is talking.
  *
- * This is the one piece of decoration in the app that is doing real work: a
- * person who cannot read the transcript has no other way to tell whether the
- * phone is hearing her. The ring answers that question without a word.
+ * Driven ENTIRELY by the recogniser's own speech events. An earlier version
+ * opened a second microphone stream to measure loudness — it fought with
+ * recognition for the device and popped a second permission prompt in the
+ * middle of recording. Never reintroduce that.
  *
- * If the meter is unavailable it falls back to a slow breathing pulse, so the
- * button never looks dead.
+ * Reacting to recognised speech is also the more honest signal: a passing
+ * truck moved the old meter, which told her nothing about whether the phone
+ * had understood her.
  */
 import { useEffect, useRef, useState } from 'react'
-import { meterMic, type MicMeter } from '../lib/micLevel'
 
 export default function MicRing({
-  recording, icon, label, onClick,
+  recording, speaking, pulse, icon, label, onClick,
 }: {
   recording: boolean
+  /** The recogniser can currently hear speech. */
+  speaking: boolean
+  /** Increments each time new words arrive — each bump is a visible ripple. */
+  pulse: number
   icon: string
   label: string
   onClick: () => void
 }) {
   const [level, setLevel] = useState(0)
-  const [metered, setMetered] = useState(false)
-  const meterRef = useRef<MicMeter | null>(null)
+  const lastPulse = useRef(pulse)
 
+  // A ripple on every new chunk of recognised speech.
   useEffect(() => {
-    let cancelled = false
-    if (recording) {
-      meterMic(l => { if (!cancelled) setLevel(l) }).then(m => {
-        if (cancelled) { m?.stop(); return }
-        meterRef.current = m
-        setMetered(m !== null)
-      })
-    }
-    return () => {
-      cancelled = true
-      meterRef.current?.stop()
-      meterRef.current = null
-      setLevel(0); setMetered(false)
-    }
-  }, [recording])
+    if (pulse !== lastPulse.current) { lastPulse.current = pulse; setLevel(1) }
+  }, [pulse])
 
-  const R = 78                                   // button radius in px
-  const rings = [0, 1, 2]                        // three rings, staggered outward
+  // Settle back toward a resting level: raised while she speaks, flat if not.
+  useEffect(() => {
+    if (!recording) { setLevel(0); return }
+    const floor = speaking ? 0.5 : 0.12
+    const id = setInterval(() => {
+      setLevel(l => (l > floor ? Math.max(floor, l - 0.14) : floor))
+    }, 110)
+    return () => clearInterval(id)
+  }, [recording, speaking])
+
+  const R = 78
+  const rings = [0, 1, 2]
 
   return (
     <div className="relative mx-auto mb-5 flex h-[196px] w-[196px] items-center justify-center">
       {recording && rings.map(i => {
-        // Each ring sits a little further out and reacts a little less.
         const reach = 10 + i * 13
         const scale = 1 + (level * reach * (1 - i * 0.18)) / R
         return (
           <span
             key={i}
             aria-hidden
-            className={
-              'pointer-events-none absolute rounded-full border-2 border-danger ' +
-              (metered ? '' : 'animate-ping')
-            }
+            className="pointer-events-none absolute rounded-full border-2 border-danger"
             style={{
               width: R * 2, height: R * 2,
-              transform: metered ? `scale(${scale})` : undefined,
-              opacity: metered ? Math.max(0, 0.5 - i * 0.14) * (0.35 + level) : 0.25 - i * 0.07,
-              transition: metered ? 'transform 90ms linear, opacity 90ms linear' : undefined,
-              animationDelay: metered ? undefined : `${i * 400}ms`,
+              transform: `scale(${scale})`,
+              opacity: Math.max(0, 0.5 - i * 0.14) * (0.35 + level),
+              transition: 'transform 160ms ease-out, opacity 160ms ease-out',
             }}
           />
         )

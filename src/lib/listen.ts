@@ -13,6 +13,16 @@ type SpeechEvents = {
   onFinal?: (text: string) => void     // the finished transcript
   onError?: (message: string) => void
   onEnd?: () => void
+
+  /**
+   * Whether the recogniser can currently hear speech.
+   *
+   * These come free from the recogniser itself. We used to measure loudness by
+   * opening a SECOND microphone stream, which fought with recognition for the
+   * device and popped a second permission prompt in the middle of recording.
+   * Never do that again — the API already tells us what we need.
+   */
+  onSpeaking?: (speaking: boolean) => void
 }
 
 export interface Recogniser { stop: () => void }
@@ -38,6 +48,12 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
 
   let finalText = ''
 
+  // Real signal from the recogniser, no extra microphone access.
+  rec.onspeechstart = () => ev.onSpeaking?.(true)
+  rec.onspeechend   = () => ev.onSpeaking?.(false)
+  rec.onsoundstart  = () => ev.onSpeaking?.(true)
+  rec.onsoundend    = () => ev.onSpeaking?.(false)
+
   rec.onresult = (e: any) => {
     let interim = ''
     for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -47,8 +63,8 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
     }
     ev.onPartial?.((finalText + interim).trim())
   }
-  rec.onerror = (e: any) => ev.onError?.(String(e.error ?? 'unknown error'))
-  rec.onend = () => { ev.onFinal?.(finalText.trim()); ev.onEnd?.() }
+  rec.onerror = (e: any) => { ev.onSpeaking?.(false); ev.onError?.(String(e.error ?? 'unknown error')) }
+  rec.onend = () => { ev.onSpeaking?.(false); ev.onFinal?.(finalText.trim()); ev.onEnd?.() }
 
   rec.start()
   return { stop: () => rec.stop() }

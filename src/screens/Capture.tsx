@@ -75,10 +75,7 @@ export default function Capture() {
       {photo && (
         <div className="flex flex-col gap-4">
           {busy ? (
-            <>
-              <Panel label={t('before')} src={photo} />
-              <Working progress={progress!} />
-            </>
+            <Working progress={progress!} photo={photo} />
           ) : clean ? (
             <>
               {/* One frame, dragged across. Far more convincing than two
@@ -101,41 +98,38 @@ export default function Capture() {
   )
 }
 
-/** What she sees while the model works. The first run downloads ~25 MB once. */
-function Working({ progress }: { progress: Progress }) {
+/** What she sees while the model works.
+ *  Laid OVER the photo, not below it — she used to have to scroll down to
+ *  discover that anything was happening at all. */
+function Working({ progress, photo }: { progress: Progress; photo: string }) {
   const text =
     progress.phase === 'downloading' ? t('firstTimeSetup')
     : progress.phase === 'thinking'  ? t('cleaning')
     : t('composingPhoto')
 
   return (
-    <div className="rounded-xl bg-wash p-6 text-center">
-      <p className="mb-3 text-indigo">{text}</p>
-      {progress.phase === 'downloading' && (
-        <>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white">
-            <div className="h-full bg-indigo transition-all" style={{ width: `${progress.percent}%` }} />
-          </div>
-          <p className="mt-2 text-xs text-ink-3">
-            {progress.percent}% · {t('onlyFirstTime')}
-          </p>
-        </>
-      )}
-    </div>
-  )
-}
+    <div className="relative overflow-hidden rounded-xl border-2 border-indigo">
+      <img src={photo} alt="" className="block w-full opacity-45" />
 
-function Panel({ label, src, highlight }: { label: string; src: string; highlight?: boolean }) {
-  return (
-    <figure className="m-0">
-      <figcaption className={'mb-1 text-xs font-semibold uppercase tracking-widest ' +
-        (highlight ? 'text-indigo' : 'text-ink-3')}>{label}</figcaption>
-      <img
-        src={src} alt=""
-        className={'w-full rounded-xl border-2 object-cover ' +
-          (highlight ? 'border-indigo' : 'border-line')}
-      />
-    </figure>
+      {/* a sweep across the photo, so it reads as being worked on */}
+      <span aria-hidden className="pointer-events-none absolute inset-0 animate-pulse bg-indigo/10" />
+
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-paper/75 px-6 text-center">
+        <span aria-hidden className="text-4xl">✨</span>
+        <p className="text-lg font-semibold text-indigo">{text}</p>
+
+        {progress.phase === 'downloading' && (
+          <div className="w-full max-w-[240px]">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
+              <div className="h-full bg-indigo transition-all" style={{ width: `${progress.percent}%` }} />
+            </div>
+            <p className="mt-2 text-xs text-ink-2">
+              {progress.percent}% · {t('onlyFirstTime')}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
