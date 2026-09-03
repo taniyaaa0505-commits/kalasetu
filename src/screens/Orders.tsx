@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import PriceInNotes from '../components/PriceInNotes'
+import Thread, { type Bead } from '../components/Thread'
 import { listOrders, setStatus } from '../services/orders'
 import { listProducts } from '../services/db'
 import { speak } from '../lib/speak'
@@ -81,6 +82,29 @@ const STATUS_LABEL: Record<OrderStatus, () => string> = {
   delivered: () => t('statusDelivered'),
 }
 
+/** The order's journey as beads on a thread — the same motif as the six
+ *  selling steps, so progress looks the same wherever she meets it.
+ *  A declined order breaks the thread instead of continuing it. */
+function statusBeads(status: OrderStatus): { beads: Bead[]; broken: boolean } {
+  const stages: OrderStatus[] = ['placed', 'accepted', 'shipped', 'delivered']
+  const labels = [t('statusPlaced'), t('statusAccepted'), t('statusShipped'), t('statusDelivered')]
+
+  if (status === 'declined') {
+    return {
+      broken: true,
+      beads: [
+        { label: labels[0], done: true, current: false },
+        { label: t('statusDeclined'), done: true, current: true },
+      ],
+    }
+  }
+  const at = stages.indexOf(status)
+  return {
+    broken: false,
+    beads: stages.map((_, i) => ({ label: labels[i], done: i < at, current: i === at })),
+  }
+}
+
 const STATUS_STYLE: Record<OrderStatus, string> = {
   placed:    'border-indigo bg-wash text-indigo',
   accepted:  'border-good bg-surface text-good',
@@ -111,6 +135,14 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
           <p className="mt-1 truncate font-semibold">{product?.listing?.titleHi ?? product?.listing?.titleEn}</p>
           <p className="text-sm text-ink-2">{o.buyerOrg || o.buyerName}</p>
         </div>
+      </div>
+
+      <div className="mt-4">
+        {(() => {
+          const { beads, broken } = statusBeads(o.status)
+          return <Thread beads={beads} broken={broken} size="lg"
+            ariaLabel={`${STATUS_LABEL[o.status]()}`} />
+        })()}
       </div>
 
       {/* The two numbers she cares about, big. */}

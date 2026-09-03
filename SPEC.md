@@ -147,6 +147,31 @@ gone.
 **When you bump `DB_VERSION`, tell the team.** Everyone with two tabs open
 for the buyer demo will hit this.
 
+## Visual language
+
+One motif, used consistently. Do not add a second.
+
+| Piece | Where | Why it is not just decoration |
+|---|---|---|
+| **Beads on a thread** (`Thread.tsx`) | the six selling steps, and order status | Craft is thread, *setu* is a bridge. She cannot read a step count; a filled bead among empty ones needs no reading |
+| **Mic ring** (`MicRing.tsx`) | Speak, Chat | Moves with her real voice. She cannot read the transcript, so this is her only proof the phone is hearing her |
+| **Before/after wipe** (`BeforeAfter.tsx`) | Capture | Two stacked images make you compare from memory; one frame with a handle does not |
+| **Price scale** (`PriceScale.tsx`) | Price | Shows how floor, market and suggestion *relate*. Below the floor is hatched — that region is a refusal, not a low option |
+| **Kolam** (`Kolam.tsx`) | Publish success | A kolam is drawn at a threshold on a good morning. Her work is now out in the world |
+
+Rules for anything added later:
+
+- No gradients on buttons — contrast dies in sunlight
+- No pattern behind text
+- Nothing may sit between her and the next tap; decoration never delays an action
+- Colour is never the only signal — icon and word too
+- Prefer CSS and inline SVG. Every byte is a ₹7,000 phone on a metered connection
+
+The mic ring opens its **own** microphone stream to measure loudness, separate
+from speech recognition. Every failure there is swallowed, and it falls back to
+a slow pulse — decoration must never take the app down with it. If recognition
+ever misbehaves on a device, `MicRing`'s effect is the first thing to disable.
+
 ## Orders — how the loop closes
 
 The problem statement asks us to "connect directly with larger B2B buyers", so

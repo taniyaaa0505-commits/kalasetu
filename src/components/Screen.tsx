@@ -7,6 +7,7 @@
  */
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Thread from './Thread'
 
 export default function Screen({
   title, step, onBack, action, children,
@@ -47,19 +48,15 @@ export default function Screen({
   )
 }
 
-/** Six dots, one per step of the golden path. Position, not text — she cannot read. */
+/** Six beads on a thread, one per step of the golden path.
+ *  Position, not text — she cannot read a step count. */
 function StepDots({ step }: { step: number }) {
   return (
-    <div className="flex justify-center gap-2 bg-surface pb-3" aria-label={`Step ${step} of 6`}>
-      {[1, 2, 3, 4, 5, 6].map(n => (
-        <span
-          key={n}
-          className={
-            'h-2 rounded-full transition-all ' +
-            (n === step ? 'w-7 bg-indigo' : n < step ? 'w-2 bg-indigo-2' : 'w-2 bg-line')
-          }
-        />
-      ))}
+    <div className="bg-surface pb-3">
+      <Thread
+        ariaLabel={`Step ${step} of 6`}
+        beads={[1, 2, 3, 4, 5, 6].map(n => ({ done: n < step, current: n === step }))}
+      />
     </div>
   )
 }

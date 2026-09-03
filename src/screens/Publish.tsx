@@ -5,6 +5,7 @@ import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
 import { speak } from '../lib/speak'
 import PriceInNotes from '../components/PriceInNotes'
+import Kolam from '../components/Kolam'
 import { t, useLang, prefersEnglish } from '../lib/i18n'
 import type { Product } from '../types'
 
@@ -36,8 +37,10 @@ export default function Publish() {
 
   if (done) return (
     <Screen action={<BigButton icon="🏠" label={t('goHome')} variant="quiet" onClick={() => nav('/')} />}>
-      <div className="flex flex-col items-center gap-4 py-20 text-center">
-        <span className="text-7xl" aria-hidden>✅</span>
+      <div className="flex flex-col items-center gap-4 py-14 text-center">
+        {/* A kolam is drawn at a threshold on a good morning. Her work is
+            now out in the world — that is the right gesture, not confetti. */}
+        <Kolam />
         <p className="text-2xl font-semibold">{t('published')}</p>
         <button onClick={() => nav('/buyer')} className="text-indigo underline">
           {t('buyerViewLink')} →

@@ -13,6 +13,7 @@
   --color-paper:      #FBFAF7;
   --color-surface:    #FFFFFF;
   --color-line:       #E4E2DA;
+  --color-line-2:     #D3D0C6;   /* a firmer edge, for unfilled beads and rules */
 
   --color-indigo:     #2B3A8F;
   --color-indigo-2:   #4C5DC6;

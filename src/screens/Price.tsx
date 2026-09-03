@@ -6,6 +6,7 @@ import { getProduct, patchProduct } from '../services/db'
 import { suggestPrice } from '../services/pricing'
 import { speak } from '../lib/speak'
 import PriceInNotes from '../components/PriceInNotes'
+import PriceScale from '../components/PriceScale'
 import { t } from '../lib/i18n'
 import type { CostInput, PriceSuggestion } from '../types'
 
@@ -42,8 +43,17 @@ export default function Price() {
 
       {price && (
         <div className="mt-6 flex flex-col gap-3">
+          {/* One line instead of three numbers: she sees how the floor, the
+              market and our suggestion relate, rather than holding three
+              separate facts in her head. */}
+          <div className="rounded-2xl border border-line bg-surface p-4">
+            <PriceScale
+              price={price}
+              labels={{ floor: t('yourCost'), market: t('marketRange'), suggested: t('weSuggest') }}
+            />
+          </div>
+
           <Row label={t('yourCost')} value={`₹${price.floor}`} hint={t('dontSellBelow')} />
-          <Row label={t('marketRange')} value={`₹${price.marketLow} – ₹${price.marketHigh}`} />
 
           <button
             onClick={() => speak(`${t('weSuggest')} ${price.suggested} ${t('rupees')}. ${price.reason}`)}

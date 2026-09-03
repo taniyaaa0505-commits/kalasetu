@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
+import BeforeAfter from '../components/BeforeAfter'
 import { getProduct, patchProduct } from '../services/db'
 import { removeBackground, preloadModel, shrink, type Progress } from '../services/bgRemove'
 import { t } from '../lib/i18n'
@@ -73,10 +74,19 @@ export default function Capture() {
 
       {photo && (
         <div className="flex flex-col gap-4">
-          <Panel label={t('before')} src={photo} />
-          {busy ? <Working progress={progress!} /> : clean && (
+          {busy ? (
             <>
-              <Panel label={t('after')} src={clean} highlight />
+              <Panel label={t('before')} src={photo} />
+              <Working progress={progress!} />
+            </>
+          ) : clean ? (
+            <>
+              {/* One frame, dragged across. Far more convincing than two
+                  images stacked, and it demos beautifully. */}
+              <BeforeAfter
+                before={photo} after={clean}
+                beforeLabel={t('before')} afterLabel={t('after')}
+              />
               {usedAI === false && (
                 <p className="rounded-lg bg-gold-wash p-3 text-sm text-gold">
                   Background not removed this time — showing the squared photo instead.
@@ -84,7 +94,7 @@ export default function Capture() {
                 </p>
               )}
             </>
-          )}
+          ) : null}
         </div>
       )}
     </Screen>

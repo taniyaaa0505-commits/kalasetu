@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
+import MicRing from '../components/MicRing'
 import { getProduct, patchProduct } from '../services/db'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
@@ -76,19 +77,14 @@ export default function SpeakScreen() {
         </p>
       )}
 
-      <button
-        onClick={recording ? stop : start}
-        className={
-          'mx-auto mb-5 flex h-40 w-40 min-h-0 flex-col items-center justify-center gap-1 rounded-full ' +
-          'text-white transition-transform active:scale-95 ' +
-          (recording ? 'animate-pulse bg-danger' : 'bg-indigo')
-        }
-      >
-        <span aria-hidden className="text-5xl">{recording ? '⏹' : hasText ? '🔄' : '🎤'}</span>
-        <span className="text-base font-semibold">
-          {recording ? t('stopSpeaking') : hasText ? t('sayAgain') : t('speakNow')}
-        </span>
-      </button>
+      {/* The ring moves with her actual voice. She cannot read the
+          transcript, so this is her only proof the phone is hearing her. */}
+      <MicRing
+        recording={recording}
+        icon={recording ? '⏹' : hasText ? '🔄' : '🎤'}
+        label={recording ? t('stopSpeaking') : hasText ? t('sayAgain') : t('speakNow')}
+        onClick={() => (recording ? stop() : start())}
+      />
 
       {error && <p className="mb-3 text-center text-sm text-danger">{error}</p>}
 
