@@ -94,7 +94,7 @@ export default function Chat() {
       </ul>
 
       {(draft || sending) && (
-        <div className="mt-3 rounded-2xl border-2 border-dashed border-indigo bg-wash p-3 text-lg">
+        <div className="mt-3 rounded-panel border-2 border-dashed border-indigo bg-wash p-3 text-lg">
           {draft || t('sending')}
         </div>
       )}
@@ -111,7 +111,7 @@ function Bubble({ m, lang }: { m: Message; lang: string }) {
         {mine ? t('youSaid') : t('buyerSaid')}
       </p>
       <div className={
-        'rounded-2xl px-4 py-3 text-lg leading-relaxed ' +
+        'rounded-panel px-4 py-3 text-lg leading-relaxed ' +
         (mine ? 'bg-indigo text-white' : 'border border-line bg-surface')
       }>
         {/* She only ever sees her own language, whichever way the message went. */}

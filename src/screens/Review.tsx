@@ -4,6 +4,7 @@ import Screen from '../components/Screen'
 import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
+import Working from '../components/Working'
 import { getProduct, patchProduct } from '../services/db'
 import { generateListing, geminiConfigured } from '../services/gemini'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
@@ -23,6 +24,7 @@ export default function Review() {
   const [listing, setListing] = useState<Listing>()
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState<string>()
+  const [photo, setPhoto] = useState<string>()
 
   // What she has told us since the first draft, and whether the draft on
   // screen already reflects it.
@@ -48,6 +50,7 @@ export default function Review() {
       if (!p) return
       answersRef.current = p.answers ?? []
       setAnswers(p.answers ?? [])
+      setPhoto(p.cleanPhoto ?? p.photo)
       if (p.listing) { setListing(p.listing); setBusy(false); return }
       try {
         const l = await generateListing(
@@ -140,9 +143,8 @@ export default function Review() {
 
   if (busy) return (
     <Screen title={t('preparing')} step={4}>
-      <div className="flex flex-col items-center gap-4 py-24 text-center">
-        <span className="animate-spin text-5xl" aria-hidden>⚙️</span>
-        <p className="text-ink-2">{t('writingListing')}</p>
+      <div className="flex min-h-full flex-col justify-center">
+        <Working title={t('writingListing')} />
       </div>
     </Screen>
   )
@@ -186,13 +188,21 @@ export default function Review() {
 
       {listing && (
         <div className={'flex flex-col gap-5 transition-opacity ' + (rewriting ? 'opacity-50' : '')}>
-          <Field label={t('whatIsIt')}>
-            <Speakable text={mine ? listing.titleEn : listing.titleHi} className="text-lg font-semibold" />
-          </Field>
-
-          <Field label={t('descriptionLabel')}>
-            <Speakable text={mine ? listing.descriptionEn : listing.descriptionHi} className="leading-relaxed" />
-          </Field>
+          {/* Her listing, laid out the way a marketplace lays one out — her
+              photograph first and largest, the words under it. She should be
+              looking at her own work, not at a form the app filled in. */}
+          <article className="overflow-hidden rounded-panel border border-line bg-surface shadow-card">
+            {photo && <img src={photo} alt="" className="block aspect-square w-full object-cover" />}
+            <div className="flex flex-col gap-3 p-4">
+              <span className="flex w-fit items-center gap-1.5 rounded-full bg-wash px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo">
+                <Icon name="ai" className="text-xs" />{t('screenListing')}
+              </span>
+              <Speakable text={mine ? listing.titleEn : listing.titleHi}
+                className="text-xl font-bold leading-tight tracking-tight" />
+              <Speakable text={mine ? listing.descriptionEn : listing.descriptionHi}
+                className="leading-relaxed text-ink-2" />
+            </div>
+          </article>
 
           {/* The other language, for whoever is buying. */}
           <Field label={`${mine ? 'हिंदी' : 'English'} — ${t('forTheBuyer')}`}>
@@ -206,7 +216,7 @@ export default function Review() {
               sure about becomes a question, never a guess — and she can answer
               it out loud, which is the only half of this she can actually do. */}
           {listing.questions.length > 0 && (
-            <div className="rounded-xl border-2 border-gold bg-gold-wash p-4">
+            <div className="rounded-panel border-2 border-gold bg-gold-wash p-4 shadow-rest">
               <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gold">
                 {t('tellUsMore')}
               </p>
@@ -289,7 +299,7 @@ function Question({
       {recording
         ? <p className="mt-2 text-ink-2">{partial || t('answering')}</p>
         : answer
-          ? <div className="mt-2 rounded-lg bg-surface p-3">
+          ? <div className="mt-2 rounded-card border border-line bg-surface p-3">
               <Speakable text={answer} className="leading-relaxed" />
             </div>
           : null}
@@ -316,8 +326,8 @@ function MicButton({
       disabled={disabled}
       className={
         'flex w-full items-center justify-center gap-2 rounded-xl px-4 text-base font-semibold ' +
-        'min-h-[56px] transition-colors disabled:opacity-40 ' +
-        (recording ? 'bg-danger text-white' : 'border-2 border-indigo bg-surface text-indigo active:bg-wash')
+        'min-h-[56px] disabled:opacity-40 press ' +
+        (recording ? 'bg-danger text-white shadow-card' : 'border-2 border-indigo bg-surface text-indigo shadow-rest active:bg-wash')
       }
     >
       <span aria-hidden className="text-xl">{recording ? '⏹' : '🎤'}</span>
@@ -330,7 +340,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <section>
       <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-3">{label}</h2>
-      <div className="rounded-xl border border-line bg-surface p-4">{children}</div>
+      <div className="rounded-card border border-line bg-surface p-4 shadow-rest">{children}</div>
     </section>
   )
 }

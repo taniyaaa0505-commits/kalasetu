@@ -49,10 +49,10 @@ export default function ConfirmRemove({ product, onClose, onRemoved }: {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 px-3 pb-3"
          role="dialog" aria-modal="true">
-      <div className="w-full max-w-[456px] rounded-2xl border-2 border-line bg-surface p-5">
+      <div className="w-full max-w-[456px] rounded-panel border border-line bg-surface p-5 shadow-lift">
         <div className="mb-4 flex items-center gap-3">
           {product.cleanPhoto && (
-            <img src={product.cleanPhoto} alt="" className="h-16 w-16 rounded-lg object-cover" />
+            <img src={product.cleanPhoto} alt="" className="h-16 w-16 rounded-card object-cover" />
           )}
           <p className="min-w-0 flex-1 truncate text-lg font-semibold">{name}</p>
         </div>

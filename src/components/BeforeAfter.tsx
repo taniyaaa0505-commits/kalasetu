@@ -31,7 +31,7 @@ export default function BeforeAfter({
     <button
       onClick={() => setSwapped(s => !s)}
       aria-label={`${heroLabel} — ${insetLabel}`}
-      className="relative block w-full select-none overflow-hidden rounded-xl border-2 border-indigo
+      className="relative block w-full select-none overflow-hidden rounded-card border-2 border-indigo
                  text-left active:opacity-95"
     >
       <img src={hero} alt="" className="block w-full" draggable={false} />

@@ -14,13 +14,13 @@ import { asrCode } from '../types'
 type Variant = 'primary' | 'quiet' | 'good' | 'danger'
 
 const STYLES: Record<Variant, string> = {
-  primary: 'bg-indigo text-white active:bg-indigo-2',
-  quiet:   'bg-surface text-ink border-2 border-line active:bg-wash',
-  good:    'bg-good text-white active:opacity-90',
+  primary: 'bg-indigo text-white shadow-card active:bg-indigo-2',
+  quiet:   'bg-surface text-ink border-2 border-line active:bg-surface-2',
+  good:    'bg-good text-white shadow-card active:opacity-90',
   // The only irreversible thing in the app. It was indigo, the same as "next",
   // which meant the button that deletes her work looked like the button she
   // presses on every other screen to continue.
-  danger:  'bg-danger text-white active:opacity-90',
+  danger:  'bg-danger text-white shadow-card active:opacity-90',
 }
 
 export default function BigButton({
@@ -46,8 +46,8 @@ export default function BigButton({
       disabled={disabled}
       onClick={() => { if (speakOnTap) speak(label, lang ?? asrCode(current)); onClick?.() }}
       className={
-        'flex w-full items-center justify-center rounded-2xl px-5 font-semibold ' +
-        'transition-colors disabled:opacity-40 ' +
+        'press flex w-full items-center justify-center rounded-2xl px-5 font-semibold ' +
+        'disabled:opacity-40 disabled:shadow-none ' +
         (size === 'lg' ? 'min-h-[86px] gap-4 text-2xl ' : 'min-h-[64px] gap-3 text-xl ') +
         STYLES[variant]
       }

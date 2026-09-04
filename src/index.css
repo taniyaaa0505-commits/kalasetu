@@ -1,29 +1,57 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------
-   KalaSetu design tokens.
-   Same identity as the team brief: indigo (the dye) + marigold.
-   Everything in the app pulls from these — never hardcode a colour
-   in a component.
+   Pehchaan design tokens.
+
+   Every colour here is sampled from the logo, not invented: the deep
+   navy of the letterform, the terracotta of the pot, the mustard of
+   the textile, the sage of the leaf, and the cream it all sits on.
+   That is why the app and its mark look like one thing.
+
+   Never hardcode a colour in a component. If you need a new one, add
+   it here and say what it is for.
 ---------------------------------------------------------------- */
 @theme {
-  --color-ink:        #15171F;
-  --color-ink-2:      #4A5064;
-  --color-ink-3:      #787E92;
-  --color-paper:      #FBFAF7;
+  /* Ink — warm near-black, never blue-black. It sits on cream. */
+  --color-ink:        #1D1913;
+  --color-ink-2:      #57503F;
+  --color-ink-3:      #8B8371;
+
+  /* Ground */
+  --color-paper:      #FBF6EE;   /* the logo's own cream */
   --color-surface:    #FFFFFF;
-  --color-line:       #E4E2DA;
-  --color-line-2:     #D3D0C6;   /* a firmer edge, for unfilled beads and rules */
+  --color-surface-2:  #F6F0E5;   /* a second, warmer plane for insets */
+  --color-line:       #E9E0D0;
+  --color-line-2:     #D8CBB4;
 
-  --color-indigo:     #2B3A8F;
-  --color-indigo-2:   #4C5DC6;
-  --color-wash:       #EDEFF9;
+  /* Primary — the navy of the letterform. Actions, focus, structure. */
+  --color-indigo:     #1B2740;
+  --color-indigo-2:   #34456B;
+  --color-wash:       #EDEFF5;
 
-  --color-gold:       #9C6606;
-  --color-gold-wash:  #FAF1DE;
+  /* Terracotta — the craft accent. Her work, never our chrome. */
+  --color-clay:       #B04A24;
+  --color-clay-wash:  #FBEDE4;
 
-  --color-good:       #1F7A4D;
-  --color-danger:     #A32222;
+  /* Mustard — money, warnings, the things to look at twice. */
+  --color-gold:       #92620E;
+  --color-gold-wash:  #FBF1DC;
+
+  /* Sage — quiet confirmation, growth, the leaf in the mark. */
+  --color-sage:       #4B5D39;
+  --color-sage-wash:  #EDF1E5;
+
+  --color-good:       #2A6B45;
+  --color-danger:     #A3311F;
+
+  /* Corners. One scale, so nothing is arbitrary. */
+  --radius-card:      1rem;
+  --radius-panel:     1.25rem;
+
+  /* Elevation. Warm shadows — a cool grey shadow on cream looks dirty. */
+  --shadow-rest:  0 1px 2px rgba(58, 44, 26, .05);
+  --shadow-card:  0 2px 4px rgba(58, 44, 26, .05), 0 8px 20px -12px rgba(58, 44, 26, .22);
+  --shadow-lift:  0 4px 8px rgba(58, 44, 26, .07), 0 18px 40px -20px rgba(58, 44, 26, .30);
 }
 
 html, body, #root { height: 100%; }
@@ -31,18 +59,72 @@ html, body, #root { height: 100%; }
 body {
   background: var(--color-paper);
   color: var(--color-ink);
+  /* No webfont, deliberately. A Latin display face would not cover
+     Devanagari, Bengali or Tamil, so five of our six languages would fall
+     back anyway — and it is another download on a metered connection for
+     an app that has to work offline. The hierarchy below does the work. */
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
 }
 
-/* Low-literacy rule: nothing in this app is ever smaller than 15px,
-   and every tappable thing is at least 56px tall. Enforced here so
-   nobody has to remember it. */
+/* Low-literacy rule: nothing in this app is ever smaller than 13px, and
+   every tappable thing is at least 56px tall. Enforced here so nobody has
+   to remember it. */
 button, a[role="button"] { min-height: 56px; }
+.text-xs { font-size: .8125rem; }
 
 /* Keyboard focus must stay visible — accessibility is the whole point. */
 :focus-visible { outline: 3px solid var(--color-indigo-2); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------
+   Craft texture.
+
+   A woven grid at almost nothing, for the few surfaces that should
+   feel like cloth rather than paper. Two repeating gradients, no
+   image, no request. Used on the header and on hero panels only —
+   put it everywhere and it stops meaning anything.
+---------------------------------------------------------------- */
+.weave {
+  background-image:
+    repeating-linear-gradient(45deg,
+      color-mix(in srgb, var(--color-line-2) 15%, transparent) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(-45deg,
+      color-mix(in srgb, var(--color-line-2) 10%, transparent) 0 1px, transparent 1px 13px);
+}
+
+/* ---------------------------------------------------------------
+   Motion.
+
+   Small and purposeful: things arrive, they do not perform. Every
+   animation here is under 400ms and none of them loop except the ones
+   that mean "still working".
+---------------------------------------------------------------- */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheen { from { transform: translateX(-110%); } to { transform: translateX(210%); } }
+@keyframes breathe { 0%, 100% { opacity: .45; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
+
+.rise  { animation: rise .38s cubic-bezier(.2,.7,.3,1) both; }
+.fade  { animation: fade .3s ease-out both; }
+.sheen { animation: sheen 1.5s cubic-bezier(.4,0,.2,1) infinite; }
+.breathe { animation: breathe 1.6s ease-in-out infinite; }
+
+/* Stagger for a list that arrives together. */
+.rise-1 { animation-delay: .04s }
+.rise-2 { animation-delay: .08s }
+.rise-3 { animation-delay: .12s }
+.rise-4 { animation-delay: .16s }
+
+/* A pressed control should feel pressed. */
+.press { transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease; }
+.press:active { transform: scale(.982); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .fade, .sheen, .breathe, .press { animation: none !important; transition: none !important; }
+  .rise, .fade { opacity: 1 !important; transform: none !important; }
+}
 
 /* ---------------------------------------------------------------
    On a desktop screen the app is a 480px column, which would
@@ -53,19 +135,20 @@ button, a[role="button"] { min-height: 56px; }
 @media (min-width: 620px) {
   body {
     background:
-      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-indigo) 8%, transparent), transparent 60%),
-      var(--color-surface-2, #EFEDE6);
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-indigo) 10%, transparent), transparent 62%),
+      radial-gradient(circle at 12% 88%, color-mix(in srgb, var(--color-clay) 8%, transparent), transparent 46%),
+      #EDE6D9;
   }
   #root > div {
     min-height: 100dvh;
-    box-shadow: 0 0 0 1px var(--color-line), 0 24px 60px -30px rgba(21, 23, 31, .45);
+    box-shadow: 0 0 0 1px var(--color-line), 0 24px 60px -30px rgba(58, 44, 26, .45);
   }
 }
 
 @media (prefers-color-scheme: dark) {
   @media (min-width: 620px) {
     body { background:
-      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-indigo) 14%, transparent), transparent 60%),
-      #0A0C10; }
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-indigo) 18%, transparent), transparent 62%),
+      #0C0A07; }
   }
 }

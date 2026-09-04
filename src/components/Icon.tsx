@@ -22,8 +22,20 @@ export type IconName =
   | 'market'      // was 🛍
   | 'back'        // was ↩️
   | 'gotIt'       // was 👍
+  | 'ai'          // the one mark that means "the app is doing this for you"
 
 const PATHS: Record<IconName, React.ReactNode> = {
+  /* A four-pointed spark. Used ONLY where the app is doing work on her
+     behalf, so it comes to mean that and nothing else. Not a robot, not a
+     brain, not a chat bubble — she is not being sold an AI, she is being
+     helped. */
+  ai: (
+    <>
+      <path d="M12 3.2 13.7 9 19.5 10.7 13.7 12.4 12 18.2 10.3 12.4 4.5 10.7 10.3 9z" />
+      <path d="M18.4 16.6 19.1 18.9 21.4 19.6 19.1 20.3 18.4 22.6 17.7 20.3 15.4 19.6 17.7 18.9z" />
+    </>
+  ),
+
   next: <path d="M4 12h15M13 5.5 19.5 12 13 18.5" />,
 
   rewrite: (

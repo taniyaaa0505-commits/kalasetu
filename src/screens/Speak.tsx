@@ -22,6 +22,7 @@ export default function SpeakScreen() {
   const [speaking, setSpeaking] = useState(false)
   const [pulse, setPulse] = useState(0)   // bumps on each new chunk of speech
   const [error, setError] = useState<string>()
+  const [typing, setTyping] = useState(false)
   const recRef = useRef<Recogniser | null>(null)
 
   useEffect(() => {
@@ -77,33 +78,56 @@ export default function SpeakScreen() {
       <Speakable text={t('speakHint')} className="mb-5 text-lg" lang={asrCode(lang)} />
 
       {!listenSupported() && (
-        <p className="mb-4 rounded-lg bg-gold-wash p-3 text-sm text-gold">
-          This browser cannot hear. Open it in Chrome on Android.
+        <p className="mb-4 rounded-card border border-gold/30 bg-gold-wash p-3 text-sm text-gold">
+          {t('cannotHear')}
         </p>
       )}
 
       {/* The ring moves with her actual voice. She cannot read the
           transcript, so this is her only proof the phone is hearing her. */}
-      <MicRing
+      {!typing && <MicRing
         recording={recording}
         speaking={speaking}
         pulse={pulse}
         icon={recording ? '⏹' : hasText ? '🔄' : '🎤'}
         label={recording ? t('stopSpeaking') : hasText ? t('sayAgain') : t('speakNow')}
         onClick={() => (recording ? stop() : start())}
-      />
+      />}
 
       {error && <p className="mb-3 text-center text-sm text-danger">{error}</p>}
 
       {/* Her words, shown as they arrive. She cannot read them — but seeing
           text appear proves the app is listening, which builds trust. */}
-      <div className="min-h-[110px] rounded-xl border border-line bg-surface p-4 text-lg leading-relaxed">
-        {text || <span className="text-ink-3">…</span>}
-      </div>
+      {typing ? (
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value)}
+          rows={4}
+          placeholder={t('speakHint')}
+          className="w-full rounded-card border-2 border-indigo bg-surface p-4 text-lg leading-relaxed
+                     shadow-rest outline-none placeholder:text-ink-3"
+        />
+      ) : (
+        <div className="min-h-[110px] rounded-card border border-line bg-surface p-4 text-lg leading-relaxed shadow-rest">
+          {text || <span className="text-ink-3">…</span>}
+        </div>
+      )}
+
+      {/* The way through when the microphone is not an option — a phone that
+          cannot hear, a noisy hall, or a helper doing it for her. Secondary on
+          purpose: speaking is the point of this app, typing is the escape. */}
+      <button
+        onClick={() => { stop(); setTyping(v => !v) }}
+        className="press mx-auto mt-3 flex min-h-0 items-center gap-2 rounded-full border border-line
+                   bg-surface px-4 py-2 text-sm font-medium text-ink-2 shadow-rest active:bg-surface-2"
+      >
+        <span aria-hidden>{typing ? '🎤' : '⌨️'}</span>
+        <span>{typing ? t('speakNow') : t('typeInstead')}</span>
+      </button>
 
       {/* The check-and-fix pair. Hearing it back is what makes "say it again"
           useful — otherwise she has no way to know it came out wrong. */}
-      {hasText && !recording && (
+      {hasText && !recording && !typing && (
         <div className="mt-3 grid grid-cols-2 gap-3">
           <SmallButton icon="🔊" label={t('hearItBack')} onClick={playBack} />
           <SmallButton icon="🔄" label={t('sayAgain')} onClick={start} />
@@ -117,8 +141,8 @@ function SmallButton({ icon, label, onClick }: { icon: string; label: string; on
   return (
     <button
       onClick={onClick}
-      className="flex min-h-[60px] items-center justify-center gap-2 rounded-xl border-2 border-line
-                 bg-surface px-3 text-base font-medium active:bg-wash"
+      className="press flex min-h-[60px] items-center justify-center gap-2 rounded-card border-2 border-line
+                 bg-surface px-3 text-base font-medium shadow-rest active:bg-surface-2"
     >
       <span aria-hidden className="text-xl">{icon}</span>
       <span>{label}</span>

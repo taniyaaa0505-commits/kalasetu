@@ -4,6 +4,7 @@ import Screen from '../components/Screen'
 import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
+import Working from '../components/Working'
 import BeforeAfter from '../components/BeforeAfter'
 import { getProduct, saveProduct, patchProduct } from '../services/db'
 import { removeBackground, preloadModel, shrink, type Progress } from '../services/bgRemove'
@@ -117,7 +118,16 @@ export default function Capture() {
       {photo && (
         <div className="flex flex-col gap-4">
           {busy ? (
-            <Working progress={progress!} photo={photo} />
+            <Working
+              title={
+                progress!.phase === 'downloading' ? t('firstTimeSetup')
+                : progress!.phase === 'thinking'  ? t('cleaning')
+                : t('composingPhoto')
+              }
+              percent={progress!.phase === 'downloading' ? progress!.percent : undefined}
+              note={progress!.phase === 'downloading' ? t('onlyFirstTime') : undefined}
+              behind={photo}
+            />
           ) : clean ? (
             <>
               {/* One frame, dragged across. Far more convincing than two
@@ -137,41 +147,6 @@ export default function Capture() {
         </div>
       )}
     </Screen>
-  )
-}
-
-/** What she sees while the model works.
- *  Laid OVER the photo, not below it — she used to have to scroll down to
- *  discover that anything was happening at all. */
-function Working({ progress, photo }: { progress: Progress; photo: string }) {
-  const text =
-    progress.phase === 'downloading' ? t('firstTimeSetup')
-    : progress.phase === 'thinking'  ? t('cleaning')
-    : t('composingPhoto')
-
-  return (
-    <div className="relative overflow-hidden rounded-xl border-2 border-indigo">
-      <img src={photo} alt="" className="block w-full opacity-45" />
-
-      {/* a sweep across the photo, so it reads as being worked on */}
-      <span aria-hidden className="pointer-events-none absolute inset-0 animate-pulse bg-indigo/10" />
-
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-paper/75 px-6 text-center">
-        <span aria-hidden className="text-4xl">✨</span>
-        <p className="text-lg font-semibold text-indigo">{text}</p>
-
-        {progress.phase === 'downloading' && (
-          <div className="w-full max-w-[240px]">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
-              <div className="h-full bg-indigo transition-all" style={{ width: `${progress.percent}%` }} />
-            </div>
-            <p className="mt-2 text-xs text-ink-2">
-              {progress.percent}% · {t('onlyFirstTime')}
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
   )
 }
 
