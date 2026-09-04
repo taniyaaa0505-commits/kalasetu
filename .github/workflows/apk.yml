@@ -1,0 +1,81 @@
+# Builds the Android APK.
+#
+# Not on every push: the web build is what changes hourly, and a 10-minute
+# Gradle run for a copy of it is waste. Run this from the Actions tab when you
+# want an APK to put on a phone, or tag a release and get one attached.
+#
+# It builds here rather than on a laptop on purpose — nobody on the team needs
+# to install a 2 GB Android SDK to produce the file a judge asks for.
+name: APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write        # so a tagged run can attach the APK to the release
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+
+      # Java 21, not the newest. The Android Gradle Plugin trails the JDK by a
+      # long way and a too-new JDK fails with an unhelpful Gradle error.
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+
+      - uses: android-actions/setup-android@v3
+
+      - run: npm ci
+
+      # Same secrets as the Pages deploy. Without them the APK still runs — it
+      # falls back to on-device storage and mock listing text — but the demo
+      # wants the real thing.
+      - run: npm run build
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+
+      # Copies dist/ into the native project. The android/ folder in git holds
+      # no web assets — they are generated, and committing 25 MB of them on
+      # every build would be silly.
+      - run: npx cap sync android
+
+      - run: chmod +x android/gradlew
+
+      # Debug, deliberately. A release APK needs a keystore, and an unsigned
+      # release build will not install on a phone — which is the one thing
+      # this file exists to make possible. A debug APK installs from a link
+      # after allowing "unknown sources", and that is the whole demo.
+      - run: ./gradlew assembleDebug --no-daemon
+        working-directory: android
+
+      - name: Name it something a human can find
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             "out/pehchaan-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::7}.apk"
+          ls -lh out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pehchaan-apk
+          path: out/*.apk
+          if-no-files-found: error
+
+      - name: Attach it to the release, if this was a tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*.apk

@@ -92,7 +92,7 @@ Without a key the app uses mock listing text, so the flow still works.
 | 4 | Firestore instead of IndexedDB | Data | Only `db.ts` changes. **This is what makes the demo's best moment possible** — right now the buyer page reads local storage, so a phone and a laptop cannot see each other's products |
 | 5 | ~~PWA~~ / offline queue | Data | **PWA done** — installable, app shell precached. Still to do: make `queue.ts` real with IndexedDB |
 | 6 | Comparables dataset | Pricing | ~300 rows scraped by hand. Replaces the fake `marketBand()` |
-| 7 | Capacitor → APK | Data | Do it before the pitch, not after. It answers "is it a mobile app?" |
+| 7 | ~~Capacitor → APK~~ | Data | **Set up.** `npx cap add android` done, launcher icons from the brand mark, and a manual **APK** workflow in Actions that builds a debug APK on ubuntu — nobody needs a 2 GB SDK locally. **Untested on a real phone**, and speech is the risk: see below |
 | 8 | Ministry dashboard | Buyer/pitch | Artisans onboarded, GMV, income delta |
 
 ---
@@ -118,6 +118,34 @@ before changing either.
 
 **Your key is in `.env`, which is gitignored. It is NOT in the deployed app** —
 that build reads a GitHub Actions secret, which is not set. See below.
+
+## The APK
+
+Run the **APK** workflow from the Actions tab (or push a `v*` tag) and download
+`pehchaan-apk` from the run. It is a **debug** APK on purpose: a release build
+needs a keystore and an unsigned one will not install, which defeats the point.
+On the phone, allow "install from unknown sources" once.
+
+Locally, `npm run apk` does the same thing but needs the Android SDK installed.
+You do not need it — that is why the workflow exists.
+
+### What is NOT verified
+
+Nobody has run this APK on an Android phone yet. One thing to check first,
+because the whole app depends on it:
+
+**Does the microphone work?** Open the app, tap through to the Speak screen. If
+it says *"यह फ़ोन सुन नहीं सकता"*, then `webkitSpeechRecognition` does not exist
+in the Android System WebView — which is a real possibility, because the Web
+Speech API is a Chrome feature and the WebView is not Chrome. The web build is
+unaffected either way.
+
+If it is missing, the fix is `@capacitor-community/speech-recognition` and
+`@capacitor-community/text-to-speech` behind the existing `lib/listen.ts` and
+`lib/speak.ts` — those two files are already the only places that touch the
+browser speech APIs, so nothing else has to change. Do not start that work
+until someone has actually seen the banner: it is a day of native plugin
+wiring to fix a problem that may not exist.
 
 ## Languages — what actually works
 

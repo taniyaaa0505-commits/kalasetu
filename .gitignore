@@ -7,3 +7,10 @@ dist
 tools/
 probe.mjs
 maketest.mjs
+
+# Capacitor copies dist/ in here on every `cap sync`. Generated, 25 MB, and
+# rebuilt by CI — the native project is committed, its web payload is not.
+android/app/src/main/assets/public
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+.gradle
