@@ -7,7 +7,7 @@
  * !! VERIFY the model id at https://aistudio.google.com before the demo —
  *    Google renames these. If the call 404s, that is why.
  */
-import { LANGS, type Listing, type LangCode } from '../types'
+import { LANGS, type Answer, type Listing, type LangCode } from '../types'
 
 /**
  * Two models, on purpose — measured, not guessed. See tools/bench-gemini.mjs
@@ -44,14 +44,36 @@ You are helping an Indian artisan list a handmade product for sale online.
 She spoke to us in ${langName}.${asrNote}
 
 HARD RULES:
-- State ONLY what you can see in the photo or hear in the transcript.
+- State ONLY what you can see in the photo, hear in the transcript, or hear in
+  her answers. Her answers are her own spoken words and count exactly as the
+  transcript does — use them freely.
 - Never invent a material, size, dye, technique, or origin claim.
 - If something important is missing or unclear, do NOT guess. Put it in "questions"
   as a short, simple question in ${langName} that we will read out loud to her.
+- NEVER re-ask something she has already answered below. She hears every question
+  read aloud, and being asked the same thing twice reads as the app not listening.
 - Descriptions must be warm and specific, not marketing fluff.
 - Hindi output must be simple, spoken Hindi. No Sanskritised vocabulary.
 - Always fill in BOTH the English and the Hindi fields, whatever she spoke.
 `.trim()
+}
+
+/**
+ * Her answers, as a block the model reads as more speech.
+ *
+ * Free-form additions carry no question, so they are listed separately rather
+ * than under a fabricated one — inventing the question she was answering is
+ * exactly the kind of guess the rules above forbid.
+ */
+function answersBlock(answers: Answer[], langName: string): string {
+  const replies = answers.filter(a => a.question && a.answer.trim())
+  const extras = answers.filter(a => !a.question && a.answer.trim())
+  if (!replies.length && !extras.length) return ''
+
+  let out = `\n\nWe read your questions out loud to her. She answered in ${langName}:`
+  for (const a of replies) out += `\nQ: ${a.question}\nA: """${a.answer}"""`
+  for (const a of extras) out += `\nShe also added, unprompted: """${a.answer}"""`
+  return out + `\n\nRewrite the listing using these answers.`
 }
 
 const SCHEMA = {
@@ -84,9 +106,10 @@ export async function generateListing(
   photoDataUrl: string,
   transcript: string,
   lang: LangCode = 'hi-IN',
+  answers: Answer[] = [],
 ): Promise<Listing> {
   const key = import.meta.env.VITE_GEMINI_API_KEY
-  if (!key) return mockListing(transcript, lang)
+  if (!key) return mockListing(lang, answers)
 
   const meta = LANGS.find(l => l.code === lang)
   const langName = meta?.english ?? 'Hindi'
@@ -106,7 +129,10 @@ export async function generateListing(
       role: 'user',
       parts: [
         { inlineData: { mimeType: img.mimeType, data: img.data } },
-        { text: `The artisan said, in ${langName}:\n"""${transcript}"""\n\nWrite the listing.` },
+        { text:
+            `The artisan said, in ${langName}:\n"""${transcript}"""\n\nWrite the listing.` +
+            answersBlock(answers, langName),
+        },
       ],
     }],
     generationConfig: {
@@ -131,10 +157,18 @@ export async function generateListing(
 }
 
 /** Used until the key is added — keeps the whole flow clickable. */
-function mockListing(transcript: string, lang: LangCode = 'hi-IN'): Listing {
+function mockListing(lang: LangCode = 'hi-IN', answers: Answer[] = []): Listing {
   const askIn = lang === 'en-IN'
     ? ['What size is it?', 'What is it made of?']
     : ['इसका नाप क्या है?', 'यह किस चीज़ पर बना है?']
+
+  // Ask until she answers, then stop — the same loop the real model runs.
+  // Without this the mock never asks anything once there is a transcript, so
+  // the question loop would be invisible on a laptop with no key, which is
+  // precisely the machine a demo tends to run on.
+  const answered = new Set(answers.filter(a => a.answer.trim()).map(a => a.question))
+  const unanswered = askIn.filter(q => !answered.has(q))
+
   return {
     craft: 'Madhubani painting',
     material: 'handmade paper, natural dye',
@@ -147,7 +181,7 @@ function mockListing(transcript: string, lang: LangCode = 'hi-IN'): Listing {
       'बिहार की मिथिला परंपरा में हाथ से बनी मधुबनी पेंटिंग। प्राकृतिक रंगों से हस्तनिर्मित कागज़ पर बनाई गई। ' +
       'हर पेंटिंग हाथ से बनती है, इसलिए हर एक अलग होती है।',
     keywords: ['madhubani', 'mithila art', 'handmade painting', 'natural dye', 'bihar handicraft'],
-    questions: transcript ? [] : askIn,
+    questions: unanswered,
   }
 }
 

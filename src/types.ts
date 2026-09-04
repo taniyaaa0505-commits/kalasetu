@@ -39,6 +39,22 @@ export interface Listing {
   questions: string[]
 }
 
+/**
+ * One thing she told us after seeing the first draft — either an answer to a
+ * question the AI asked, or something it never thought to ask.
+ *
+ * This is the other half of the anti-hallucination rule: the model is told to
+ * ask instead of guessing, so there has to be a way to answer. Her answers go
+ * back into the next `generateListing` call as heard speech, which is the only
+ * kind of fact the model is allowed to use.
+ */
+export interface Answer {
+  /** The question exactly as the AI asked it. Empty for a free-form addition. */
+  question: string
+  /** What she said, in her own language. */
+  answer: string
+}
+
 /** Three numbers, always. The floor is the point — she never prices below her own labour. */
 export interface PriceSuggestion {
   floor: number            // material + labour at a dignified wage
@@ -64,6 +80,7 @@ export interface Product {
   photo?: string           // original, as a data URL
   cleanPhoto?: string      // background removed, white bg
   transcript?: string      // what she said, as text
+  answers?: Answer[]       // what she added after reading back the first draft
   cost?: CostInput
   listing?: Listing
   price?: PriceSuggestion

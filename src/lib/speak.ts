@@ -18,14 +18,52 @@ export function speechSupported(): boolean {
 
 /** Say something out loud. Cancels whatever was being said before. */
 /** `lang` defaults to whatever language the artisan chose. */
-export function speak(text: string, lang?: string) {
-  if (!enabled || !speechSupported() || !text) return
+/**
+ * `onDone` fires when the phone has finished talking — the only safe moment to
+ * open the microphone, since its own voice would otherwise be recognised as
+ * hers. It ALSO fires when speech is off, unsupported or fails, so a caller
+ * that waits on it never hangs; the mic still opens on a silent phone.
+ */
+export function speak(text: string, lang?: string, onDone?: () => void) {
+  if (!enabled || !speechSupported() || !text) { onDone?.(); return }
   window.speechSynthesis.cancel()
+
+  let done = false
+  const finish = () => { if (!done) { done = true; onDone?.() } }
+
   const u = new SpeechSynthesisUtterance(text)
   u.lang = lang ?? asrCode(getLang())
   u.rate = 0.88          // slower than default — clarity beats speed here
   u.pitch = 1
+  u.onend = finish
+  u.onerror = finish
   window.speechSynthesis.speak(u)
+
+  if (!onDone) return
+
+  /**
+   * A phone with no voice installed for the chosen language fires NEITHER
+   * `end` nor `error` — the utterance simply never starts. A caller waiting on
+   * `onDone` would then wait forever and its button would look dead, which is
+   * a real risk here: most of our languages have no guaranteed voice on a
+   * budget Android.
+   *
+   * So watch `speaking` as well. Once it is false past a grace period, or the
+   * text has had far longer than it could possibly need, we call it finished.
+   * We never cut in while the phone is genuinely still talking.
+   */
+  const GRACE = 1000                       // it can take a moment to start
+  const CEILING = 3000 + text.length * 120 // far beyond real speech at rate 0.88
+  const startedAt = Date.now()
+
+  const poll = setInterval(() => {
+    if (done) { clearInterval(poll); return }
+    const waited = Date.now() - startedAt
+    if ((waited > GRACE && !window.speechSynthesis.speaking) || waited > CEILING) {
+      clearInterval(poll)
+      finish()
+    }
+  }, 200)
 }
 
 export function stopSpeaking() {
