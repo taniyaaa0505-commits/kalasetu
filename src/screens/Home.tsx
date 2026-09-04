@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
+import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import { listProducts, saveProduct, newId, subscribeProducts } from '../services/db'
 import { listMessages } from '../services/messages'
@@ -96,7 +97,7 @@ export default function Home() {
           the moment she had a few products, which is exactly the thing the
           pinned slot exists to prevent. */}
       <div className="grid grid-cols-2 gap-3">
-        <Tile icon="🎓" label={t('learnHow')} onClick={() => nav('/tour')} />
+        <Tile icon={<Icon name="learn" />} label={t('learnHow')} onClick={() => nav('/tour')} />
         <Tile
           icon="📦" label={t('orders')} onClick={() => nav('/orders')}
           badge={waiting > 0 ? waiting : undefined}
@@ -182,7 +183,7 @@ export default function Home() {
 
       <button onClick={() => nav('/buyer')}
         className="mt-auto w-full pt-6 pb-1 text-sm text-indigo underline">
-        🛍 {t('ourMarketplace')} →
+        <Icon name="market" className="mr-1.5 align-[-0.15em]" />{t('ourMarketplace')}
       </button>
       </div>
     </Screen>
@@ -313,7 +314,7 @@ function useSpoken(label: string) {
 
 function Tile({
   icon, label, onClick, badge,
-}: { icon: string; label: string; onClick: () => void; badge?: number }) {
+}: { icon: ReactNode; label: string; onClick: () => void; badge?: number }) {
   const say = useSpoken(label)
   return (
     <button

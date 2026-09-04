@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
+import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import { getProduct, patchProduct } from '../services/db'
@@ -159,16 +160,16 @@ export default function Review() {
         dirty
           ? <div className="flex flex-col gap-2">
               <BigButton
-                icon="✍️" label={rewriting ? t('rewriting') : t('writeAgain')}
+                icon={<Icon name="rewrite" />} label={rewriting ? t('rewriting') : t('writeAgain')}
                 onClick={rewrite} disabled={rewriting || asking !== null}
               />
               <BigButton
-                icon="👉" label={t('next')} variant="quiet"
+                icon={<Icon name="next" />} label={t('next')} variant="quiet"
                 onClick={() => nav(`/p/${id}/price`)} disabled={!listing || rewriting}
               />
             </div>
           : <BigButton
-              icon="👉" label={t('next')}
+              icon={<Icon name="next" />} label={t('next')}
               onClick={() => nav(`/p/${id}/price`)} disabled={!listing || rewriting}
             />
       }

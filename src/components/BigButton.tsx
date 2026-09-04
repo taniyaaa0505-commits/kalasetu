@@ -6,22 +6,29 @@
  *  - an icon AND a word, never a word alone
  *  - says its own label out loud when tapped, so a non-reader knows what it does
  */
+import type { ReactNode } from 'react'
 import { speak } from '../lib/speak'
 import { useLang } from '../lib/i18n'
 import { asrCode } from '../types'
 
-type Variant = 'primary' | 'quiet' | 'good'
+type Variant = 'primary' | 'quiet' | 'good' | 'danger'
 
 const STYLES: Record<Variant, string> = {
   primary: 'bg-indigo text-white active:bg-indigo-2',
   quiet:   'bg-surface text-ink border-2 border-line active:bg-wash',
   good:    'bg-good text-white active:opacity-90',
+  // The only irreversible thing in the app. It was indigo, the same as "next",
+  // which meant the button that deletes her work looked like the button she
+  // presses on every other screen to continue.
+  danger:  'bg-danger text-white active:opacity-90',
 }
 
 export default function BigButton({
   icon, label, onClick, variant = 'primary', disabled, lang, speakOnTap = true, size = 'md',
 }: {
-  icon: string
+  /** An emoji when the symbol IS the thing (a camera, a bin), an <Icon/> when
+   *  it stands for an idea. See components/Icon.tsx. */
+  icon: ReactNode
   label: string
   onClick?: () => void
   variant?: Variant

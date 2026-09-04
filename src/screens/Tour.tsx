@@ -17,11 +17,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BigButton from '../components/BigButton'
+import Icon from '../components/Icon'
 import Artisan from '../components/Artisan'
 import Kolam from '../components/Kolam'
 import PriceScale from '../components/PriceScale'
 import PriceInNotes from '../components/PriceInNotes'
 import Thread from '../components/Thread'
+import LangButton from '../components/LangButton'
+import LanguagePicker from '../components/LanguagePicker'
 import { speak, stopSpeaking } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
 import { markTourSeen } from '../lib/tour'
@@ -100,9 +103,12 @@ export default function Tour() {
           ariaLabel={`${i + 1} / ${STEPS.length}`}
           beads={STEPS.map((_, n) => ({ done: n < i, current: n === i }))}
         />
-        <button onClick={finish} className="ml-auto min-h-0 shrink-0 text-sm text-ink-3 underline">
-          {t('tourSkip')}
-        </button>
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          <LangButton />
+          <button onClick={finish} className="min-h-0 text-sm text-ink-3 underline">
+            {t('tourSkip')}
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-6">
@@ -127,7 +133,7 @@ export default function Tour() {
           <BigButton icon="📷" label={t('tourStart')} variant="good"
             onClick={() => { stopSpeaking(); markTourSeen(); nav('/') }} />
         ) : (
-          <BigButton icon="👉" label={t('tourNext')} disabled={needsAction}
+          <BigButton icon={<Icon name="next" />} label={t('tourNext')} disabled={needsAction}
             onClick={() => setI(n => n + 1)} speakOnTap={false} />
         )}
       </footer>
@@ -244,12 +250,24 @@ function Watch({ id }: { id: Id }) {
   // sentence — she does not have to write a single word.
   if (id === 'welcome') return (
     <Center>
-      <Artisan width={250} />
+      <Artisan width={220} />
       <p className="flex items-center justify-center gap-2 rounded-xl bg-wash px-4 py-3
                     text-center text-lg font-semibold text-indigo">
         <span aria-hidden className="text-2xl">🎤</span>
         <span>{t('sellWithVoice')}</span>
       </p>
+
+      {/* The tour SPEAKS. Everything after this slide is spoken Hindi unless
+          she changes it here, and until this existed there was no way to —
+          the picker lived on the Speak screen, four steps in, behind a tour
+          she could not follow. Tapping a language says a sentence in it, so
+          she picks by ear. */}
+      <div className="w-full">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-ink-3">
+          {t('chooseLanguage')}
+        </p>
+        <LanguagePicker />
+      </div>
     </Center>
   )
 

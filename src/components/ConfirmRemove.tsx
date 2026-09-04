@@ -10,6 +10,7 @@
  */
 import { useEffect, useState } from 'react'
 import BigButton from './BigButton'
+import Icon from './Icon'
 import { canRemove, removeProduct } from '../services/products'
 import { speak, stopSpeaking } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
@@ -62,7 +63,7 @@ export default function ConfirmRemove({ product, onClose, onRemoved }: {
           <>
             <p className="mb-1 text-xl font-bold text-gold">⚠ {t('cannotRemove')}</p>
             <p className="mb-5 text-ink-2">{t('cannotRemoveOrders')}</p>
-            <BigButton icon="👍" label={t('understood')} variant="quiet" onClick={onClose} />
+            <BigButton icon={<Icon name="gotIt" />} label={t('understood')} variant="quiet" onClick={onClose} />
           </>
         )}
 
@@ -71,8 +72,8 @@ export default function ConfirmRemove({ product, onClose, onRemoved }: {
             <p className="mb-5 text-xl font-bold">{t('removeAsk')}</p>
             {/* The safe answer sits first and reads as the default. */}
             <div className="flex flex-col gap-2">
-              <BigButton icon="↩️" label={t('removeNo')} variant="quiet" onClick={onClose} />
-              <BigButton icon="🗑" label={t('removeYes')} onClick={confirm} disabled={busy} />
+              <BigButton icon={<Icon name="back" />} label={t('removeNo')} variant="quiet" onClick={onClose} />
+              <BigButton icon="🗑" label={t('removeYes')} variant="danger" onClick={confirm} disabled={busy} />
             </div>
           </>
         )}

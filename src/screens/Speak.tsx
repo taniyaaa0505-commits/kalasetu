@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
+import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import MicRing from '../components/MicRing'
@@ -66,7 +67,7 @@ export default function SpeakScreen() {
   return (
     <Screen
       title={t('screenSpeak')} step={3} onBack={() => { recRef.current?.stop(); stopSpeaking() }}
-      action={<BigButton icon="👉" label={t('next')} onClick={next} disabled={!hasText || recording} />}
+      action={<BigButton icon={<Icon name="next" />} label={t('next')} onClick={next} disabled={!hasText || recording} />}
     >
       <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
         {t('chooseLanguage')}

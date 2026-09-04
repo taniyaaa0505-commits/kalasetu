@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
+import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
 import { suggestPrice } from '../services/pricing'
@@ -33,7 +34,7 @@ export default function Price() {
   return (
     <Screen
       title={t('price')} step={5} onBack={() => {}}
-      action={<BigButton icon="👉" label={t('next')} onClick={next} />}
+      action={<BigButton icon={<Icon name="next" />} label={t('next')} onClick={next} />}
     >
       {/* No typing. She taps + and - . */}
       <Stepper label={t('materialCost')} unit="₹" value={cost.materialCost} step={50}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
+import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import BeforeAfter from '../components/BeforeAfter'
@@ -51,7 +52,7 @@ export default function Capture() {
       action={
         photo
           ? <div className="flex flex-col gap-2">
-              <BigButton icon="👉" label={t('next')} onClick={() => nav(`/p/${id}/speak`)} disabled={busy} />
+              <BigButton icon={<Icon name="next" />} label={t('next')} onClick={() => nav(`/p/${id}/speak`)} disabled={busy} />
               <BigButton icon="🔄" label={t('retakePhoto')} variant="quiet" onClick={() => fileRef.current?.click()} />
             </div>
           : <BigButton icon="📷" label={t('takePhoto')} onClick={() => fileRef.current?.click()} />
