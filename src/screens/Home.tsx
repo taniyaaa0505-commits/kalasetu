@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
 import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
-import { listProducts, saveProduct, newId, subscribeProducts } from '../services/db'
+import { listProducts, newId, subscribeProducts } from '../services/db'
 import { listMessages } from '../services/messages'
 import { subscribeOrders } from '../services/orders'
 import { speak } from '../lib/speak'
@@ -49,10 +49,17 @@ export default function Home() {
     if (waiting === 0) announced.current = false
   }), [])
 
-  async function startNew() {
-    const p: Product = { id: newId(), createdAt: Date.now(), status: 'draft', lang: getLang() }
-    await saveProduct(p)
-    nav(`/p/${p.id}/capture`)
+  function startNew() {
+    // Navigate FIRST, and let the camera screen create it.
+    //
+    // This used to save the product and then navigate. The save woke the
+    // subscription above, so the list redrew with the new empty stub in it —
+    // "बिना नाम का सामान · अधूरा", visible for a frame — and only then did the
+    // router move. That flash was the app appearing to do the wrong thing.
+    //
+    // It also left a nameless empty product behind every time she opened the
+    // camera and backed out. Now nothing exists until there is a photo.
+    nav(`/p/${newId()}/capture`)
   }
 
   const empty = products.length === 0

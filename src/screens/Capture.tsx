@@ -5,9 +5,9 @@ import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import BeforeAfter from '../components/BeforeAfter'
-import { getProduct, patchProduct } from '../services/db'
+import { getProduct, saveProduct, patchProduct } from '../services/db'
 import { removeBackground, preloadModel, shrink, type Progress } from '../services/bgRemove'
-import { t } from '../lib/i18n'
+import { t, getLang } from '../lib/i18n'
 
 export default function Capture() {
   const { id = '' } = useParams()
@@ -20,15 +20,32 @@ export default function Capture() {
   const [usedAI, setUsedAI] = useState<boolean>()
 
   useEffect(() => {
-    getProduct(id).then(p => { setPhoto(p?.photo); setClean(p?.cleanPhoto) })
+    let alive = true
+    getProduct(id).then(p => {
+      // Only ever FILL IN what is not there yet. With Firestore configured
+      // this read is a network round trip, and it used to land after she had
+      // already taken a photo and overwrite it with nothing — the screen
+      // snapping back to "take a photo" while the model was still working.
+      if (!alive || !p) return
+      setPhoto(prev => prev ?? p.photo)
+      setClean(prev => prev ?? p.cleanPhoto)
+    })
     // Start fetching the model while she is still framing the shot, so the
     // wait happens during something she is already doing.
     preloadModel()
+    return () => { alive = false }
   }, [id])
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // Home only picked an id; this is where the product starts existing. Done
+    // before the long wait below so the patch at the end has something to
+    // patch even if she leaves the screen and comes back.
+    if (!(await getProduct(id))) {
+      await saveProduct({ id, createdAt: Date.now(), status: 'draft', lang: getLang() })
+    }
 
     const original = await fileToDataUrl(file)
     setPhoto(original); setClean(undefined); setUsedAI(undefined)
