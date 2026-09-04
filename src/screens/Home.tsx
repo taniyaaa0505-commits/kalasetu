@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
+import BigButton from '../components/BigButton'
 import { listProducts, saveProduct, newId, subscribeProducts } from '../services/db'
 import { listMessages } from '../services/messages'
 import { subscribeOrders } from '../services/orders'
@@ -58,7 +59,10 @@ export default function Home() {
   const draft = products.find(p => p.status !== 'published')
 
   return (
-    <Screen title={t('appName')} brand>
+    <Screen
+      title={t('appName')} brand
+      action={<BigButton icon="📷" label={t('addProduct')} onClick={startNew} />}
+    >
       {/* A full-height column, so the quiet footer link sits at the bottom of
           the screen instead of floating in the middle of it. */}
       <div className="flex min-h-full flex-col">
@@ -86,18 +90,17 @@ export default function Home() {
         </div>
       )}
 
-      {/* The three things she can do, biggest first. This replaces the single
-          pinned button: with the illustration above it the page is short
-          enough that all three sit in reach without scrolling. */}
-      <div className="grid grid-cols-[1.05fr_1fr] gap-3">
-        <BigTile icon="📷" label={t('addProduct')} onClick={startNew} />
-        <div className="grid grid-rows-2 gap-3">
-          <SmallTile icon="🎓" label={t('learnHow')} onClick={() => nav('/tour')} />
-          <SmallTile
-            icon="📦" label={t('orders')} onClick={() => nav('/orders')}
-            badge={waiting > 0 ? waiting : undefined}
-          />
-        </div>
+      {/* The two side errands. Adding a product is NOT here — it is pinned to
+          the bottom of the screen, so it stays under her thumb however long
+          the list below gets. It was a tile for one release and scrolled away
+          the moment she had a few products, which is exactly the thing the
+          pinned slot exists to prevent. */}
+      <div className="grid grid-cols-2 gap-3">
+        <Tile icon="🎓" label={t('learnHow')} onClick={() => nav('/tour')} />
+        <Tile
+          icon="📦" label={t('orders')} onClick={() => nav('/orders')}
+          badge={waiting > 0 ? waiting : undefined}
+        />
       </div>
 
       {/* What is about to happen to her, before she risks anything. She cannot
@@ -308,37 +311,21 @@ function useSpoken(label: string) {
   return () => speak(label, asrCode(lang))
 }
 
-function BigTile({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
-  const say = useSpoken(label)
-  return (
-    <button
-      onClick={() => { say(); onClick() }}
-      className="flex min-h-[148px] flex-col items-center justify-center gap-2.5 rounded-2xl
-                 border-2 border-indigo bg-wash px-3 py-5 text-center active:opacity-80"
-    >
-      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo text-2xl">
-        <span aria-hidden>{icon}</span>
-      </span>
-      <span className="text-lg font-semibold leading-snug text-indigo">{label}</span>
-    </button>
-  )
-}
-
-function SmallTile({
+function Tile({
   icon, label, onClick, badge,
 }: { icon: string; label: string; onClick: () => void; badge?: number }) {
   const say = useSpoken(label)
   return (
     <button
       onClick={() => { say(); onClick() }}
-      className="relative flex items-center gap-3 rounded-2xl border border-line bg-surface
-                 px-4 py-3 text-left active:bg-wash"
+      className="relative flex min-h-[92px] flex-col items-center justify-center gap-1.5 rounded-2xl
+                 border border-line bg-surface px-3 py-3 text-center active:bg-wash"
     >
       <span aria-hidden className="text-2xl">{icon}</span>
-      <span className="flex-1 text-base font-medium leading-snug">{label}</span>
+      <span className="text-[15px] font-medium leading-snug">{label}</span>
       {badge !== undefined && (
-        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo px-1.5
-                         text-xs font-bold tabular-nums text-white">{badge}</span>
+        <span className="absolute right-2 top-2 flex h-6 min-w-6 items-center justify-center rounded-full
+                         bg-indigo px-1.5 text-xs font-bold tabular-nums text-white">{badge}</span>
       )}
     </button>
   )
