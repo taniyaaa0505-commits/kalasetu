@@ -82,11 +82,35 @@ export default function Capture() {
         onChange={onPick} className="hidden"
       />
 
+      {/* Centred in the pane rather than stacked at the top: there is one
+          thing to look at here and one button to press, and letting it sit in
+          the middle stops the screen reading as half-loaded. */}
       {!photo && (
-        <div className="flex flex-col items-center gap-5 py-10 text-center">
-          <span className="text-7xl" aria-hidden>📷</span>
+        <div className="flex min-h-full flex-col justify-center gap-4 pb-4">
           <Speakable text={t('photoPrompt')} className="text-xl font-medium" />
-          <p className="text-sm text-ink-3">{t('photoTip')}</p>
+
+          {/* Show her the deal before she takes anything.
+              A camera emoji and a line of text asked her to trust an app she
+              has never used. This is the same pair of drawn photos the tour
+              uses — already in the build, no download — so the promise is
+              concrete: THIS is what happens to your picture. It is also the
+              one mandated feature a judge can see working before a single
+              photo is taken. */}
+          <figure className="m-0 rounded-2xl border border-line bg-surface p-3">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+              <Sample src="./demo-before.jpg" label={t('before')} />
+              <Icon name="next" className="text-2xl text-indigo" />
+              <Sample src="./demo-after.jpg" label={t('after')} highlight />
+            </div>
+            <figcaption className="mt-3">
+              <Speakable text={t('tourCleaningSub')} className="text-sm leading-snug text-ink-2" />
+            </figcaption>
+          </figure>
+
+          <p className="flex items-start gap-2 rounded-xl bg-gold-wash px-3 py-2.5 text-sm text-gold">
+            <span aria-hidden>💡</span>
+            <span>{t('photoTip')}</span>
+          </p>
         </div>
       )}
 
@@ -158,4 +182,19 @@ function fileToDataUrl(file: File): Promise<string> {
     r.onerror = reject
     r.readAsDataURL(file)
   })
+}
+
+/** One of the two example photos, captioned. */
+function Sample({ src, label, highlight }: { src: string; label: string; highlight?: boolean }) {
+  return (
+    <figure className="m-0">
+      <img
+        src={src} alt=""
+        className={'aspect-square w-full rounded-xl border-2 object-cover ' +
+          (highlight ? 'border-indigo' : 'border-line')}
+      />
+      <figcaption className={'mt-1 text-center text-xs font-semibold uppercase tracking-widest ' +
+        (highlight ? 'text-indigo' : 'text-ink-3')}>{label}</figcaption>
+    </figure>
+  )
 }

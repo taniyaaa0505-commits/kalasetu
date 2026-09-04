@@ -26,7 +26,10 @@ export default function Thread({
   broken?: boolean
 }) {
   const r = size === 'lg' ? 9 : 5.5
-  const gap = size === 'lg' ? 78 : 42
+  // A long run needs a tighter gap, or the whole SVG scales down to fit its
+  // box and the beads shrink with it — which is what "congested" looks like.
+  // The tour has ten of these; the selling flow has six.
+  const gap = size === 'lg' ? 78 : beads.length > 7 ? 30 : 42
   const padX = r + 6
   const w = padX * 2 + gap * (beads.length - 1)
   const cy = r + 3

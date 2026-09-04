@@ -98,17 +98,21 @@ export default function Tour() {
 
   return (
     <div className="mx-auto flex h-full max-w-[480px] flex-col bg-paper">
-      <header className="flex items-center gap-3 border-b border-line bg-surface px-4 py-3">
+      {/* Two rows, not one. Sharing a line with the language button and the
+          skip link left the ten beads about 190px to live in, and the whole
+          thread scaled down to fit — legible only if you already knew what it
+          was. It gets the full width now. */}
+      <header className="border-b border-line bg-surface px-4 pt-3 pb-2">
+        <div className="mb-2 flex items-center gap-3">
+          <LangButton />
+          <button onClick={finish} className="ml-auto min-h-0 text-sm text-ink-3 underline">
+            {t('tourSkip')}
+          </button>
+        </div>
         <Thread
           ariaLabel={`${i + 1} / ${STEPS.length}`}
           beads={STEPS.map((_, n) => ({ done: n < i, current: n === i }))}
         />
-        <div className="ml-auto flex shrink-0 items-center gap-3">
-          <LangButton />
-          <button onClick={finish} className="min-h-0 text-sm text-ink-3 underline">
-            {t('tourSkip')}
-          </button>
-        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-6">
