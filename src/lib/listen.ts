@@ -60,6 +60,17 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
   rec.continuous = true          // she may pause mid-sentence; don't cut her off
   rec.interimResults = true      // show words as she speaks — proves it is working
 
+  /**
+   * Finished phrases, stored AT THE INDEX the recogniser gave them.
+   *
+   * Not appended to a string. Chrome re-delivers results it has already
+   * finalised — on Android it commonly replays the whole list with
+   * `resultIndex` back at 0 — and an append-only accumulator writes every one
+   * of those replays down again, so she watches her own sentence stack up over
+   * and over. Writing to a slot is idempotent: a replay overwrites the same
+   * slot with the same words and the transcript does not move.
+   */
+  const finals: string[] = []
   let finalText = ''
 
   // Real signal from the recogniser, no extra microphone access.
@@ -70,12 +81,15 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
 
   rec.onresult = (e: any) => {
     let interim = ''
-    for (let i = e.resultIndex; i < e.results.length; i++) {
+    // From 0, not from `resultIndex`: the slots make repeats harmless, and
+    // starting at the front also survives a recogniser that renumbers.
+    for (let i = 0; i < e.results.length; i++) {
       const chunk = e.results[i][0].transcript
-      if (e.results[i].isFinal) finalText += chunk + ' '
+      if (e.results[i].isFinal) finals[i] = chunk
       else interim += chunk
     }
-    ev.onPartial?.((finalText + interim).trim())
+    finalText = finals.filter(Boolean).join(' ')
+    ev.onPartial?.((finalText + ' ' + interim).trim())
   }
   // A failed session must not also report an empty transcript: `onend` always
   // follows `onerror`, and an empty final makes the screen say "nothing heard"
@@ -173,6 +187,11 @@ function listenNative(lang: string, ev: SpeechEvents): Recogniser {
 
       const perm = await SpeechRecognition.requestPermissions()
       if (perm.speechRecognition !== 'granted') return void fail('Microphone permission denied.')
+
+      // A session that was abandoned before `close()` could run leaves its
+      // listeners attached, and they would go on feeding this one. Same class
+      // of bug as the duplicated web transcript above: start from silence.
+      await SpeechRecognition.removeAllListeners().catch(() => { /* none attached */ })
 
       handles.push(await SpeechRecognition.addListener('partialResults', (data: { matches?: string[] }) => {
         const heard = data?.matches?.[0]
