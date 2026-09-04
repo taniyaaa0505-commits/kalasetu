@@ -14,8 +14,8 @@ export default defineConfig({
                       'icons/favicon-32.png', 'icons/favicon-48.png'],
 
       manifest: {
-        name: 'KalaSetu — कलासेतु',
-        short_name: 'KalaSetu',
+        name: 'Pehchaan — पहचान',
+        short_name: 'Pehchaan',
         description: 'Photograph it, speak about it, sell it. For artisans.',
         lang: 'hi',
         start_url: './',

@@ -1,4 +1,4 @@
-# KalaSetu — SPEC
+# Pehchaan — SPEC
 
 **Read this before you write any code.** One repo, one spec, one architecture.
 If you disagree with something here, change *this file first*, then the code.

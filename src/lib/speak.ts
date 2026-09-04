@@ -1,7 +1,7 @@
 /**
  * Text-to-speech using the phone's own voice. Free, offline, no setup.
  * This is the single most important file in the app: it is what makes
- * KalaSetu usable by someone who cannot read.
+ * Pehchaan usable by someone who cannot read.
  */
 
 import { getLang, t } from './i18n'

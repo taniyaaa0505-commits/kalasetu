@@ -11,12 +11,15 @@ import Thread from './Thread'
 import LangButton from './LangButton'
 
 export default function Screen({
-  title, step, onBack, action, children,
+  title, step, onBack, action, brand, children,
 }: {
   title?: string
   step?: number                 // 1..6, shows the progress dots
   onBack?: () => void | false   // omit for no back button
   action?: ReactNode            // the one big button at the bottom
+  /** Show the logo beside the title. Home only — every other screen is
+   *  titled by the step she is on, and a logo there is just noise. */
+  brand?: boolean
   children: ReactNode
 }) {
   const nav = useNavigate()
@@ -31,6 +34,13 @@ export default function Screen({
               aria-label="Go back"
               className="-ml-2 flex h-11 w-11 min-h-0 items-center justify-center rounded-full text-2xl text-ink-2 active:bg-wash"
             >←</button>
+          )}
+          {brand && (
+            <img
+              src="./icons/mark-96.png" alt="" aria-hidden
+              width={36} height={36}
+              className="-my-1 shrink-0 rounded-lg border border-line"
+            />
           )}
           {title && <h1 className="text-lg font-semibold tracking-tight">{title}</h1>}
           {/* Always reachable, on every screen, without scrolling. */}

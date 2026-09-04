@@ -11,7 +11,7 @@ import { useSyncExternalStore } from 'react'
 import type { LangCode } from '../types'
 
 const hi = {
-  appName: 'कलासेतु',
+  appName: 'पहचान',
   myProducts: 'मेरा सामान',
   addProduct: 'नया सामान जोड़ें',
   takePhoto: 'फोटो लें',
@@ -28,7 +28,7 @@ const hi = {
   weSuggest: 'हमारा सुझाव',
   publish: 'बेचने के लिए भेजें',
   published: 'आपका सामान अब बिक्री के लिए तैयार है',
-  noProducts: 'अभी कुछ नहीं है। नीचे का बटन दबाइए।',
+  noProducts: 'आपकी जगह अभी खाली है। दुनिया आपके पहले सामान का इंतज़ार कर रही है।',
   sellWithVoice: 'अपनी आवाज़ से बेचिए। लिखना नहीं पड़ेगा।',
   listenAgain: 'फिर से सुनें',
   hearItBack: 'सुनकर देखिए',
@@ -109,7 +109,7 @@ const hi = {
   learnHow: 'सीखिए कैसे बेचें',
   tourSkip: 'छोड़ दीजिए',
   tourNext: 'आगे',
-  tourWelcome: 'नमस्ते! यह कलासेतु है',
+  tourWelcome: 'नमस्ते! यह पहचान है',
   tourWelcomeSub: 'मैं आपको दिखाऊँगी कि अपना सामान कैसे बेचें। सिर्फ़ फोटो लीजिए और बोलिए।',
   tourSpeaks: 'यहाँ हर चीज़ बोलती है',
   tourSpeaksSub: 'जहाँ यह निशान दिखे, उसे दबाइए और सुनिए। पढ़ने की ज़रूरत नहीं।',
@@ -146,7 +146,7 @@ const hi = {
 }
 
 const en: typeof hi = {
-  appName: 'KalaSetu',
+  appName: 'Pehchaan',
   myProducts: 'My products',
   addProduct: 'Add a new product',
   takePhoto: 'Take a photo',
@@ -163,7 +163,7 @@ const en: typeof hi = {
   weSuggest: 'We suggest',
   publish: 'Send it to sell',
   published: 'Your product is now ready to sell',
-  noProducts: 'Nothing here yet. Press the button below.',
+  noProducts: 'Your creative space is empty. The world awaits your first creation.',
   sellWithVoice: 'Sell with your voice. No typing needed.',
   listenAgain: 'Hear it again',
   hearItBack: 'Hear what we heard',
@@ -244,7 +244,7 @@ const en: typeof hi = {
   learnHow: 'Learn how to sell',
   tourSkip: 'Skip',
   tourNext: 'Next',
-  tourWelcome: 'Hello! This is KalaSetu',
+  tourWelcome: 'Hello! This is Pehchaan',
   tourWelcomeSub: 'I will show you how to sell your work. Just take a photo and speak.',
   tourSpeaks: 'Everything here speaks',
   tourSpeaksSub: 'Wherever you see this mark, press it and listen. No reading needed.',
@@ -291,6 +291,8 @@ const UI: Partial<Record<LangCode, typeof hi>> = { 'hi-IN': hi, 'en-IN': en }
 
 /* ---------------- app-wide current language ---------------- */
 
+// NOT renamed with the app. This key is already on every phone that has
+// opened the app; changing it would silently reset her language.
 const KEY = 'kalasetu.lang'
 let current: LangCode = read()
 const listeners = new Set<() => void>()

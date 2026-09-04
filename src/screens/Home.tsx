@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
-import BigButton from '../components/BigButton'
 import { listProducts, saveProduct, newId, subscribeProducts } from '../services/db'
 import { listMessages } from '../services/messages'
 import { pendingOrders, subscribeOrders } from '../services/orders'
@@ -54,11 +53,10 @@ export default function Home() {
     nav(`/p/${p.id}/capture`)
   }
 
+  const empty = products.length === 0
+
   return (
-    <Screen
-      title={t('appName')}
-      action={<BigButton icon="📷" label={t('addProduct')} onClick={startNew} />}
-    >
+    <Screen title={t('appName')} brand>
       {waiting > 0 && (
         <button
           onClick={() => nav('/orders')}
@@ -73,64 +71,81 @@ export default function Home() {
         </button>
       )}
 
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-ink-3">
-        {t('myProducts')}
-      </h2>
-
-      {products.length === 0 ? (
-        /* An empty shop is the first thing she ever sees. A dashed box saying
-           "nothing here" reads as a broken screen; a woman at her loom reads
-           as an invitation, and the line under it says what to press. */
-        <div className="flex flex-col items-center gap-3 py-6 text-center">
-          <Artisan width={240} />
-          <Speakable text={t('noProducts')} className="text-lg text-ink-2" />
+      {/* An empty shop is the first thing she ever sees. A woman at her work
+          reads as an invitation; a dashed box saying "nothing here" reads as a
+          screen that failed to load. */}
+      {empty && (
+        <div className="mb-6 flex flex-col items-center gap-4 text-center">
+          <Artisan width={300} />
+          <Speakable text={t('noProducts')} className="text-base leading-relaxed text-ink-2" />
         </div>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {products.map(p => (
-            <li key={p.id}>
-              <div className="flex items-center gap-2">
-              <button
-                onClick={() => nav(`/p/${p.id}/capture`)}
-                className="flex min-w-0 flex-1 items-center gap-4 rounded-xl border border-line bg-surface p-3 text-left active:bg-wash"
-              >
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-wash">
-                  {p.cleanPhoto || p.photo
-                    ? <img src={p.cleanPhoto ?? p.photo} alt="" className="h-full w-full object-cover" />
-                    : <span className="flex h-full w-full items-center justify-center text-2xl">📦</span>}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{(mine ? p.listing?.titleEn : p.listing?.titleHi) ?? t('untitled')}</p>
-                  <p className="text-sm text-ink-3">
-                    {p.status === 'published' ? `✅ ${t('onSale')}` : `✏️ ${t('incomplete')}`}
-                    {p.price && ` · ₹${p.price.suggested}`}
-                  </p>
-                </div>
-              </button>
+      )}
 
-              <button
-                onClick={() => setRemoving(p)}
-                aria-label={`${t('remove')} — ${p.listing?.titleHi ?? t('untitled')}`}
-                className="flex h-[76px] w-[52px] shrink-0 items-center justify-center rounded-xl
-                           border border-line bg-surface text-xl active:bg-wash"
-              >🗑</button>
+      {/* The three things she can do, biggest first. This replaces the single
+          pinned button: with the illustration above it the page is short
+          enough that all three sit in reach without scrolling. */}
+      <div className="grid grid-cols-[1.05fr_1fr] gap-3">
+        <BigTile icon="📷" label={t('addProduct')} onClick={startNew} />
+        <div className="grid grid-rows-2 gap-3">
+          <SmallTile icon="🎓" label={t('learnHow')} onClick={() => nav('/tour')} />
+          <SmallTile
+            icon="📦" label={t('orders')} onClick={() => nav('/orders')}
+            badge={waiting > 0 ? waiting : undefined}
+          />
+        </div>
+      </div>
 
-              {/* A buyer is talking to her. This has to be impossible to miss. */}
-              {msgCounts[p.id] > 0 && (
-                <button
-                  onClick={() => nav(`/p/${p.id}/chat`)}
-                  aria-label={t('messages')}
-                  className="relative flex h-[76px] w-[76px] shrink-0 flex-col items-center justify-center
-                             gap-0.5 rounded-xl border-2 border-indigo bg-wash active:opacity-80"
-                >
-                  <span aria-hidden className="text-2xl">💬</span>
-                  <span className="text-xs font-bold tabular-nums text-indigo">{msgCounts[p.id]}</span>
-                </button>
-              )}
-              </div>
-            </li>
-          ))}
-        </ul>
+      {!empty && (
+        <>
+          <h2 className="mb-3 mt-8 text-sm font-semibold uppercase tracking-widest text-ink-3">
+            {t('myProducts')}
+          </h2>
+          <ul className="flex flex-col gap-3">
+            {products.map(p => (
+              <li key={p.id}>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => nav(`/p/${p.id}/capture`)}
+                    className="flex min-w-0 flex-1 items-center gap-4 rounded-xl border border-line bg-surface p-3 text-left active:bg-wash"
+                  >
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-wash">
+                      {p.cleanPhoto || p.photo
+                        ? <img src={p.cleanPhoto ?? p.photo} alt="" className="h-full w-full object-cover" />
+                        : <span className="flex h-full w-full items-center justify-center text-2xl">📦</span>}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">{(mine ? p.listing?.titleEn : p.listing?.titleHi) ?? t('untitled')}</p>
+                      <p className="text-sm text-ink-3">
+                        {p.status === 'published' ? `✅ ${t('onSale')}` : `✏️ ${t('incomplete')}`}
+                        {p.price && ` · ₹${p.price.suggested}`}
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setRemoving(p)}
+                    aria-label={`${t('remove')} — ${p.listing?.titleHi ?? t('untitled')}`}
+                    className="flex h-[76px] w-[52px] shrink-0 items-center justify-center rounded-xl
+                               border border-line bg-surface text-xl active:bg-wash"
+                  >🗑</button>
+
+                  {/* A buyer is talking to her. This has to be impossible to miss. */}
+                  {msgCounts[p.id] > 0 && (
+                    <button
+                      onClick={() => nav(`/p/${p.id}/chat`)}
+                      aria-label={t('messages')}
+                      className="relative flex h-[76px] w-[76px] shrink-0 flex-col items-center justify-center
+                                 gap-0.5 rounded-xl border-2 border-indigo bg-wash active:opacity-80"
+                    >
+                      <span aria-hidden className="text-2xl">💬</span>
+                      <span className="text-xs font-bold tabular-nums text-indigo">{msgCounts[p.id]}</span>
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       {removing && (
@@ -144,22 +159,54 @@ export default function Home() {
         />
       )}
 
-      <button
-        onClick={() => nav('/tour')}
-        className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-line
-                   bg-surface py-3 text-base font-medium active:bg-wash"
-      >
-        <span aria-hidden className="text-xl">🎓</span>
-        <span>{t('learnHow')}</span>
-      </button>
-
-      <button onClick={() => nav('/orders')} className="mt-4 w-full text-sm text-indigo underline">
-        📦 {t('orders')} →
-      </button>
-
-      <button onClick={() => nav('/buyer')} className="mt-3 w-full text-sm text-indigo underline">
+      <button onClick={() => nav('/buyer')} className="mt-6 w-full text-sm text-indigo underline">
         🛍 {t('ourMarketplace')} →
       </button>
     </Screen>
+  )
+}
+
+/* ---------------- the tiles ---------------- */
+
+/** Both tiles say their own label out loud, for the same reason BigButton
+ *  does: an icon and a word mean nothing to someone who cannot read either. */
+function useSpoken(label: string) {
+  const lang = useLang()
+  return () => speak(label, asrCode(lang))
+}
+
+function BigTile({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  const say = useSpoken(label)
+  return (
+    <button
+      onClick={() => { say(); onClick() }}
+      className="flex min-h-[172px] flex-col items-center justify-center gap-3 rounded-2xl
+                 border-2 border-indigo bg-wash px-3 py-5 text-center active:opacity-80"
+    >
+      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo text-3xl">
+        <span aria-hidden>{icon}</span>
+      </span>
+      <span className="text-lg font-semibold leading-snug text-indigo">{label}</span>
+    </button>
+  )
+}
+
+function SmallTile({
+  icon, label, onClick, badge,
+}: { icon: string; label: string; onClick: () => void; badge?: number }) {
+  const say = useSpoken(label)
+  return (
+    <button
+      onClick={() => { say(); onClick() }}
+      className="relative flex items-center gap-3 rounded-2xl border border-line bg-surface
+                 px-4 py-3 text-left active:bg-wash"
+    >
+      <span aria-hidden className="text-2xl">{icon}</span>
+      <span className="flex-1 text-base font-medium leading-snug">{label}</span>
+      {badge !== undefined && (
+        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo px-1.5
+                         text-xs font-bold tabular-nums text-white">{badge}</span>
+      )}
+    </button>
   )
 }

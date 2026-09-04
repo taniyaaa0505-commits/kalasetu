@@ -11,6 +11,9 @@
  */
 import type { Product } from '../types'
 
+// Deliberately still 'kalasetu' after the rename to Pehchaan: this names the
+// IndexedDB database on her phone, and renaming it would orphan every product
+// she has already made. The name is invisible to her; her work is not.
 const DB_NAME = 'kalasetu'
 const DB_VERSION = 3
 export const STORE = 'products'

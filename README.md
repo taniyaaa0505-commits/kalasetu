@@ -1,4 +1,4 @@
-# KalaSetu · कलासेतु
+# Pehchaan · पहचान
 
 *Bolo. Becho. Badho.* — Speak. Sell. Grow.
 
