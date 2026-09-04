@@ -88,7 +88,7 @@ Without a key the app uses mock listing text, so the flow still works.
 |---|------|-------|-------|
 | 1 | Real background removal | Camera | `npm i @huggingface/transformers`, model `briaai/RMBG-1.4`, run in-browser, composite onto white in `bgRemove.ts` |
 | 2 | ~~Get the Gemini key working~~ | AI | **Done.** Key in local `.env`. Models chosen by benchmark, not guesswork — see below |
-| 3 | Fill in UI strings for the other 4 languages | Voice | `lib/i18n.ts` has Hindi + English. Maithili, Bengali, Marathi, Tamil fall back to Hindi for interface text, though speech already works in all of them |
+| 3 | ~~Fill in UI strings for the other 4 languages~~ | Voice | **Done.** All six live in `lib/locales/`, one file each, every locale typed against `hi.ts` so a missing key fails the build. Still wants a native speaker's eye — Maithili most of all |
 | 4 | Firestore instead of IndexedDB | Data | Only `db.ts` changes. **This is what makes the demo's best moment possible** — right now the buyer page reads local storage, so a phone and a laptop cannot see each other's products |
 | 5 | ~~PWA~~ / offline queue | Data | **PWA done** — installable, app shell precached. Still to do: make `queue.ts` real with IndexedDB |
 | 6 | Comparables dataset | Pricing | ~300 rows scraped by hand. Replaces the fake `marketBand()` |
@@ -128,11 +128,16 @@ It drives three separate things, and they are NOT all at the same level:
 |---|---|
 | Speech in / out | Hindi, English, Bengali, Marathi, Tamil — all real |
 | Maithili speech | Goes through the **Hindi** recogniser. Chrome has no Maithili model. The transcript comes out phonetically rough; Gemini is told this and reads it generously. Real Maithili ASR needs Bhashini or Whisper — a later task |
-| Interface text | Hindi and English only. The rest fall back to Hindi |
+| Interface text | All six, in `lib/locales/`. Machine-translated from the Hindi and not yet read by a native speaker of Bengali, Marathi, Tamil or Maithili — treat wording as provisional, not the coverage |
 | Listing output | Always both English and Hindi. She sees her own language first; the other is labelled "for the buyer" |
 
-Say this plainly if a judge asks. Do not claim five working languages when the
-honest answer is four plus a documented fallback.
+Say this plainly if a judge asks. The honest sentence is: six languages in the
+interface, five with real speech recognition, and Maithili heard through the
+Hindi recogniser on purpose because Chrome ships no Maithili model.
+
+Do not upgrade that to "six fully working languages". The fallback is a
+deliberate, documented choice and it survives being asked about; a claim that
+Maithili ASR works does not.
 
 ## If the app opens to a blank screen
 
