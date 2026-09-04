@@ -105,6 +105,10 @@ const hi = {
   statusShipped: 'भेज दिया',
   statusDelivered: 'पहुँच गया',
   ordersWaiting: 'ऑर्डर आपका जवाब चाहते हैं',
+  soFar: 'आज तक',
+  earnedLabel: 'कमाई',
+  finishDraft: 'यह सामान अधूरा है। पूरा कीजिए।',
+  nothingSoldYet: 'पहली बिक्री अभी बाकी है',
 
   howItWorks: 'बस तीन कदम',
   how1: 'सामान की फोटो लीजिए',
@@ -244,6 +248,10 @@ const en: typeof hi = {
   statusShipped: 'Sent',
   statusDelivered: 'Delivered',
   ordersWaiting: 'orders need your answer',
+  soFar: 'So far',
+  earnedLabel: 'Earned',
+  finishDraft: 'This one is unfinished. Finish it.',
+  nothingSoldYet: 'Your first sale is still ahead',
 
   howItWorks: 'Just three steps',
   how1: 'Photograph your product',

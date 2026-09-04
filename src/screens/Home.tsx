@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
 import { listProducts, saveProduct, newId, subscribeProducts } from '../services/db'
 import { listMessages } from '../services/messages'
-import { pendingOrders, subscribeOrders } from '../services/orders'
+import { subscribeOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import { tourSeen } from '../lib/tour'
 import ConfirmRemove from '../components/ConfirmRemove'
@@ -11,7 +11,7 @@ import Artisan from '../components/Artisan'
 import Speakable from '../components/Speakable'
 import { asrCode } from '../types'
 import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
-import type { Product } from '../types'
+import type { Order, Product } from '../types'
 
 export default function Home() {
   const nav = useNavigate()
@@ -19,7 +19,7 @@ export default function Home() {
   const mine = prefersEnglish(lang)
   const [products, setProducts] = useState<Product[]>([])
   const [msgCounts, setMsgCounts] = useState<Record<string, number>>({})
-  const [waiting, setWaiting] = useState(0)
+  const [orders, setOrders] = useState<Order[]>([])
   const announced = useRef(false)
   const [removing, setRemoving] = useState<Product | null>(null)
 
@@ -37,14 +37,14 @@ export default function Home() {
 
   // An order waiting for her answer is the most important thing in the app.
   // Say it out loud once — she will not read a badge.
-  useEffect(() => subscribeOrders(async () => {
-    const pending = await pendingOrders()
-    setWaiting(pending.length)
-    if (pending.length > 0 && !announced.current) {
+  useEffect(() => subscribeOrders(items => {
+    setOrders(items)
+    const waiting = items.filter(o => o.status === 'placed').length
+    if (waiting > 0 && !announced.current) {
       announced.current = true
       speak(t('newOrderCame'), asrCode(getLang()))
     }
-    if (pending.length === 0) announced.current = false
+    if (waiting === 0) announced.current = false
   }), [])
 
   async function startNew() {
@@ -54,6 +54,8 @@ export default function Home() {
   }
 
   const empty = products.length === 0
+  const waiting = orders.filter(o => o.status === 'placed').length
+  const draft = products.find(p => p.status !== 'published')
 
   return (
     <Screen title={t('appName')} brand>
@@ -101,7 +103,9 @@ export default function Home() {
       {/* What is about to happen to her, before she risks anything. She cannot
           read the tiles above and has no idea what "add a product" leads to;
           the tour teaches this properly, but she has to choose to open it.
-          Only on the empty screen — once she has done it once, it is noise. */}
+          Only while the list is empty. Measured: showing it alongside the
+          record too pushes 114px past the fold on a 393x852 phone, and the
+          record is the thing that was meant to fill that space. */}
       {empty && <HowItWorks />}
 
       {!empty && (
@@ -157,6 +161,11 @@ export default function Home() {
         </>
       )}
 
+      {/* The record her work builds. It is also the whole loan argument: an
+          artisan applying to NSFDC has no books, and this is the first time
+          her selling has ever been written down anywhere. */}
+      {!empty && <SoFar products={products} orders={orders} draft={draft} />}
+
       {removing && (
         <ConfirmRemove
           product={removing}
@@ -174,6 +183,74 @@ export default function Home() {
       </button>
       </div>
     </Screen>
+  )
+}
+
+/**
+ * What her work has added up to, under the list it is made of.
+ *
+ * Three numbers rather than a chart, because they get read out loud and a
+ * chart cannot be. `earned` counts delivered orders ONLY — money that actually
+ * arrived, not money that was promised — because the point of writing this
+ * down is that a lender can believe it.
+ *
+ * Zeroes are honest and they are not a dead end: whatever is missing, the row
+ * underneath says the next thing to do about it.
+ */
+function SoFar({ products, orders, draft }: {
+  products: Product[]; orders: Order[]; draft?: Product
+}) {
+  const nav = useNavigate()
+  const lang = useLang()
+
+  const earned = orders.filter(o => o.status === 'delivered').reduce((n, o) => n + o.total, 0)
+  const live = orders.filter(o => o.status !== 'declined').length
+  const onSale = products.filter(p => p.status === 'published').length
+
+  const stats: [string, string][] = [
+    [`₹${earned}`, t('earnedLabel')],
+    [String(live), t('orders')],
+    [String(onSale), t('onSale')],
+  ]
+
+  return (
+    <section className="mt-8">
+      <button
+        onClick={() => speak(
+          `${t('soFar')}. ${t('earnedLabel')} ${earned} ${t('rupees')}. ` +
+          `${live} ${t('orders')}. ${onSale} ${t('onSale')}.`, asrCode(lang))}
+        className="mb-2 flex min-h-0 items-center gap-2 active:opacity-60"
+      >
+        <span aria-hidden className="text-indigo">🔊</span>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink-3">{t('soFar')}</h2>
+      </button>
+
+      <div className="grid grid-cols-3 gap-2">
+        {stats.map(([value, label]) => (
+          <div key={label} className="rounded-2xl border border-line bg-surface px-2 py-3 text-center">
+            <p className="text-2xl font-bold tabular-nums leading-tight text-indigo">{value}</p>
+            <p className="mt-0.5 text-xs text-ink-3">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* One next thing, never a list of them. */}
+      {draft ? (
+        <button
+          onClick={() => nav(`/p/${draft.id}/capture`)}
+          className="mt-2 flex w-full items-center gap-3 rounded-2xl border-2 border-gold
+                     bg-gold-wash px-4 py-3 text-left active:opacity-80"
+        >
+          <span aria-hidden className="text-xl">✏️</span>
+          <span className="flex-1 text-[15px] font-medium leading-snug text-gold">{t('finishDraft')}</span>
+          <span aria-hidden className="text-lg text-gold">›</span>
+        </button>
+      ) : earned === 0 ? (
+        <p className="mt-2 rounded-2xl border border-line bg-surface px-4 py-3 text-[15px] text-ink-3">
+          ⏳ {t('nothingSoldYet')}
+        </p>
+      ) : null}
+    </section>
   )
 }
 
