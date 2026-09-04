@@ -6,7 +6,18 @@
  *
  * TypeScript has no built-in types for this API, so we reach for `any` in
  * exactly one place and keep the rest typed.
+ *
+ * And in the APK there IS no such API — the Web Speech API is Chrome, and the
+ * Android System WebView is not Chrome. So there is a second implementation
+ * below, over the native Android recogniser via a Capacitor plugin. Both wear
+ * the same `listen(lang, events) -> { stop }` shape, so no screen knows which
+ * one it got. See lib/speak.ts, which had to do the same for the voice.
  */
+import { Capacitor } from '@capacitor/core'
+import { SpeechRecognition } from '@capacitor-community/speech-recognition'
+
+/** Decided once. Inside the APK this is true; in any browser it is false. */
+const NATIVE = Capacitor.isNativePlatform()
 
 type SpeechEvents = {
   onPartial?: (text: string) => void   // live text while she is still talking
@@ -33,11 +44,14 @@ function getCtor(): any {
 }
 
 export function listenSupported(): boolean {
+  if (NATIVE) return true
   return typeof window !== 'undefined' && getCtor() !== null
 }
 
 /** Start listening. Returns a handle you must call .stop() on. */
 export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
+  if (NATIVE) return listenNative(lang, ev)
+
   const Ctor = getCtor()
   if (!Ctor) { ev.onError?.('This browser cannot hear. Use Chrome on Android.'); return null }
 
@@ -68,4 +82,62 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
 
   rec.start()
   return { stop: () => rec.stop() }
+}
+
+/**
+ * The same thing, over Android's own recogniser.
+ *
+ * Shaped to match the web one exactly, including the order the callbacks fire
+ * in — onFinal before onEnd — because Review.tsx relies on that to save an
+ * answer before it clears the question.
+ *
+ * `popup: false` matters: with the system dialog up, Android sends no partial
+ * results, and the live text is the only proof she has that the phone is
+ * hearing her. It also puts a screen full of English in front of someone who
+ * cannot read it.
+ */
+function listenNative(lang: string, ev: SpeechEvents): Recogniser {
+  let finalText = ''
+  let stopped = false
+  let partials: { remove: () => Promise<void> } | undefined
+
+  ;(async () => {
+    try {
+      const perm = await SpeechRecognition.requestPermissions()
+      if (perm.speechRecognition !== 'granted') {
+        ev.onError?.('microphone permission denied')
+        return
+      }
+
+      partials = await SpeechRecognition.addListener('partialResults', (data: { matches?: string[] }) => {
+        const heard = data?.matches?.[0]
+        if (!heard) return
+        finalText = heard
+        ev.onSpeaking?.(true)
+        ev.onPartial?.(heard)
+      })
+
+      // Resolves when recognition ends, whether she stopped it or fell silent.
+      const result = await SpeechRecognition.start({
+        language: lang, partialResults: true, popup: false, maxResults: 1,
+      })
+      const best = result?.matches?.[0]
+      if (best) finalText = best
+    } catch (err) {
+      ev.onError?.(err instanceof Error ? err.message : String(err))
+    } finally {
+      await partials?.remove().catch(() => { /* already gone */ })
+      ev.onSpeaking?.(false)
+      ev.onFinal?.(finalText.trim())
+      ev.onEnd?.()
+    }
+  })()
+
+  return {
+    stop: () => {
+      if (stopped) return
+      stopped = true
+      void SpeechRecognition.stop().catch(() => { /* it had already finished */ })
+    },
+  }
 }

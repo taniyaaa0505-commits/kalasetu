@@ -129,23 +129,35 @@ On the phone, allow "install from unknown sources" once.
 Locally, `npm run apk` does the same thing but needs the Android SDK installed.
 You do not need it — that is why the workflow exists.
 
-### What is NOT verified
+### Speech in the APK is NOT the web's speech
 
-Nobody has run this APK on an Android phone yet. One thing to check first,
-because the whole app depends on it:
+It was the risk, and it happened: **the first APK was silent.** The Web Speech
+API is a Chrome feature and the Android System WebView is not Chrome, so
+neither `speechSynthesis` nor `webkitSpeechRecognition` exists inside the app.
+For a non-reader, an app that does not talk is an app that does not work.
 
-**Does the microphone work?** Open the app, tap through to the Speak screen. If
-it says *"यह फ़ोन सुन नहीं सकता"*, then `webkitSpeechRecognition` does not exist
-in the Android System WebView — which is a real possibility, because the Web
-Speech API is a Chrome feature and the WebView is not Chrome. The web build is
-unaffected either way.
+Both now have a native path, over Android's own engines:
 
-If it is missing, the fix is `@capacitor-community/speech-recognition` and
-`@capacitor-community/text-to-speech` behind the existing `lib/listen.ts` and
-`lib/speak.ts` — those two files are already the only places that touch the
-browser speech APIs, so nothing else has to change. Do not start that work
-until someone has actually seen the banner: it is a day of native plugin
-wiring to fix a problem that may not exist.
+| | Web | APK |
+|---|---|---|
+| Voice out | `speechSynthesis` | `@capacitor-community/text-to-speech` |
+| Voice in | `webkitSpeechRecognition` | `@capacitor-community/speech-recognition` |
+
+The split is entirely inside `lib/speak.ts` and `lib/listen.ts`, chosen once
+from `Capacitor.isNativePlatform()`. Both wear the same shape, so no screen
+knows which one it got, and the web build is byte-for-byte the same behaviour
+it always had.
+
+Two Android details that will waste a day if you forget them:
+
+- `RECORD_AUDIO` in the manifest, asked for when she first taps the mic.
+- A `<queries>` block for `android.speech.RecognitionService` and
+  `android.intent.action.TTS_SERVICE`. Android 11 hid other packages; without
+  it both services are invisible and fail with nothing useful in the log.
+- `popup: false` on the recogniser. With the system dialog up Android sends no
+  partial results, and the live text is the only proof she has that the phone
+  is hearing her — quite apart from putting a screenful of English in front of
+  someone who cannot read it.
 
 ## Languages — what actually works
 

@@ -38,4 +38,20 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- She speaks; the app has to be allowed to hear her. Asked for at the
+         moment she first taps the microphone, not on launch. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Android 11 hid other packages from us unless we say what we need.
+         Without this the recogniser and the TTS engine are simply invisible
+         and both fail with nothing useful in the log. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
 </manifest>
