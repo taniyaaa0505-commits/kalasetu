@@ -157,8 +157,8 @@ export default function Home() {
         📦 {t('orders')} →
       </button>
 
-      <button onClick={() => nav('/buyer')} className="mt-3 w-full text-sm text-ink-3 underline">
-        Buyer view (for the demo) →
+      <button onClick={() => nav('/buyer')} className="mt-3 w-full text-sm text-indigo underline">
+        🛍 {t('ourMarketplace')} →
       </button>
     </Screen>
   )

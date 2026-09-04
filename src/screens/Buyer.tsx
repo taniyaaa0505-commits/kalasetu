@@ -24,7 +24,7 @@ export default function Buyer() {
       <header className="border-b border-line px-6 py-4">
         <button onClick={() => nav('/')} className="mb-1 min-h-0 text-sm text-ink-3">← back to the app</button>
         <h1 className="text-2xl font-bold tracking-tight">Artisan Marketplace</h1>
-        <p className="text-sm text-ink-3">Standing in for ONDC / GeM in the demo</p>
+        <p className="text-sm text-ink-3">Handmade, direct from the maker</p>
       </header>
 
       <div className="mx-auto max-w-5xl p-6">
