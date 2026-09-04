@@ -73,11 +73,16 @@
 ---------------------------------------------------------------- */
 html { font-size: clamp(0.9375rem, 0.574rem + 1.82vw, 1.0625rem); }
 
-/* A short screen is the other way to run out of room: a wide-but-short
-   phone in landscape, or a small phone with the keyboard up. Width says
-   "go big", height says there is nowhere to put it — so hold the dial
-   down and let the vertical rhythm tighten with it. */
-@media (max-height: 700px) {
+/* Landscape is the other way to run out of room: the width says "go big"
+   while the height says there is nowhere to put it. Hold the dial down so
+   the vertical rhythm tightens with it.
+
+   `orientation: landscape` and not a bare `max-height`, which is the same
+   trap twice: a 360x640 budget Android is short by any absolute measure,
+   and a height rule catches it on top of the width rule, shrinking the
+   exact phone this was written to help down to 14px. Short only counts
+   when the screen is short RELATIVE to its width. */
+@media (orientation: landscape) and (max-height: 700px) {
   html { font-size: clamp(0.875rem, 0.55rem + 1.4vw, 1rem); }
 }
 
