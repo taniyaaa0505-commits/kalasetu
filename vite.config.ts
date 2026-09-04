@@ -51,26 +51,19 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          {
-            urlPattern: /\.wasm$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'onnx-runtime',
-              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 90 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            // The cut-out model, pulled from Hugging Face on first use. Once
-            // this is cached, background removal works in aeroplane mode.
-            urlPattern: /^https:\/\/(huggingface\.co|cdn-lfs[^/]*\.hf\.co)\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'rmbg-model',
-              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 180 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
+          // NOTHING HERE FOR THE CUT-OUT MODEL OR THE ONNX RUNTIME, on purpose.
+          //
+          // There used to be two rules: one for *.wasm and one for
+          // huggingface.co. They never worked — the weights actually come from
+          // us.aws.cdn.hf.co and the runtime from cdn.jsdelivr.net, and neither
+          // matched. Verified in a browser: after one run, a reload downloads
+          // 0 bytes of either, because transformers.js already caches both in
+          // its own Cache Storage bucket ("transformers-cache").
+          //
+          // So making those patterns match would not have fixed anything; it
+          // would have put a SECOND copy of the same 49 MB on her phone. If you
+          // are here because offline cut-outs failed, check that bucket before
+          // adding a rule back.
         ],
         // Never let a stale shell linger after a deploy.
         cleanupOutdatedCaches: true,

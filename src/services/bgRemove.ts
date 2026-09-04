@@ -18,9 +18,28 @@
  *     the object in half. Measured on our test image: it kept 7% of a
  *     fringed edge. RMBG-1.4 kept 100%.
  *
- * Benchmarked on a synthetic pot with a handle hole and loose threads
- * (see bench2.mjs): 512px + q8 gives IoU 99.9%, ~1s inference, and the
- * quantised weights are roughly a quarter the download of fp32.
+ *  3. The input size is NOT ours to choose. This ONNX export has static
+ *     dimensions — feeding it 512 raises "Got invalid dimensions for input:
+ *     Got: 512 Expected: 1024" and nothing runs. An earlier version of this
+ *     file carried an INFER_SIZE of 512 and a benchmark claiming ~1s
+ *     inference; both were fiction, because the config was silently ignored
+ *     and every run was always 1024. Do not add it back without checking
+ *     `pixel_values.dims` in a browser.
+ *
+ * The q8 weights are roughly a quarter the download of fp32, which is the one
+ * part of that old note that held up.
+ *
+ * Measured in Chromium on a laptop, on our test photo:
+ *   first run   ~37s   50 MB downloaded (44 MB weights + 4.7 MB ort-wasm)
+ *   after that  ~10s   0 bytes — transformers.js keeps both in a Cache Storage
+ *                      bucket called "transformers-cache", so this genuinely
+ *                      does work in aeroplane mode from the second run on.
+ *                      Do NOT also cache them in the service worker: that
+ *                      stores the same 49 MB twice on her phone.
+ *
+ * A phone will be slower than that. The first run is a long wait no matter
+ * what, which is why it has to SHOW the download rather than say "cleaning…"
+ * and appear to hang.
  */
 
 export interface CleanResult {
@@ -35,12 +54,23 @@ export type Progress =
   | { phase: 'composing' }
 
 const MODEL_ID = 'briaai/RMBG-1.4'
-const INFER_SIZE = 512       // what the model sees. 512 scored the same as 1024, faster.
 const WORK_MAX = 1400        // cap the photo before we touch it — phone photos are huge
 const OUT_SIZE = 1200        // final square
 const FILL = 0.82            // product fills 82% of the frame — the e-commerce norm
 
 let loadPromise: Promise<{ model: any; processor: any; RawImage: any }> | null = null
+
+/**
+ * Everyone currently waiting on the model.
+ *
+ * The load is memoised, which is the whole point — but it also meant the FIRST
+ * caller's progress callback was the only one that ever ran. The screen warms
+ * the model up on mount with no callback, so by the time she took a photo and
+ * passed one in, it was dropped on the floor and she watched "cleaning…" for
+ * 37 seconds with no bar. Callbacks live here instead of in that closure so a
+ * caller who arrives mid-download still hears about it.
+ */
+const watching = new Set<(p: Progress) => void>()
 
 function load(onProgress?: (p: Progress) => void) {
   if (!loadPromise) {
@@ -50,7 +80,8 @@ function load(onProgress?: (p: Progress) => void) {
 
       const progress_callback = (e: any) => {
         if (e?.status === 'progress' && typeof e.progress === 'number') {
-          onProgress?.({ phase: 'downloading', percent: Math.round(e.progress) })
+          const percent = Math.round(e.progress)
+          for (const fn of watching) fn({ phase: 'downloading', percent })
         }
       }
 
@@ -62,21 +93,27 @@ function load(onProgress?: (p: Progress) => void) {
         progress_callback,
       })
 
-      // RMBG ships no preprocessor_config, so we supply one.
+      // RMBG shipped no preprocessor_config when this was written; it does now,
+      // and the hub's copy wins over anything we pass. Kept as a fallback.
       const processor = await AutoProcessor.from_pretrained(MODEL_ID, {
+        // No `size` here: the model dictates it, and passing one only ever
+        // made this file look like it had a choice. See note 3 above.
         config: {
           do_normalize: true, do_pad: false, do_rescale: true, do_resize: true,
           image_mean: [0.5, 0.5, 0.5], image_std: [1, 1, 1],
           feature_extractor_type: 'ImageFeatureExtractor',
           resample: 2, rescale_factor: 1 / 255,
-          size: { width: INFER_SIZE, height: INFER_SIZE },
         } as any,
       })
 
       return { model, processor, RawImage }
     })().catch(err => { loadPromise = null; throw err })   // allow a retry next time
   }
-  return loadPromise
+
+  if (!onProgress) return loadPromise
+  watching.add(onProgress)
+  // `finally` returns a new promise; the memoised one is untouched.
+  return loadPromise.finally(() => { watching.delete(onProgress) })
 }
 
 /** Warm the model up while she is still framing the shot. */
