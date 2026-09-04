@@ -19,7 +19,7 @@ const STYLES: Record<Variant, string> = {
 }
 
 export default function BigButton({
-  icon, label, onClick, variant = 'primary', disabled, lang, speakOnTap = true,
+  icon, label, onClick, variant = 'primary', disabled, lang, speakOnTap = true, size = 'md',
 }: {
   icon: string
   label: string
@@ -28,6 +28,10 @@ export default function BigButton({
   disabled?: boolean
   lang?: string
   speakOnTap?: boolean
+  /** 'lg' for the one action a screen exists for — the home screen's "add a
+   *  product". Everywhere else the step's own button is the only thing in the
+   *  footer anyway, so it does not need the extra weight. */
+  size?: 'md' | 'lg'
 }) {
   const current = useLang()
   return (
@@ -35,11 +39,13 @@ export default function BigButton({
       disabled={disabled}
       onClick={() => { if (speakOnTap) speak(label, lang ?? asrCode(current)); onClick?.() }}
       className={
-        'flex w-full items-center justify-center gap-3 rounded-2xl px-5 text-xl font-semibold ' +
-        'min-h-[64px] transition-colors disabled:opacity-40 ' + STYLES[variant]
+        'flex w-full items-center justify-center rounded-2xl px-5 font-semibold ' +
+        'transition-colors disabled:opacity-40 ' +
+        (size === 'lg' ? 'min-h-[86px] gap-4 text-2xl ' : 'min-h-[64px] gap-3 text-xl ') +
+        STYLES[variant]
       }
     >
-      <span aria-hidden className="text-2xl">{icon}</span>
+      <span aria-hidden className={size === 'lg' ? 'text-4xl' : 'text-2xl'}>{icon}</span>
       <span>{label}</span>
     </button>
   )

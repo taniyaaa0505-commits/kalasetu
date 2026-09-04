@@ -61,7 +61,7 @@ export default function Home() {
   return (
     <Screen
       title={t('appName')} brand
-      action={<BigButton icon="📷" label={t('addProduct')} onClick={startNew} />}
+      action={<BigButton icon="📷" label={t('addProduct')} onClick={startNew} size="lg" />}
     >
       {/* A full-height column, so the quiet footer link sits at the bottom of
           the screen instead of floating in the middle of it. */}
