@@ -57,6 +57,9 @@ export default function Home() {
 
   return (
     <Screen title={t('appName')} brand>
+      {/* A full-height column, so the quiet footer link sits at the bottom of
+          the screen instead of floating in the middle of it. */}
+      <div className="flex min-h-full flex-col">
       {waiting > 0 && (
         <button
           onClick={() => nav('/orders')}
@@ -75,8 +78,8 @@ export default function Home() {
           reads as an invitation; a dashed box saying "nothing here" reads as a
           screen that failed to load. */}
       {empty && (
-        <div className="mb-6 flex flex-col items-center gap-4 text-center">
-          <Artisan width={300} />
+        <div className="mb-5 flex flex-col items-center gap-3 text-center">
+          <Artisan width={296} />
           <Speakable text={t('noProducts')} className="text-base leading-relaxed text-ink-2" />
         </div>
       )}
@@ -94,6 +97,12 @@ export default function Home() {
           />
         </div>
       </div>
+
+      {/* What is about to happen to her, before she risks anything. She cannot
+          read the tiles above and has no idea what "add a product" leads to;
+          the tour teaches this properly, but she has to choose to open it.
+          Only on the empty screen — once she has done it once, it is noise. */}
+      {empty && <HowItWorks />}
 
       {!empty && (
         <>
@@ -159,10 +168,57 @@ export default function Home() {
         />
       )}
 
-      <button onClick={() => nav('/buyer')} className="mt-6 w-full text-sm text-indigo underline">
+      <button onClick={() => nav('/buyer')}
+        className="mt-auto w-full pt-6 pb-1 text-sm text-indigo underline">
         🛍 {t('ourMarketplace')} →
       </button>
+      </div>
     </Screen>
+  )
+}
+
+/**
+ * The whole app in three lines, read out in one tap.
+ *
+ * A timeline rather than "1. 2. 3." — the beads and the rule between them
+ * carry the order, the way the step dots do everywhere else, because a numeral
+ * is no more readable to her than a word. The third line is the promise the
+ * other two are for: she is not being handed an empty shop to run.
+ */
+function HowItWorks() {
+  const lang = useLang()
+  const steps = [
+    { icon: '📷', text: t('how1') },
+    { icon: '🎤', text: t('how2') },
+    { icon: '₹',  text: t('how3') },
+  ]
+  return (
+    <section className="mt-6">
+      <button
+        onClick={() => speak([t('howItWorks'), ...steps.map(s => s.text)].join('. '), asrCode(lang))}
+        className="mb-2 flex min-h-0 items-center gap-2 active:opacity-60"
+      >
+        <span aria-hidden className="text-indigo">🔊</span>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink-3">
+          {t('howItWorks')}
+        </h2>
+      </button>
+
+      <ol className="relative rounded-2xl border border-line bg-surface px-4 py-2.5">
+        {/* the thread the beads hang on */}
+        <span aria-hidden className="absolute left-[35px] top-8 bottom-8 w-px bg-line-2" />
+        {steps.map(s => (
+          <li key={s.text} className="relative flex items-center gap-3 py-1.5">
+            <span aria-hidden
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full
+                         border border-line-2 bg-wash text-lg font-semibold text-indigo">
+              {s.icon}
+            </span>
+            <span className="text-[15px] leading-snug">{s.text}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 
@@ -180,10 +236,10 @@ function BigTile({ icon, label, onClick }: { icon: string; label: string; onClic
   return (
     <button
       onClick={() => { say(); onClick() }}
-      className="flex min-h-[172px] flex-col items-center justify-center gap-3 rounded-2xl
+      className="flex min-h-[148px] flex-col items-center justify-center gap-2.5 rounded-2xl
                  border-2 border-indigo bg-wash px-3 py-5 text-center active:opacity-80"
     >
-      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo text-3xl">
+      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo text-2xl">
         <span aria-hidden>{icon}</span>
       </span>
       <span className="text-lg font-semibold leading-snug text-indigo">{label}</span>

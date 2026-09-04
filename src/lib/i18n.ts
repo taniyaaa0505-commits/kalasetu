@@ -106,6 +106,10 @@ const hi = {
   statusDelivered: 'पहुँच गया',
   ordersWaiting: 'ऑर्डर आपका जवाब चाहते हैं',
 
+  howItWorks: 'बस तीन कदम',
+  how1: 'सामान की फोटो लीजिए',
+  how2: 'उसके बारे में बोलिए',
+  how3: 'दाम और खरीदार, दोनों हम लाएँगे',
   learnHow: 'सीखिए कैसे बेचें',
   tourSkip: 'छोड़ दीजिए',
   tourNext: 'आगे',
@@ -241,6 +245,10 @@ const en: typeof hi = {
   statusDelivered: 'Delivered',
   ordersWaiting: 'orders need your answer',
 
+  howItWorks: 'Just three steps',
+  how1: 'Photograph your product',
+  how2: 'Say a few words about it',
+  how3: 'We bring the price and the buyer',
   learnHow: 'Learn how to sell',
   tourSkip: 'Skip',
   tourNext: 'Next',
