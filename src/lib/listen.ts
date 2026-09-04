@@ -77,8 +77,20 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
     }
     ev.onPartial?.((finalText + interim).trim())
   }
-  rec.onerror = (e: any) => { ev.onSpeaking?.(false); ev.onError?.(String(e.error ?? 'unknown error')) }
-  rec.onend = () => { ev.onSpeaking?.(false); ev.onFinal?.(finalText.trim()); ev.onEnd?.() }
+  // A failed session must not also report an empty transcript: `onend` always
+  // follows `onerror`, and an empty final makes the screen say "nothing heard"
+  // on top of the real reason, which is the one thing she needed to know.
+  let failed = false
+  rec.onerror = (e: any) => {
+    failed = true
+    ev.onSpeaking?.(false)
+    ev.onError?.(String(e.error ?? 'unknown error'))
+  }
+  rec.onend = () => {
+    ev.onSpeaking?.(false)
+    if (!failed) ev.onFinal?.(finalText.trim())
+    ev.onEnd?.()
+  }
 
   rec.start()
   return { stop: () => rec.stop() }
@@ -91,53 +103,111 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
  * in — onFinal before onEnd — because Review.tsx relies on that to save an
  * answer before it clears the question.
  *
- * `popup: false` matters: with the system dialog up, Android sends no partial
- * results, and the live text is the only proof she has that the phone is
- * hearing her. It also puts a screen full of English in front of someone who
- * cannot read it.
+ * The plugin's contract in partialResults mode is not the obvious one, and
+ * getting it wrong is why the first APK reported "कुछ सुनाई नहीं दिया" a tenth
+ * of a second after she tapped the microphone. Read from its Android source:
+ *
+ *   - `start()` resolves IMMEDIATELY, as soon as it is listening. It is not
+ *     the end of the utterance. Treating it as the end ends the session before
+ *     she has said a word.
+ *   - Every transcript, interim AND final, arrives on the `partialResults`
+ *     event. `start()` never carries one.
+ *   - `listeningState` gives 'started' when she begins speaking and 'stopped'
+ *     when she stops.
+ *   - If she says NOTHING, the recogniser errors internally and calls
+ *     stopListening(), which emits no event at all — and the error cannot
+ *     reach us either, because the promise was already resolved. Without a
+ *     timer of our own the microphone stays open forever.
+ *
+ * Hence: the events drive the session, and a watchdog closes it when Android
+ * goes quiet on us.
  */
+
+/** How long we wait with nothing at all before giving up, and how long we
+ *  linger after she stops so the final, better transcript can land. */
+const SILENCE_MS = 15000
+const AFTER_SPEECH_MS = 1200
+
 function listenNative(lang: string, ev: SpeechEvents): Recogniser {
-  let finalText = ''
-  let stopped = false
-  let partials: { remove: () => Promise<void> } | undefined
+  let text = ''
+  let done = false
+  let watchdog: ReturnType<typeof setTimeout> | undefined
+  const handles: { remove: () => Promise<void> }[] = []
 
-  ;(async () => {
+  async function close() {
+    clearTimeout(watchdog)
+    for (const h of handles) await h.remove().catch(() => { /* already gone */ })
+    handles.length = 0
+    void SpeechRecognition.stop().catch(() => { /* it had already finished */ })
+    ev.onSpeaking?.(false)
+  }
+
+  /** A completed session, whether or not she said anything. */
+  async function finish() {
+    if (done) return
+    done = true
+    await close()
+    ev.onFinal?.(text.trim())
+    ev.onEnd?.()
+  }
+
+  /** Something actually went wrong. Deliberately NOT onFinal: an empty final
+   *  makes the screen say "nothing heard", which would bury the real reason. */
+  async function fail(message: string) {
+    if (done) return
+    done = true
+    await close()
+    ev.onError?.(message)
+    ev.onEnd?.()
+  }
+
+  function armWatchdog(ms: number) {
+    clearTimeout(watchdog)
+    watchdog = setTimeout(() => { void finish() }, ms)
+  }
+
+  void (async () => {
     try {
-      const perm = await SpeechRecognition.requestPermissions()
-      if (perm.speechRecognition !== 'granted') {
-        ev.onError?.('microphone permission denied')
-        return
-      }
+      const { available } = await SpeechRecognition.available()
+      if (!available) return void fail('This phone has no speech recogniser.')
 
-      partials = await SpeechRecognition.addListener('partialResults', (data: { matches?: string[] }) => {
+      const perm = await SpeechRecognition.requestPermissions()
+      if (perm.speechRecognition !== 'granted') return void fail('Microphone permission denied.')
+
+      handles.push(await SpeechRecognition.addListener('partialResults', (data: { matches?: string[] }) => {
         const heard = data?.matches?.[0]
-        if (!heard) return
-        finalText = heard
+        if (!heard || done) return
+        text = heard
         ev.onSpeaking?.(true)
         ev.onPartial?.(heard)
-      })
+        armWatchdog(SILENCE_MS)
+      }))
 
-      // Resolves when recognition ends, whether she stopped it or fell silent.
-      const result = await SpeechRecognition.start({
+      handles.push(await SpeechRecognition.addListener('listeningState', (s: { status?: string }) => {
+        if (done) return
+        if (s?.status === 'started') { ev.onSpeaking?.(true); armWatchdog(SILENCE_MS); return }
+        // She has stopped. Wait a moment for the final transcript, which the
+        // recogniser sends just after this, then close on whatever we hold.
+        ev.onSpeaking?.(false)
+        armWatchdog(AFTER_SPEECH_MS)
+      }))
+
+      // Resolves as soon as it is listening — see the note above.
+      await SpeechRecognition.start({
         language: lang, partialResults: true, popup: false, maxResults: 1,
       })
-      const best = result?.matches?.[0]
-      if (best) finalText = best
+      armWatchdog(SILENCE_MS)
     } catch (err) {
-      ev.onError?.(err instanceof Error ? err.message : String(err))
-    } finally {
-      await partials?.remove().catch(() => { /* already gone */ })
-      ev.onSpeaking?.(false)
-      ev.onFinal?.(finalText.trim())
-      ev.onEnd?.()
+      void fail(err instanceof Error ? err.message : String(err))
     }
   })()
 
   return {
     stop: () => {
-      if (stopped) return
-      stopped = true
-      void SpeechRecognition.stop().catch(() => { /* it had already finished */ })
+      if (done) return
+      void SpeechRecognition.stop().catch(() => { /* already stopped */ })
+      // Same grace as a natural end: her last words may still be in flight.
+      armWatchdog(AFTER_SPEECH_MS)
     },
   }
 }
