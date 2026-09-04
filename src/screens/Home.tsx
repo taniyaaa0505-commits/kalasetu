@@ -8,6 +8,8 @@ import { pendingOrders, subscribeOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import { tourSeen } from '../lib/tour'
 import ConfirmRemove from '../components/ConfirmRemove'
+import Artisan from '../components/Artisan'
+import Speakable from '../components/Speakable'
 import { asrCode } from '../types'
 import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
 import type { Product } from '../types'
@@ -76,9 +78,13 @@ export default function Home() {
       </h2>
 
       {products.length === 0 ? (
-        <p className="rounded-xl border-2 border-dashed border-line py-14 text-center text-ink-3">
-          {t('noProducts')}
-        </p>
+        /* An empty shop is the first thing she ever sees. A dashed box saying
+           "nothing here" reads as a broken screen; a woman at her loom reads
+           as an invitation, and the line under it says what to press. */
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <Artisan width={240} />
+          <Speakable text={t('noProducts')} className="text-lg text-ink-2" />
+        </div>
       ) : (
         <ul className="flex flex-col gap-3">
           {products.map(p => (

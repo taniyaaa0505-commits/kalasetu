@@ -17,6 +17,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BigButton from '../components/BigButton'
+import Artisan from '../components/Artisan'
 import Kolam from '../components/Kolam'
 import PriceScale from '../components/PriceScale'
 import PriceInNotes from '../components/PriceInNotes'
@@ -34,6 +35,13 @@ type Id = 'welcome' | 'speaks' | 'photo' | 'cleaning' | 'speaking'
         | 'listing' | 'price' | 'publish' | 'orders' | 'done'
 
 interface Step { id: Id; title: () => string; sub: () => string; kind: Kind }
+
+/** Everything a step says out loud. The welcome slide adds the one sentence
+ *  that is the whole pitch — she must HEAR it, not read it off the picture. */
+function intro(step: Step): string {
+  return [step.title(), step.sub(), step.id === 'welcome' ? t('sellWithVoice') : '']
+    .filter(Boolean).join('. ')
+}
 
 const STEPS: Step[] = [
   { id: 'welcome',  title: () => t('tourWelcome'),     sub: () => t('tourWelcomeSub'),  kind: 'watch' },
@@ -62,7 +70,7 @@ export default function Tour() {
   // Every step introduces itself out loud.
   useEffect(() => {
     setActed(false)
-    speak([step.title(), step.sub()].filter(Boolean).join('. '), voice)
+    speak(intro(step), voice)
     return stopSpeaking
   }, [i, lang])
 
@@ -99,7 +107,7 @@ export default function Tour() {
 
       <main className="flex-1 overflow-y-auto px-4 py-6">
         <button
-          onClick={() => speak([step.title(), step.sub()].filter(Boolean).join('. '), voice)}
+          onClick={() => speak(intro(step), voice)}
           className="mb-1 flex w-full min-h-0 items-start gap-2 text-left"
         >
           <span aria-hidden className="mt-1 text-indigo">🔊</span>
@@ -230,6 +238,20 @@ function Watch({ id }: { id: Id }) {
   )
 
   if (id === 'done') return <Center><Kolam size={150} /></Center>
+
+  // The first thing anyone sees of the app. The app icon said nothing; this
+  // says who it is for, and the line under it is the whole pitch in one
+  // sentence — she does not have to write a single word.
+  if (id === 'welcome') return (
+    <Center>
+      <Artisan width={250} />
+      <p className="flex items-center justify-center gap-2 rounded-xl bg-wash px-4 py-3
+                    text-center text-lg font-semibold text-indigo">
+        <span aria-hidden className="text-2xl">🎤</span>
+        <span>{t('sellWithVoice')}</span>
+      </p>
+    </Center>
+  )
 
   return (
     <Center>
