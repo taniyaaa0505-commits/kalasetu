@@ -87,7 +87,7 @@ export default function Home() {
             no idea what she is looking at. */}
         <Speakable
           text={empty ? t('tagline') : t('whatToday')}
-          className="text-[22px] font-bold leading-tight tracking-tight"
+          className="text-[1.375rem] font-bold leading-tight tracking-tight"
         />
 
         {/* An empty shop is the first thing she ever sees. A woman at her work
@@ -210,7 +210,7 @@ function WhatWeDo() {
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-clay-wash text-lg font-semibold text-clay">
               {c.icon}
             </span>
-            <span className="text-[15px] leading-snug">{c.text}</span>
+            <span className="text-[0.9375rem] leading-snug">{c.text}</span>
             <Icon name="ai" className="ml-auto shrink-0 text-base text-indigo/40" />
           </li>
         ))}
@@ -283,7 +283,7 @@ function ProductCard({
       <button
         onClick={onRemove}
         aria-label={`${t('remove')} — ${title}`}
-        className="press absolute bottom-2 right-2 flex h-10 w-10 min-h-0 items-center justify-center rounded-full border border-line bg-surface/90 text-base backdrop-blur active:bg-surface-2"
+        className="press absolute bottom-2 right-2 flex h-11 w-11 min-h-0 items-center justify-center rounded-full border border-line bg-surface/90 text-base backdrop-blur active:bg-surface-2"
       >🗑</button>
     </li>
   )
@@ -345,11 +345,11 @@ function SoFar({ products, orders, draft }: {
           className="press mt-2 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left"
         >
           <span aria-hidden className="text-xl">✏️</span>
-          <span className="flex-1 text-[15px] font-medium leading-snug text-gold">{t('finishDraft')}</span>
+          <span className="flex-1 text-[0.9375rem] font-medium leading-snug text-gold">{t('finishDraft')}</span>
           <span aria-hidden className="text-lg text-gold">›</span>
         </button>
       ) : earned === 0 ? (
-        <p className="mt-2 rounded-card border border-line bg-surface px-4 py-3 text-[15px] text-ink-3">
+        <p className="mt-2 rounded-card border border-line bg-surface px-4 py-3 text-[0.9375rem] text-ink-3">
           ⏳ {t('nothingSoldYet')}
         </p>
       ) : null}
@@ -366,11 +366,11 @@ function Tile({
   return (
     <button
       onClick={() => { speak(label, asrCode(lang)); onClick() }}
-      className="press relative flex min-h-[92px] flex-col items-center justify-center gap-1.5 rounded-card
+      className="press relative flex min-h-[5.75rem] flex-col items-center justify-center gap-1.5 rounded-card
                  border border-line bg-surface px-3 py-3 text-center shadow-rest active:bg-surface-2"
     >
       <span aria-hidden className="text-2xl text-indigo">{icon}</span>
-      <span className="text-[15px] font-medium leading-snug">{label}</span>
+      <span className="text-[0.9375rem] font-medium leading-snug">{label}</span>
       {badge !== undefined && (
         <span className="absolute right-2 top-2 flex h-6 min-w-6 items-center justify-center rounded-full
                          bg-indigo px-1.5 text-xs font-bold tabular-nums text-white">{badge}</span>

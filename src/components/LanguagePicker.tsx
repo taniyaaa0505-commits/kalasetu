@@ -30,7 +30,7 @@ export default function LanguagePicker({ compact = false }: { compact?: boolean 
             aria-pressed={on}
             className={
               'flex shrink-0 items-center justify-center rounded-xl border-2 font-semibold transition-colors ' +
-              (compact ? 'min-h-[48px] px-4 text-base ' : 'min-h-[64px] px-4 text-lg ') +
+              (compact ? 'min-h-[3rem] px-4 text-base ' : 'min-h-[4rem] px-4 text-lg ') +
               (on ? 'border-indigo bg-indigo text-white' : 'border-line bg-surface text-ink active:bg-wash')
             }
           >

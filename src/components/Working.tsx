@@ -49,7 +49,7 @@ export default function Working({
         <Speakable text={title} className="text-lg font-semibold leading-snug text-indigo" />
 
         {percent !== undefined && (
-          <div className="w-full max-w-[260px]">
+          <div className="w-full max-w-[16.25rem]">
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-2">
               <div
                 className="h-full rounded-full bg-indigo transition-all duration-300"
@@ -60,7 +60,7 @@ export default function Working({
           </div>
         )}
 
-        {note && <p className="max-w-[280px] text-xs leading-snug text-ink-3">{note}</p>}
+        {note && <p className="max-w-[17.5rem] text-xs leading-snug text-ink-3">{note}</p>}
       </div>
     </div>
   )

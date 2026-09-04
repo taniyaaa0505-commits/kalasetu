@@ -60,17 +60,6 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
   rec.continuous = true          // she may pause mid-sentence; don't cut her off
   rec.interimResults = true      // show words as she speaks — proves it is working
 
-  /**
-   * Finished phrases, stored AT THE INDEX the recogniser gave them.
-   *
-   * Not appended to a string. Chrome re-delivers results it has already
-   * finalised — on Android it commonly replays the whole list with
-   * `resultIndex` back at 0 — and an append-only accumulator writes every one
-   * of those replays down again, so she watches her own sentence stack up over
-   * and over. Writing to a slot is idempotent: a replay overwrites the same
-   * slot with the same words and the transcript does not move.
-   */
-  const finals: string[] = []
   let finalText = ''
 
   // Real signal from the recogniser, no extra microphone access.
@@ -79,17 +68,18 @@ export function listen(lang: string, ev: SpeechEvents): Recogniser | null {
   rec.onsoundstart  = () => ev.onSpeaking?.(true)
   rec.onsoundend    = () => ev.onSpeaking?.(false)
 
+  /**
+   * Rebuild the whole transcript from `e.results` on every event.
+   *
+   * `e.results` is cumulative — it already holds everything the recogniser has
+   * decided this session — so there is nothing to accumulate on our side, and
+   * anything we DO accumulate is a chance to write the same words down twice.
+   */
   rec.onresult = (e: any) => {
-    let interim = ''
-    // From 0, not from `resultIndex`: the slots make repeats harmless, and
-    // starting at the front also survives a recogniser that renumbers.
-    for (let i = 0; i < e.results.length; i++) {
-      const chunk = e.results[i][0].transcript
-      if (e.results[i].isFinal) finals[i] = chunk
-      else interim += chunk
-    }
-    finalText = finals.filter(Boolean).join(' ')
-    ev.onPartial?.((finalText + ' ' + interim).trim())
+    const parts: string[] = []
+    for (let i = 0; i < e.results.length; i++) parts.push(e.results[i][0].transcript)
+    finalText = mergeTranscript(parts)
+    ev.onPartial?.(finalText)
   }
   // A failed session must not also report an empty transcript: `onend` always
   // follows `onerror`, and an empty final makes the screen say "nothing heard"
@@ -229,4 +219,60 @@ function listenNative(lang: string, ev: SpeechEvents): Recogniser {
       armWatchdog(AFTER_SPEECH_MS)
     },
   }
+}
+
+/**
+ * Join what the recogniser gave us, without saying anything twice.
+ *
+ * Chrome on Android does not hand back one growing string. It hands back the
+ * SAME phrase over and over as it makes up its mind, as separate entries:
+ *
+ *     ["यह", "यह एक", "यह एक पंखा", "यह एक पंखा है"]
+ *
+ * Joined naively that reads "यह यह एक यह एक पंखा यह एक पंखा है", which is
+ * exactly what she saw on screen while she was still talking. An earlier fix
+ * keyed each finished phrase by its result index, on the theory that Chrome
+ * was replaying the same index — but these arrive at DIFFERENT indices, so
+ * four slots held four prefixes and the sentence still stacked up.
+ *
+ * The rule that actually holds: if a piece extends the phrase we are currently
+ * holding, it REPLACES that phrase. Only a genuinely new one gets appended.
+ *
+ * Note it compares against the LAST phrase, not the whole transcript so far.
+ * Comparing against everything meant that once a second phrase had started,
+ * its own growth no longer matched and got appended too — "हाथ से हाथ से बना".
+ *
+ * Compared on a normalised key rather than the raw text, because Chrome
+ * capitalises and punctuates a phrase when it finalises it — "this is a fan"
+ * becoming "This is a fan." must still count as the same words, or English
+ * would double every sentence at the moment it was confirmed.
+ */
+export function mergeTranscript(parts: string[]): string {
+  const key = (s: string) =>
+    s.toLowerCase().replace(/[.,!?;:।॥]/g, '').replace(/\s+/g, ' ').trim()
+
+  const segs: string[] = []      // the phrases we are keeping, in order
+  const keys: string[] = []      // their normalised forms, for comparison
+
+  for (const raw of parts) {
+    const piece = (raw ?? '').trim()
+    const k = key(piece)
+    if (!k) continue
+
+    const lastKey = keys[keys.length - 1]
+
+    // Growth of the phrase we are already holding: replace it, do not add.
+    if (lastKey !== undefined && k.startsWith(lastKey)) {
+      segs[segs.length - 1] = piece
+      keys[keys.length - 1] = k
+      continue
+    }
+
+    // A phrase we have already written down, arriving again out of order.
+    if (keys.includes(k)) continue
+
+    segs.push(piece)
+    keys.push(k)
+  }
+  return segs.join(' ')
 }

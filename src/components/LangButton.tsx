@@ -50,7 +50,7 @@ export default function LangButton() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[52px] z-40 w-[232px] rounded-xl border-2 border-line
+        <div className="absolute right-0 top-[3.25rem] z-40 w-[14.5rem] rounded-xl border-2 border-line
                         bg-surface p-2 shadow-xl">
           {LANGS.map(l => (
             <button
@@ -58,7 +58,7 @@ export default function LangButton() {
               onClick={() => choose(l.code)}
               aria-pressed={l.code === lang}
               className={
-                'flex w-full min-h-[52px] items-center justify-between rounded-lg px-3 text-left ' +
+                'flex w-full min-h-[3.25rem] items-center justify-between rounded-lg px-3 text-left ' +
                 'text-lg font-semibold ' +
                 (l.code === lang ? 'bg-indigo text-white' : 'active:bg-wash')
               }

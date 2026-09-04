@@ -48,7 +48,7 @@ export default function BigButton({
       className={
         'press flex w-full items-center justify-center rounded-2xl px-5 font-semibold ' +
         'disabled:opacity-40 disabled:shadow-none ' +
-        (size === 'lg' ? 'min-h-[86px] gap-4 text-2xl ' : 'min-h-[64px] gap-3 text-xl ') +
+        (size === 'lg' ? 'min-h-[5.375rem] gap-4 text-2xl ' : 'min-h-[4rem] gap-3 text-xl ') +
         STYLES[variant]
       }
     >

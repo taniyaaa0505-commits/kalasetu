@@ -102,7 +102,7 @@ export default function Tour() {
           skip link left the ten beads about 190px to live in, and the whole
           thread scaled down to fit — legible only if you already knew what it
           was. It gets the full width now. */}
-      <header className="border-b border-line bg-surface px-4 pt-3 pb-2">
+      <header className="border-b border-line bg-surface px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="mb-2 flex items-center gap-3">
           <LangButton />
           <button onClick={finish} className="ml-auto min-h-0 text-sm text-ink-3 underline">
@@ -132,7 +132,7 @@ export default function Tour() {
         </div>
       </main>
 
-      <footer className="border-t border-line bg-surface px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+      <footer className="border-t border-line bg-surface px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         {last ? (
           <BigButton icon="📷" label={t('tourStart')} variant="good"
             onClick={() => { stopSpeaking(); markTourSeen(); nav('/') }} />
@@ -321,8 +321,8 @@ function Tappable({ children, onClick, pulse, round, good, danger }: {
         className={
           'relative flex items-center justify-center gap-3 font-semibold text-white ' +
           (round
-            ? 'h-[150px] w-[150px] flex-col rounded-full '
-            : 'min-h-[76px] w-full rounded-2xl px-5 ') +
+            ? 'h-[9.375rem] w-[9.375rem] flex-col rounded-full '
+            : 'min-h-[4.75rem] w-full rounded-2xl px-5 ') +
           (danger ? 'bg-danger ' : good ? 'bg-good ' : 'bg-indigo ') +
           'active:scale-95 transition-transform'
         }

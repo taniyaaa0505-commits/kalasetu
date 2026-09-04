@@ -44,7 +44,8 @@ export default function StorageError() {
   return (
     <div
       role="alert"
-      className="fixed inset-x-0 top-0 z-50 mx-auto max-w-[480px] border-b-2 border-gold bg-gold-wash px-4 py-3"
+      className="fixed inset-x-0 top-0 z-50 mx-auto max-w-[480px] border-b-2 border-gold bg-gold-wash px-4 pb-3
+                 pt-[max(0.75rem,env(safe-area-inset-top))]"
     >
       <p className="mb-2 text-base leading-snug text-ink">
         ⚠ {prefersEnglish(lang) ? msg.en : msg.hi}

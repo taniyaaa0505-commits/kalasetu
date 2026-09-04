@@ -70,12 +70,16 @@ export default function SpeakScreen() {
       title={t('screenSpeak')} step={3} onBack={() => { recRef.current?.stop(); stopSpeaking() }}
       action={<BigButton icon={<Icon name="next" />} label={t('next')} onClick={next} disabled={!hasText || recording} />}
     >
-      <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
+      {/* Everything on this screen has to be visible at once — the picker, the
+          microphone, her words, the two ways to check them and the way out to
+          typing. She should never have to scroll to find out whether the phone
+          heard her. Sizes here are chosen against that, not by taste. */}
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">
         {t('chooseLanguage')}
       </p>
-      <div className="mb-5"><LanguagePicker compact /></div>
+      <div className="mb-3"><LanguagePicker compact /></div>
 
-      <Speakable text={t('speakHint')} className="mb-5 text-lg" lang={asrCode(lang)} />
+      <Speakable text={t('speakHint')} className="mb-3 text-base leading-snug" lang={asrCode(lang)} />
 
       {!listenSupported() && (
         <p className="mb-4 rounded-card border border-gold/30 bg-gold-wash p-3 text-sm text-gold">
@@ -86,6 +90,7 @@ export default function SpeakScreen() {
       {/* The ring moves with her actual voice. She cannot read the
           transcript, so this is her only proof the phone is hearing her. */}
       {!typing && <MicRing
+        size="sm"
         recording={recording}
         speaking={speaking}
         pulse={pulse}
@@ -102,13 +107,13 @@ export default function SpeakScreen() {
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
-          rows={4}
+          rows={3}
           placeholder={t('speakHint')}
           className="w-full rounded-card border-2 border-indigo bg-surface p-4 text-lg leading-relaxed
                      shadow-rest outline-none placeholder:text-ink-3"
         />
       ) : (
-        <div className="min-h-[110px] rounded-card border border-line bg-surface p-4 text-lg leading-relaxed shadow-rest">
+        <div className="min-h-[5.25rem] rounded-card border border-line bg-surface p-3.5 text-lg leading-relaxed shadow-rest">
           {text || <span className="text-ink-3">…</span>}
         </div>
       )}
@@ -118,8 +123,8 @@ export default function SpeakScreen() {
           purpose: speaking is the point of this app, typing is the escape. */}
       <button
         onClick={() => { stop(); setTyping(v => !v) }}
-        className="press mx-auto mt-3 flex min-h-0 items-center gap-2 rounded-full border border-line
-                   bg-surface px-4 py-2 text-sm font-medium text-ink-2 shadow-rest active:bg-surface-2"
+        className="press mx-auto mt-2.5 flex h-11 min-h-0 items-center gap-2 rounded-full border border-line
+                   bg-surface px-4 text-sm font-medium text-ink-2 shadow-rest active:bg-surface-2"
       >
         <span aria-hidden>{typing ? '🎤' : '⌨️'}</span>
         <span>{typing ? t('speakNow') : t('typeInstead')}</span>
@@ -128,7 +133,7 @@ export default function SpeakScreen() {
       {/* The check-and-fix pair. Hearing it back is what makes "say it again"
           useful — otherwise she has no way to know it came out wrong. */}
       {hasText && !recording && !typing && (
-        <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="mt-2.5 grid grid-cols-2 gap-3">
           <SmallButton icon="🔊" label={t('hearItBack')} onClick={playBack} />
           <SmallButton icon="🔄" label={t('sayAgain')} onClick={start} />
         </div>
@@ -141,8 +146,8 @@ function SmallButton({ icon, label, onClick }: { icon: string; label: string; on
   return (
     <button
       onClick={onClick}
-      className="press flex min-h-[60px] items-center justify-center gap-2 rounded-card border-2 border-line
-                 bg-surface px-3 text-base font-medium shadow-rest active:bg-surface-2"
+      className="press flex min-h-[3.5rem] items-center justify-center gap-2 rounded-card border-2 border-line
+                 bg-surface px-3 text-[0.9375rem] font-medium shadow-rest active:bg-surface-2"
     >
       <span aria-hidden className="text-xl">{icon}</span>
       <span>{label}</span>

@@ -326,7 +326,7 @@ function MicButton({
       disabled={disabled}
       className={
         'flex w-full items-center justify-center gap-2 rounded-xl px-4 text-base font-semibold ' +
-        'min-h-[56px] disabled:opacity-40 press ' +
+        'min-h-[3.5rem] disabled:opacity-40 press ' +
         (recording ? 'bg-danger text-white shadow-card' : 'border-2 border-indigo bg-surface text-indigo shadow-rest active:bg-wash')
       }
     >

@@ -128,7 +128,7 @@ export default function BuyerProduct() {
             </p>
           </header>
 
-          <ul className="flex max-h-[420px] min-h-[220px] flex-col gap-3 overflow-y-auto p-4">
+          <ul className="flex max-h-[26.25rem] min-h-[13.75rem] flex-col gap-3 overflow-y-auto p-4">
             {msgs.length === 0 && <li className="py-10 text-center text-ink-3">No messages yet.</li>}
             {msgs.map(m => (
               <li key={m.id} className={m.from === 'buyer' ? 'self-end' : 'self-start'} style={{ maxWidth: '85%' }}>

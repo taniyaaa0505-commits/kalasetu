@@ -27,7 +27,8 @@ export default function Screen({
   return (
     <div className="mx-auto flex h-full max-w-[480px] flex-col bg-paper">
       {(title || onBack || step) && (
-        <header className="weave flex items-center gap-3 border-b border-line bg-surface px-4 py-3">
+        <header className="weave flex items-center gap-3 border-b border-line bg-surface px-4 pb-3
+                           pt-[max(0.75rem,env(safe-area-inset-top))]">
           {onBack && (
             <button
               onClick={() => { if (onBack() !== false) nav(-1) }}
@@ -53,7 +54,7 @@ export default function Screen({
       <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5">{children}</main>
 
       {action && (
-        <footer className="border-t border-line bg-surface/95 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur">
+        <footer className="border-t border-line bg-surface/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
           {action}
         </footer>
       )}

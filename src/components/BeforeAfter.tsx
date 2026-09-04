@@ -45,7 +45,7 @@ export default function BeforeAfter({
       </span>
 
       {/* the other version, small, in the corner — tap to bring it forward */}
-      <span className="absolute bottom-2 right-2 w-[34%] max-w-[130px] overflow-hidden rounded-lg
+      <span className="absolute bottom-2 right-2 w-[34%] max-w-[8.125rem] overflow-hidden rounded-lg
                        border-2 border-white shadow-lg">
         <img src={inset} alt="" className="block w-full" draggable={false} />
         <span className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-center text-[10px]

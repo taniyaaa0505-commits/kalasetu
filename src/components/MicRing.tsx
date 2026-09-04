@@ -13,7 +13,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 export default function MicRing({
-  recording, speaking, pulse, icon, label, onClick,
+  recording, speaking, pulse, icon, label, onClick, size = 'md',
 }: {
   recording: boolean
   /** The recogniser can currently hear speech. */
@@ -23,6 +23,9 @@ export default function MicRing({
   icon: string
   label: string
   onClick: () => void
+  /** 'sm' on the Speak screen, which has to fit the picker, the transcript,
+   *  the replay controls and the typed fallback on one screen with this. */
+  size?: 'md' | 'sm'
 }) {
   const [level, setLevel] = useState(0)
   const lastPulse = useRef(pulse)
@@ -42,13 +45,19 @@ export default function MicRing({
     return () => clearInterval(id)
   }, [recording, speaking])
 
-  const R = 78
+  const small = size === 'sm'
+  // The ripple's radius, in rem so it tracks the button it comes off — the
+  // button is sized in rem too, and a ring frozen in px drifts away from its
+  // own edge the moment the app scales for a bigger or smaller phone.
+  const R = small ? 3.625 : 4.875
   const rings = [0, 1, 2]
 
   return (
-    <div className="relative mx-auto mb-5 flex h-[196px] w-[196px] items-center justify-center">
+    <div className={'relative mx-auto flex items-center justify-center ' +
+      (small ? 'mb-3 h-[9.25rem] w-[9.25rem]' : 'mb-5 h-[12.25rem] w-[12.25rem]')}>
       {recording && rings.map(i => {
-        const reach = 10 + i * 13
+        // `reach` is in rem as well, so the ratio below stays a pure number.
+        const reach = 0.625 + i * 0.8125
         const scale = 1 + (level * reach * (1 - i * 0.18)) / R
         return (
           <span
@@ -56,7 +65,7 @@ export default function MicRing({
             aria-hidden
             className="pointer-events-none absolute rounded-full border-2 border-danger"
             style={{
-              width: R * 2, height: R * 2,
+              width: `${R * 2}rem`, height: `${R * 2}rem`,
               transform: `scale(${scale})`,
               opacity: Math.max(0, 0.5 - i * 0.14) * (0.35 + level),
               transition: 'transform 160ms ease-out, opacity 160ms ease-out',
@@ -68,13 +77,14 @@ export default function MicRing({
       <button
         onClick={onClick}
         className={
-          'relative flex h-[156px] w-[156px] min-h-0 flex-col items-center justify-center gap-1 ' +
-          'rounded-full text-white transition-transform active:scale-95 ' +
+          'press relative flex min-h-0 flex-col items-center justify-center gap-1 ' +
+          'rounded-full text-white shadow-card ' +
+          (small ? 'h-[7.375rem] w-[7.375rem]' : 'h-[9.75rem] w-[9.75rem]') + ' ' +
           (recording ? 'bg-danger' : 'bg-indigo')
         }
       >
-        <span aria-hidden className="text-5xl">{icon}</span>
-        <span className="text-base font-semibold">{label}</span>
+        <span aria-hidden className={small ? 'text-4xl' : 'text-5xl'}>{icon}</span>
+        <span className={small ? 'text-sm font-semibold' : 'text-base font-semibold'}>{label}</span>
       </button>
     </div>
   )

@@ -37,7 +37,7 @@ export default function Price() {
       action={<BigButton icon={<Icon name="next" />} label={t('next')} onClick={next} />}
     >
       {/* No typing. She taps + and - . */}
-      <p className="mb-4 text-[15px] leading-snug text-ink-2">{t('tellUsCost')}</p>
+      <p className="mb-4 text-[0.9375rem] leading-snug text-ink-2">{t('tellUsCost')}</p>
       <Stepper label={t('materialCost')} unit="₹" value={cost.materialCost} step={50}
         onChange={v => setCost({ ...cost, materialCost: v })} />
       <Stepper label={t('hoursTaken')} unit={t('hours')} value={cost.hours} step={2}
@@ -62,7 +62,7 @@ export default function Price() {
                 <span aria-hidden>🔊</span>{t('weSuggest')}
                 <Icon name="ai" className="ml-auto text-base opacity-50" />
               </p>
-              <p className="my-1 text-[52px] font-bold leading-none tracking-tight text-indigo tabular-nums">
+              <p className="my-1 text-[3.25rem] font-bold leading-none tracking-tight text-indigo tabular-nums">
                 ₹{price.suggested}
               </p>
               <p className="text-sm leading-snug text-ink-2">{price.reason}</p>
@@ -97,7 +97,7 @@ function Stepper({ label, unit, value, step, onChange }: {
 }) {
   return (
     <div className="mb-4">
-      <p className="mb-2 text-[15px] font-medium">{label}</p>
+      <p className="mb-2 text-[0.9375rem] font-medium">{label}</p>
       <div className="flex items-center gap-3">
         <button onClick={() => onChange(Math.max(0, value - step))}
           aria-label="−"
