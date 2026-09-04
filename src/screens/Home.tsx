@@ -196,7 +196,7 @@ function WhatWeDo() {
     <section className="rise rise-3">
       <button
         onClick={() => speak([t('weWillDo'), ...caps.map(c => c.text)].join('. '), asrCode(lang))}
-        className="press mb-3 flex min-h-0 items-center gap-2 active:opacity-60"
+        className="press mb-3 flex min-h-0 items-center gap-2 py-1 active:opacity-60"
       >
         <span aria-hidden className="text-indigo">🔊</span>
         <span className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">{t('weWillDo')}</span>
@@ -322,7 +322,7 @@ function SoFar({ products, orders, draft }: {
         onClick={() => speak(
           `${t('soFar')}. ${t('earnedLabel')} ${earned} ${t('rupees')}. ` +
           `${live} ${t('orders')}. ${onSale} ${t('onSale')}.`, asrCode(lang))}
-        className="press mb-3 flex min-h-0 items-center gap-2 active:opacity-60"
+        className="press mb-3 flex min-h-0 items-center gap-2 py-1 active:opacity-60"
       >
         <span aria-hidden className="text-indigo">🔊</span>
         <span className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">{t('soFar')}</span>

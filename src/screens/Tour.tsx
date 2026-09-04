@@ -105,7 +105,7 @@ export default function Tour() {
       <header className="border-b border-line bg-surface px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="mb-2 flex items-center gap-3">
           <LangButton />
-          <button onClick={finish} className="ml-auto min-h-0 text-sm text-ink-3 underline">
+          <button onClick={finish} className="press ml-auto min-h-0 px-1 py-1.5 text-sm text-ink-3 underline">
             {t('tourSkip')}
           </button>
         </div>

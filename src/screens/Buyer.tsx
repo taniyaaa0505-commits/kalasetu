@@ -22,7 +22,7 @@ export default function Buyer() {
   return (
     <div className="min-h-full bg-paper">
       <header className="weave border-b border-line bg-surface px-6 py-5">
-        <button onClick={() => nav('/')} className="press mb-2 min-h-0 text-sm text-ink-3">← back to the app</button>
+        <button onClick={() => nav('/')} className="press mb-2 min-h-0 py-1.5 pr-2 text-sm text-ink-3">← back to the app</button>
         <div className="flex items-center gap-3">
           <img src="./icons/mark-96.png" alt="" aria-hidden width={40} height={40}
             className="shrink-0 rounded-lg border border-line" />
