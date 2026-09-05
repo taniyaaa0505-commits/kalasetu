@@ -175,6 +175,52 @@ body {
 }
 
 /* ---------------------------------------------------------------
+   Dye blooming in water.
+
+   Shown only while the app is writing her listing — the one wait long
+   enough to be worth filling, and the only place in the app that
+   animates at this scale.
+
+   It is dye rather than a shimmer or a spinner because indigo IS a dye;
+   the mark, the palette and the craft all come from the same place, and
+   an artisan watching colour spread in water is watching something she
+   recognises. A generic AI sparkle would have been the opposite: our
+   software talking about itself.
+
+   Four blobs, `multiply` so overlaps genuinely mix into new colours
+   rather than stacking, and transform-only keyframes so a budget phone
+   moves layers on the GPU instead of repainting. Blur is applied once
+   to the container, not per blob — four separate blur filters is what
+   makes this kind of thing stutter.
+---------------------------------------------------------------- */
+.dye {
+  filter: blur(30px) saturate(1.15);
+  opacity: .8;
+  mix-blend-mode: multiply;
+}
+.dye span {
+  position: absolute;
+  border-radius: 9999px;
+  mix-blend-mode: multiply;
+  will-change: transform;
+}
+@keyframes dye-a { 0%,100% { transform: translate(0,0) scale(1) }
+                   33% { transform: translate(34%,18%) scale(1.18) }
+                   66% { transform: translate(-16%,26%) scale(.9) } }
+@keyframes dye-b { 0%,100% { transform: translate(0,0) scale(1.05) }
+                   33% { transform: translate(-28%,22%) scale(.88) }
+                   66% { transform: translate(20%,-18%) scale(1.2) } }
+@keyframes dye-c { 0%,100% { transform: translate(0,0) scale(.95) }
+                   50% { transform: translate(24%,-24%) scale(1.22) } }
+@keyframes dye-d { 0%,100% { transform: translate(0,0) scale(1.1) }
+                   50% { transform: translate(-22%,-20%) scale(.92) } }
+
+@media (prefers-reduced-motion: reduce) {
+  .dye span { animation: none !important; }
+  .dye { opacity: .3; }
+}
+
+/* ---------------------------------------------------------------
    On a desktop screen the app is a 480px column, which would
    otherwise float in a sea of white and read as broken. Give it a
    ground and an edge so it reads as a phone held up deliberately —

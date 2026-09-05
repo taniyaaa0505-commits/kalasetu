@@ -25,6 +25,7 @@ export default function BuyerProduct() {
   const [buyerOrg, setBuyerOrg] = useState('Meridian Corporate Gifting')
   const [orderNote, setOrderNote] = useState('')
   const [placing, setPlacing] = useState(false)
+  const [trouble, setTrouble] = useState<string>()
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { getProduct(id).then(setP) }, [id])
@@ -40,24 +41,43 @@ export default function BuyerProduct() {
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])
 
+  /**
+   * Both of these clear their busy flag in a `finally`.
+   *
+   * They did not, and that was the bug: "Placing…" with nothing happening,
+   * for ever. Anything that threw between setPlacing(true) and the last line
+   * — Firestore refusing the write, the signal dropping mid-request — skipped
+   * the reset, so the button stayed disabled and mid-sentence and the buyer
+   * had no way to try again and no idea why.
+   */
   async function send(e: React.FormEvent) {
     e.preventDefault()
     const body = text.trim()
     if (!body || !p) return
-    setText(''); setSending(true)
-    await sendMessage({ productId: id, from: 'buyer', text: body, localLang: p.lang })
-    setMsgs(await listMessages(id)); setSending(false)
+    setText(''); setSending(true); setTrouble(undefined)
+    try {
+      await sendMessage({ productId: id, from: 'buyer', text: body, localLang: p.lang })
+      setMsgs(await listMessages(id))
+    } catch (err) {
+      setText(body)                       // give him his words back
+      setTrouble(err instanceof Error ? err.message : String(err))
+    } finally { setSending(false) }
   }
 
   async function order(e: React.FormEvent) {
     e.preventDefault()
     if (!p?.price) return
-    setPlacing(true)
-    await placeOrder({
-      productId: id, quantity: qty, unitPrice: p.price.suggested,
-      buyerName, buyerOrg, note: orderNote.trim() || undefined, localLang: p.lang,
-    })
-    setOrderNote(''); setOrders(await listOrders(id)); setPlacing(false)
+    setPlacing(true); setTrouble(undefined)
+    try {
+      await placeOrder({
+        productId: id, quantity: qty, unitPrice: p.price.suggested,
+        buyerName, buyerOrg, note: orderNote.trim() || undefined, localLang: p.lang,
+      })
+      setOrderNote('')
+      setOrders(await listOrders(id))
+    } catch (err) {
+      setTrouble(err instanceof Error ? err.message : String(err))
+    } finally { setPlacing(false) }
   }
 
   if (!p) return <div className="p-10 text-center text-ink-3">Loading…</div>
@@ -103,6 +123,12 @@ export default function BuyerProduct() {
             <input value={orderNote} onChange={e => setOrderNote(e.target.value)}
               placeholder="Anything she should know? (she will hear this in her language)"
               className="mb-3 w-full rounded-lg border border-line px-3 py-2 outline-none focus-visible:border-indigo" />
+
+            {trouble && (
+              <p className="mb-3 rounded-card border border-danger/30 bg-gold-wash px-3 py-2 text-sm text-danger">
+                Could not place that just now — {trouble}
+              </p>
+            )}
 
             <div className="flex items-center justify-between">
               <p className="text-xl font-bold tabular-nums">₹{(qty * (p.price?.suggested ?? 0)).toLocaleString('en-IN')}</p>

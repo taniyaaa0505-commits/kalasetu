@@ -33,7 +33,12 @@ export default function Working({
     <div className="fade relative overflow-hidden rounded-panel border border-line bg-surface shadow-card">
       {behind
         ? <img src={behind} alt="" className="block w-full opacity-25" />
-        : <div className="aspect-[4/3] w-full bg-surface-2" />}
+        : <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-2">
+            {/* Only when there is no photograph of hers to keep on screen —
+                which is exactly the wait while her listing is being written.
+                Her own work always outranks our decoration. */}
+            <Dye />
+          </div>}
 
       {/* A single pass of light across the panel: enough to say "running",
           not enough to watch. */}
@@ -41,12 +46,19 @@ export default function Working({
         <span className="sheen absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/55 to-transparent" />
       </span>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-paper/80 px-6 text-center">
-        <span className="breathe text-indigo" aria-hidden>
+      {/* The veil over her photograph has to be heavy enough to read against.
+          Over the dye it must not be, or the colour it exists to show is
+          washed out to nothing — so the text gets its own small plate
+          instead of covering the whole panel. */}
+      <div className={'absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center ' +
+        (behind ? 'bg-paper/80' : 'bg-paper/10')}>
+        <span className={'breathe text-indigo ' + (behind ? '' : 'drop-shadow-sm')} aria-hidden>
           <Icon name="ai" className="text-4xl" />
         </span>
 
-        <Speakable text={title} className="text-lg font-semibold leading-snug text-indigo" />
+        <span className={behind ? '' : 'rounded-full bg-paper/85 px-4 py-1.5 shadow-rest backdrop-blur-sm'}>
+          <Speakable text={title} className="text-lg font-semibold leading-snug text-indigo" />
+        </span>
 
         {percent !== undefined && (
           <div className="w-full max-w-[16.25rem]">
@@ -63,5 +75,32 @@ export default function Working({
         {note && <p className="max-w-[17.5rem] text-xs leading-snug text-ink-3">{note}</p>}
       </div>
     </div>
+  )
+}
+
+/**
+ * Dye spreading in water, in the four colours of the mark.
+ *
+ * Deliberately slow — nine to fourteen seconds a cycle — so it reads as
+ * something steeping rather than something loading. Anything faster becomes a
+ * progress animation, and this is not progress: we do not know how long Gemini
+ * will take, and pretending we do is a lie told in motion.
+ */
+function Dye() {
+  const blobs = [
+    { c: '#D98A5F', s: '58%', top: '-12%', left: '-8%',  a: 'dye-a 12s',   d: '0s'   },  // terracotta
+    { c: '#E8B44C', s: '52%', top: '18%',  left: '46%',  a: 'dye-b 14s',   d: '-3s'  },  // saffron
+    { c: '#8FA97A', s: '46%', top: '44%',  left: '4%',   a: 'dye-c 11s',   d: '-6s'  },  // sage
+    { c: '#6E82B8', s: '50%', top: '-6%',  left: '30%',  a: 'dye-d 13s',   d: '-9s'  },  // indigo
+  ]
+  return (
+    <span aria-hidden className="dye pointer-events-none absolute inset-0 block">
+      {blobs.map(b => (
+        <span key={b.c} style={{
+          background: b.c, width: b.s, aspectRatio: '1', top: b.top, left: b.left,
+          animation: `${b.a} ease-in-out infinite`, animationDelay: b.d,
+        }} />
+      ))}
+    </span>
   )
 }

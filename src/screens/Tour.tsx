@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router-dom'
 import BigButton from '../components/BigButton'
 import Icon from '../components/Icon'
 import Artisan from '../components/Artisan'
-import Kolam from '../components/Kolam'
+import Bloom from '../components/Bloom'
 import PriceScale from '../components/PriceScale'
 import PriceInNotes from '../components/PriceInNotes'
 import Thread from '../components/Thread'
@@ -196,7 +196,7 @@ function Stage({ step, acted, onAct, typed, voice }: {
             <Tappable pulse onClick={onAct} round good>
               <span className="text-6xl" aria-hidden>✅</span>
             </Tappable>
-          ) : <Kolam size={170} />}
+          ) : <Bloom size={170} />}
         </Center>
       )
 
@@ -247,7 +247,7 @@ function Watch({ id }: { id: Id }) {
     </div>
   )
 
-  if (id === 'done') return <Center><Kolam size={150} /></Center>
+  if (id === 'done') return <Center><Bloom size={150} /></Center>
 
   // The first thing anyone sees of the app. The app icon said nothing; this
   // says who it is for, and the line under it is the whole pitch in one

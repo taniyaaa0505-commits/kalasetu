@@ -15,6 +15,32 @@ import { firestore } from '../firebase'
 /** Firestore rejects any document over 1 MB; warn well before that. */
 const WARN_BYTES = 800_000
 
+/**
+ * Drop keys whose value is `undefined`, all the way down.
+ *
+ * Firestore refuses a document containing one — "Unsupported field value:
+ * undefined" — and refuses the WHOLE write, not just that field. Our types are
+ * full of optional properties (`note?`, `needBy?`, `cleanPhoto?`) and building
+ * an object with `{ note, needBy }` puts the keys there with undefined values
+ * even when nobody filled them in.
+ *
+ * That is not theoretical. Every order placed from the buyer page was being
+ * rejected, because the form never sets `needBy`: the button sat on "Placing…"
+ * for ever and no order was ever created. Sanitising here rather than at each
+ * call site means no future optional field can do it again.
+ */
+function withoutUndefined<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(withoutUndefined) as unknown as T
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (v !== undefined) out[k] = withoutUndefined(v)
+    }
+    return out as T
+  }
+  return value
+}
+
 export function cloudCollection<T extends Stored>(name: string): Collection<T> {
   async function coll() {
     const db = await firestore()
@@ -37,7 +63,8 @@ export function cloudCollection<T extends Stored>(name: string): Collection<T> {
     },
 
     async put(item) {
-      const size = new Blob([JSON.stringify(item)]).size
+      const clean = withoutUndefined(item)
+      const size = new Blob([JSON.stringify(clean)]).size
       if (size > WARN_BYTES) {
         console.warn(
           `[store] ${name}/${item.id} is ${(size / 1000).toFixed(0)} KB. ` +
@@ -47,7 +74,7 @@ export function cloudCollection<T extends Stored>(name: string): Collection<T> {
       }
       const { db } = await coll()
       const { doc, setDoc } = await import('firebase/firestore')
-      await setDoc(doc(db, name, item.id), item as Record<string, unknown>)
+      await setDoc(doc(db, name, clean.id), clean as Record<string, unknown>)
     },
 
     async remove(id) {
