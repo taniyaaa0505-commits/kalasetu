@@ -42,15 +42,15 @@ export default function LangButton() {
         onClick={() => { setOpen(o => !o); if (!open) speak(current.sample, asrCode(lang)) }}
         aria-expanded={open}
         aria-label={current.english}
-        className="flex h-11 min-h-0 items-center gap-1.5 rounded-full border-2 border-line
-                   bg-surface px-3 text-sm font-semibold active:bg-wash"
+        className="press flex h-11 min-h-0 items-center gap-1.5 rounded-full border border-gold-leaf/60
+                   bg-white/10 px-3 text-sm font-semibold text-surface active:bg-white/20"
       >
         <span aria-hidden>🗣</span>
         <span>{current.label}</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[3.25rem] z-40 w-[14.5rem] rounded-xl border-2 border-line
+        <div className="absolute right-0 top-[3.25rem] z-40 w-[14.5rem] rounded-panel border border-line-2
                         bg-surface p-2 shadow-xl">
           {LANGS.map(l => (
             <button

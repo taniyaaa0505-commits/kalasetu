@@ -57,7 +57,10 @@ export default function Publish() {
       title={t('screenSend')} step={6} onBack={() => {}}
       action={<BigButton icon="✅" label={t('publish')} variant="good" onClick={publish} />}
     >
-      {p?.cleanPhoto && <img src={p.cleanPhoto} alt="" className="mb-4 w-full rounded-xl border border-line" />}
+      {p?.cleanPhoto && (
+        <img src={p.cleanPhoto} alt=""
+          className="arch mb-4 w-full rounded-b-panel border border-line-2/70 bg-surface shadow-card ring-1 ring-gold-leaf/30" />
+      )}
       <p className="text-lg font-semibold">{mine ? p?.listing?.titleEn : p?.listing?.titleHi}</p>
       <p className="mt-1 text-3xl font-bold tabular-nums text-indigo">₹{p?.price?.suggested}</p>
       {p?.price && <div className="mt-3"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}

@@ -125,10 +125,10 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
 
   return (
     <li className={'rise rounded-panel p-4 shadow-card ' +
-      (isNew ? 'border-2 border-indigo bg-wash' : 'border border-line bg-surface')}>
+      (isNew ? 'border-2 border-indigo bg-wash' : 'border border-line-2/70 bg-surface')}>
       <div className="flex items-start gap-3">
         {product?.cleanPhoto && (
-          <img src={product.cleanPhoto} alt="" className="h-20 w-20 shrink-0 rounded-card border border-line bg-surface-2 object-cover" />
+          <img src={product.cleanPhoto} alt="" className="h-20 w-20 shrink-0 rounded-card border border-line-2/70 bg-surface-2 object-cover" />
         )}
         <div className="min-w-0 flex-1">
           <span className={'inline-block rounded-full border px-2 py-0.5 text-xs font-semibold ' + STATUS_STYLE[o.status]}>
@@ -164,7 +164,7 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
       {(o.noteLocal || o.note) && (
         <button
           onClick={() => speak(o.noteLocal || o.note || '', asrCode(lang))}
-          className="press mt-3 flex min-h-0 w-full items-start gap-2 rounded-card border border-line bg-paper p-3 text-left"
+          className="press mt-3 flex min-h-0 w-full items-start gap-2 rounded-card border border-line-2/70 bg-paper p-3 text-left"
         >
           <span aria-hidden className="text-indigo">🔊</span>
           <span>
@@ -196,7 +196,7 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
 
 function Cell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-card border border-line bg-paper px-3 py-2.5">
+    <div className="rounded-card border border-line-2/70 bg-paper px-3 py-2.5">
       <p className="text-xs font-medium text-ink-3">{label}</p>
       <p className="text-xl font-bold tabular-nums">{value}</p>
     </div>

@@ -10,6 +10,7 @@ import { getProduct } from '../services/db'
 import { listMessages, sendMessage, translatePending, subscribeMessages } from '../services/messages'
 import { listOrders, placeOrder, setStatus, subscribeOrders } from '../services/orders'
 import PriceInNotes from '../components/PriceInNotes'
+import { Scallop } from '../components/Ornament'
 import type { Message, Order, Product } from '../types'
 
 export default function BuyerProduct() {
@@ -82,13 +83,14 @@ export default function BuyerProduct() {
 
   if (!p) return <div className="p-10 text-center text-ink-3">Loading…</div>
 
-  const field = 'w-full rounded-card border border-line bg-surface px-3.5 py-3 text-[15px] ' +
+  const field = 'w-full rounded-card border border-line-2/70 bg-surface px-3.5 py-3 text-[15px] ' +
                 'outline-none transition-colors placeholder:text-ink-3 focus-visible:border-indigo'
 
   return (
     <div className="min-h-full bg-paper">
-      <header className="weave border-b border-line bg-surface px-6 py-4">
-        <button onClick={() => nav('/buyer')} className="press min-h-0 py-1.5 pr-2 text-sm text-ink-3">← all products</button>
+      <header className="jaali relative bg-night px-6 pb-6 pt-4 text-surface">
+        <button onClick={() => nav('/buyer')} className="press min-h-0 py-1.5 pr-2 text-sm text-surface/70">← all products</button>
+        <Scallop className="absolute inset-x-0 -bottom-2 text-night" />
       </header>
 
       <div className="mx-auto grid max-w-5xl gap-8 p-6 md:grid-cols-2">
@@ -96,7 +98,7 @@ export default function BuyerProduct() {
           {/* Her work, at the size of the thing being bought. */}
           {p.cleanPhoto && (
             <img src={p.cleanPhoto} alt=""
-              className="rise aspect-square w-full rounded-panel border border-line bg-surface object-cover shadow-card" />
+              className="rise arch aspect-square w-full rounded-b-panel border border-line-2/70 bg-surface object-cover shadow-card ring-1 ring-gold-leaf/30" />
           )}
           <h1 className="mt-5 text-[26px] font-bold leading-tight tracking-tight">{p.listing?.titleEn}</h1>
           <p className="mt-2 leading-relaxed text-ink-2">{p.listing?.descriptionEn}</p>
@@ -109,18 +111,18 @@ export default function BuyerProduct() {
 
           {/* Bulk order form. The problem statement asks for B2B buyers, so
               quantity is the first thing on screen, not an afterthought. */}
-          <form onSubmit={order} className="mt-6 rounded-panel border border-line bg-surface p-5 shadow-card">
+          <form onSubmit={order} className="mt-6 rounded-panel border border-line-2/70 bg-surface p-5 shadow-card">
             <h2 className="mb-4 text-lg font-bold tracking-tight">Place a bulk order</h2>
 
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-ink-3">Quantity</label>
             <div className="mb-4 flex items-center gap-2">
               <button type="button" aria-label="−" onClick={() => setQty(Math.max(1, qty - 5))}
-                className="press h-12 w-12 min-h-0 rounded-card border border-line bg-surface text-xl shadow-rest active:bg-surface-2">−</button>
+                className="press h-12 w-12 min-h-0 rounded-card border border-line-2/70 bg-surface text-xl shadow-rest active:bg-surface-2">−</button>
               <input type="number" min={1} value={qty}
                 onChange={e => setQty(Math.max(1, +e.target.value || 1))}
-                className="w-24 rounded-card border border-line bg-surface px-3 py-3 text-center text-lg font-semibold tabular-nums outline-none focus-visible:border-indigo" />
+                className="w-24 rounded-card border border-line-2/70 bg-surface px-3 py-3 text-center text-lg font-semibold tabular-nums outline-none focus-visible:border-indigo" />
               <button type="button" aria-label="+" onClick={() => setQty(qty + 5)}
-                className="press h-12 w-12 min-h-0 rounded-card border border-line bg-surface text-xl shadow-rest active:bg-surface-2">+</button>
+                className="press h-12 w-12 min-h-0 rounded-card border border-line-2/70 bg-surface text-xl shadow-rest active:bg-surface-2">+</button>
               <span className="ml-1 text-sm text-ink-3">× ₹{p.price?.suggested}</span>
             </div>
 
@@ -163,7 +165,7 @@ export default function BuyerProduct() {
           )}
         </div>
 
-        <section className="flex flex-col overflow-hidden rounded-panel border border-line bg-surface shadow-card">
+        <section className="flex flex-col overflow-hidden rounded-panel border border-line-2/70 bg-surface shadow-card">
           <header className="border-b border-line px-4 py-3">
             <h2 className="font-bold tracking-tight">Message the artisan</h2>
             <p className="mt-0.5 text-sm text-ink-3">
@@ -177,7 +179,7 @@ export default function BuyerProduct() {
               <li key={m.id} className={m.from === 'buyer' ? 'self-end' : 'self-start'} style={{ maxWidth: '85%' }}>
                 <div className={
                   'rounded-2xl px-4 py-2.5 leading-relaxed ' +
-                  (m.from === 'buyer' ? 'bg-indigo text-white' : 'border border-line bg-paper')
+                  (m.from === 'buyer' ? 'bg-indigo text-white' : 'border border-line-2/70 bg-paper')
                 }>
                   {/* He only ever sees English, whichever way the message went. */}
                   <p>{m.english || m.source}</p>
@@ -224,7 +226,7 @@ const STATUS_TEXT: Record<Order['status'], string> = {
 
 function BuyerOrderRow({ o, onRefresh }: { o: Order; onRefresh: () => void }) {
   return (
-    <li className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3">
+    <li className="flex items-center justify-between gap-3 rounded-xl border border-line-2/70 px-4 py-3">
       <div>
         <p className="font-semibold tabular-nums">{o.quantity} × ₹{o.unitPrice} = ₹{o.total.toLocaleString('en-IN')}</p>
         <p className="text-sm text-ink-3">{STATUS_TEXT[o.status]}</p>
@@ -232,7 +234,7 @@ function BuyerOrderRow({ o, onRefresh }: { o: Order; onRefresh: () => void }) {
       {o.status === 'shipped' && (
         <button
           onClick={async () => { await setStatus(o.id, 'delivered'); onRefresh() }}
-          className="min-h-0 shrink-0 rounded-lg border border-line px-3 py-2 text-sm font-medium"
+          className="min-h-0 shrink-0 rounded-lg border border-line-2/70 px-3 py-2 text-sm font-medium"
         >Mark received</button>
       )}
     </li>

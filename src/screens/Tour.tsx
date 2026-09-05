@@ -215,7 +215,7 @@ function Watch({ id }: { id: Id }) {
   )
 
   if (id === 'listing') return (
-    <div className="rounded-xl border border-line bg-surface p-4">
+    <div className="rounded-xl border border-line-2/70 bg-surface p-4">
       <p className="text-lg font-semibold">{t('demoTitle')}</p>
       <p className="mt-1 text-ink-2">{t('demoDesc')}</p>
     </div>
@@ -223,7 +223,7 @@ function Watch({ id }: { id: Id }) {
 
   if (id === 'price') return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-2xl border border-line bg-surface p-4">
+      <div className="rounded-2xl border border-line-2/70 bg-surface p-4">
         <PriceScale price={{ ...DEMO_PRICE, reason: '' }}
           labels={{ floor: t('yourCost'), market: t('marketRange'), suggested: t('weSuggest') }} />
       </div>

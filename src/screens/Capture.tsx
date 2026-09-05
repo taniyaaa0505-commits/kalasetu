@@ -106,7 +106,7 @@ export default function Capture() {
               concrete: THIS is what happens to your picture. It is also the
               one mandated feature a judge can see working before a single
               photo is taken. */}
-          <figure className="m-0 rounded-2xl border border-line bg-surface p-3">
+          <figure className="m-0 rounded-2xl border border-line-2/70 bg-surface p-3">
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
               <Sample src="./demo-before.jpg" label={t('before')} />
               <Icon name="next" className="text-2xl text-indigo" />

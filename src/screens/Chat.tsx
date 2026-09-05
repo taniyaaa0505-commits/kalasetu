@@ -112,7 +112,7 @@ function Bubble({ m, lang }: { m: Message; lang: string }) {
       </p>
       <div className={
         'rounded-panel px-4 py-3 text-lg leading-relaxed ' +
-        (mine ? 'bg-indigo text-white' : 'border border-line bg-surface')
+        (mine ? 'bg-indigo text-white' : 'border border-line-2/70 bg-surface')
       }>
         {/* She only ever sees her own language, whichever way the message went. */}
         <p>{m.local || m.source}</p>

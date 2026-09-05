@@ -1,248 +1,203 @@
 @import "tailwindcss";
 
-/* ---------------------------------------------------------------
-   Pehchaan design tokens.
+/* ===============================================================
+   Pehchaan — a Rajasthani visual system.
 
-   Every colour here is sampled from the logo, not invented: the deep
-   navy of the letterform, the terracotta of the pot, the mustard of
-   the textile, the sage of the leaf, and the cream it all sits on.
-   That is why the app and its mark look like one thing.
+   The palette is still the logo's, deepened: the navy of the
+   letterform is Jodhpur indigo, the pot is Jaipur terracotta, the
+   textile is Jaisalmer gold, the leaf is desert sage, and it all
+   sits on the cream of the mark.
 
-   Never hardcode a colour in a component. If you need a new one, add
-   it here and say what it is for.
----------------------------------------------------------------- */
+   The motifs are structural, not stickers. Three, used everywhere
+   and nowhere else:
+
+     JAALI    the pierced stone lattice — our texture
+     JHAROKHA the cusped arch of a carved window — our shape
+     GOTA     the gold trim on a ghagra — our divider
+
+   Never hardcode a colour in a component. Add it here and say
+   what it is for.
+================================================================ */
 @theme {
-  /* Ink — warm near-black, never blue-black. It sits on cream. */
-  --color-ink:        #1D1913;
-  --color-ink-2:      #57503F;
-  --color-ink-3:      #8B8371;
+  /* Ink — warm near-black. It sits on cream, never on white. */
+  --color-ink:        #241C12;
+  --color-ink-2:      #5C5142;
+  --color-ink-3:      #8F8471;
 
   /* Ground */
-  --color-paper:      #FBF6EE;   /* the logo's own cream */
-  --color-surface:    #FFFFFF;
-  --color-surface-2:  #F6F0E5;   /* a second, warmer plane for insets */
-  --color-line:       #E9E0D0;
-  --color-line-2:     #D8CBB4;
+  --color-paper:      #FBF4E7;   /* the cream of the mark, warmed */
+  --color-surface:    #FFFDF8;
+  --color-surface-2:  #F4EAD7;
+  --color-line:       #E7D9BE;
+  --color-line-2:     #D2BE97;
 
-  /* Primary — the navy of the letterform. Actions, focus, structure. */
+  /* Jodhpur indigo — structure, chrome, the primary action. */
   --color-indigo:     #1B2740;
-  --color-indigo-2:   #34456B;
-  --color-wash:       #EDEFF5;
+  --color-indigo-2:   #2E4066;
+  /* Named `night`, not `indigo-3`: Tailwind ships an `indigo` colour SCALE,
+     so `indigo-3` reads as a step of that scale and no utility is generated
+     for it. Verified against a build — the header rendered with no background
+     at all and white text on cream, which is to say invisible. */
+  --color-night:      #101A2E;   /* the header, deeper than the buttons */
+  --color-wash:       #E8EAF2;
 
-  /* Terracotta — the craft accent. Her work, never our chrome. */
-  --color-clay:       #B04A24;
-  --color-clay-wash:  #FBEDE4;
+  /* Jaipur terracotta — her craft. Never our chrome. */
+  --color-clay:       #B0472A;
+  --color-clay-2:     #C86A44;
+  --color-clay-wash:  #FAE7DC;
 
-  /* Mustard — money, warnings, the things to look at twice. */
-  --color-gold:       #92620E;
-  --color-gold-wash:  #FBF1DC;
+  /* Jaisalmer gold — money, warmth, the things to look at twice. */
+  --color-gold:       #8A5B0C;   /* dark enough to read as text */
+  --color-gold-leaf:  #C9A13F;   /* gota trim, borders, never text */
+  --color-gold-wash:  #FBF0D8;
 
-  /* Sage — quiet confirmation, growth, the leaf in the mark. */
-  --color-sage:       #4B5D39;
-  --color-sage-wash:  #EDF1E5;
+  /* Desert sage — quiet confirmation and growth. */
+  --color-sage:       #4C5F3A;
+  --color-sage-wash:  #EDF1E4;
 
-  --color-good:       #2A6B45;
-  --color-danger:     #A3311F;
+  --color-good:       #2C6B45;
+  --color-danger:     #A32E1C;
 
-  /* Corners. One scale, so nothing is arbitrary. */
+  /* Corners. One scale. */
   --radius-card:      1rem;
-  --radius-panel:     1.25rem;
+  --radius-panel:     1.375rem;
 
-  /* Elevation. Warm shadows — a cool grey shadow on cream looks dirty. */
-  --shadow-rest:  0 1px 2px rgba(58, 44, 26, .05);
-  --shadow-card:  0 2px 4px rgba(58, 44, 26, .05), 0 8px 20px -12px rgba(58, 44, 26, .22);
-  --shadow-lift:  0 4px 8px rgba(58, 44, 26, .07), 0 18px 40px -20px rgba(58, 44, 26, .30);
-}
-
-/* ---------------------------------------------------------------
-   One dial for the whole interface.
-
-   Tailwind sizes everything — type, padding, gaps, radii, the height of
-   a button — in rem. So the root font size is a single dial that resizes
-   the entire app, and the app fits the phone it is on instead of being
-   drawn for one phone and cropped on the rest.
-
-   The numbers: 15px on a 320px screen, 17px by 430px, then it stops. Her
-   phone is far more likely to be a 5" budget Android than a flagship, and
-   on that screen the old fixed sizes left the microphone and the big
-   button fighting for the same space.
-
-   In rem, not px, on purpose. `rem` in the root's own font-size means the
-   user's browser default — so a reader who has set their phone's text
-   size to large still gets large text, scaled from a bigger base.
----------------------------------------------------------------- */
-html { font-size: clamp(0.9375rem, 0.574rem + 1.82vw, 1.0625rem); }
-
-/* Landscape is the other way to run out of room: the width says "go big"
-   while the height says there is nowhere to put it. Hold the dial down so
-   the vertical rhythm tightens with it.
-
-   `orientation: landscape` and not a bare `max-height`, which is the same
-   trap twice: a 360x640 budget Android is short by any absolute measure,
-   and a height rule catches it on top of the width rule, shrinking the
-   exact phone this was written to help down to 14px. Short only counts
-   when the screen is short RELATIVE to its width. */
-@media (orientation: landscape) and (max-height: 700px) {
-  html { font-size: clamp(0.875rem, 0.55rem + 1.4vw, 1rem); }
+  /* Elevation. Warm — a grey shadow on cream reads as dirt. */
+  --shadow-rest:  0 1px 2px rgba(74, 52, 22, .06);
+  --shadow-card:  0 2px 4px rgba(74, 52, 22, .06), 0 10px 24px -14px rgba(74, 52, 22, .28);
+  --shadow-lift:  0 4px 10px rgba(74, 52, 22, .09), 0 22px 46px -22px rgba(74, 52, 22, .36);
 }
 
 html, body, #root { height: 100%; }
 
-/* Mobile browser toolbars slide in and out, and `height: 100%` is measured
-   against the viewport at its LARGEST — so the footer button sat under the
-   toolbar until she scrolled. `dvh` follows the area actually visible. */
-@supports (height: 100dvh) { #root { height: 100dvh; } }
-
 body {
   background: var(--color-paper);
   color: var(--color-ink);
-  /* No webfont, deliberately. A Latin display face would not cover
-     Devanagari, Bengali or Tamil, so five of our six languages would fall
-     back anyway — and it is another download on a metered connection for
-     an app that has to work offline. The hierarchy below does the work. */
+  /* No webfont: a Latin display face covers none of Devanagari, Bengali or
+     Tamil, so five of our six languages would fall back anyway — and it is
+     another download for an app that must work offline. */
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
 }
 
-/* Low-literacy rule: nothing in this app is ever smaller than 13px, and every
-   tappable thing is at least 56px tall. Enforced here so nobody has to
-   remember it.
+/* Low-literacy rule: nothing under 13px, every tappable thing at least 56px.
+   In :where() so it has ZERO specificity — written plainly it beat every
+   Tailwind utility and silently defeated `min-h-0`; moved into @layer base it
+   vanished entirely, because this build drops that layer. */
+:where(button, a[role="button"]) { min-height: 56px; }
+.text-xs { font-size: .8125rem; }
 
-   In @layer base ON PURPOSE. Unlayered CSS beats everything Tailwind emits, so
-   as a bare rule this silently defeated every `min-h-0` in the app — small
-   deliberate controls like the bin on a product card were being forced to 56px
-   and quietly stealing height from the screens around them. Inside the layer,
-   a utility can still say otherwise where the size is a real decision. */
-@layer base {
-  /* 3.5rem, not 56px, so the touch target grows and shrinks with the rest
-     of the app. It bottoms out at 52px on the smallest screen — still well
-     clear of the 44px anyone can reliably hit. */
-  button, a[role="button"] { min-height: 3.5rem; }
-  .text-xs { font-size: .8125rem; }
-}
-
-/* Keyboard focus must stay visible — accessibility is the whole point. */
-:focus-visible { outline: 3px solid var(--color-indigo-2); outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--color-gold-leaf); outline-offset: 2px; }
 
 /* ---------------------------------------------------------------
-   Craft texture.
+   JAALI — the pierced lattice.
 
-   A woven grid at almost nothing, for the few surfaces that should
-   feel like cloth rather than paper. Two repeating gradients, no
-   image, no request. Used on the header and on hero panels only —
-   put it everywhere and it stops meaning anything.
+   A stone screen is a grid of diamonds with the light coming
+   through. Four gradients at a whisper: two diagonals for the
+   lattice and two for the pierced centres. Used on dark chrome,
+   where it reads as carved, and never on a surface carrying text.
 ---------------------------------------------------------------- */
-.weave {
+.jaali {
   background-image:
-    repeating-linear-gradient(45deg,
-      color-mix(in srgb, var(--color-line-2) 15%, transparent) 0 1px, transparent 1px 13px),
-    repeating-linear-gradient(-45deg,
-      color-mix(in srgb, var(--color-line-2) 10%, transparent) 0 1px, transparent 1px 13px);
+    repeating-linear-gradient(45deg,  rgba(201,161,63,.16) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(-45deg, rgba(201,161,63,.16) 0 1px, transparent 1px 14px),
+    radial-gradient(rgba(201,161,63,.10) 1.1px, transparent 1.2px);
+  background-size: auto, auto, 14px 14px;
+  background-position: 0 0, 0 0, 7px 7px;
+}
+
+/* The same weave on a light ground, for paper that should feel like cloth. */
+.jaali-light {
+  background-image:
+    repeating-linear-gradient(45deg,  rgba(160,130,70,.10) 0 1px, transparent 1px 15px),
+    repeating-linear-gradient(-45deg, rgba(160,130,70,.07) 0 1px, transparent 1px 15px);
 }
 
 /* ---------------------------------------------------------------
-   Motion.
+   JHAROKHA — the cusped window arch.
 
-   Small and purposeful: things arrive, they do not perform. Every
-   animation here is under 400ms and none of them loop except the ones
-   that mean "still working".
+   `.arch` domes the top of a panel the way a carved window frames
+   what is inside it. Elliptical, not a half-circle: a true
+   semicircle on a wide card looks like a tunnel.
 ---------------------------------------------------------------- */
-@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes sheen { from { transform: translateX(-110%); } to { transform: translateX(210%); } }
-@keyframes breathe { 0%, 100% { opacity: .45; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
+.arch      { border-top-left-radius: 62% 26%; border-top-right-radius: 62% 26%; }
+.arch-deep { border-top-left-radius: 60% 42%; border-top-right-radius: 60% 42%; }
 
-.rise  { animation: rise .38s cubic-bezier(.2,.7,.3,1) both; }
-.fade  { animation: fade .3s ease-out both; }
-.sheen { animation: sheen 1.5s cubic-bezier(.4,0,.2,1) infinite; }
-.breathe { animation: breathe 1.6s ease-in-out infinite; }
+/* ---------------------------------------------------------------
+   GOTA — the gold trim.
 
-/* Stagger for a list that arrives together. */
-.rise-1 { animation-delay: .04s }
-.rise-2 { animation-delay: .08s }
-.rise-3 { animation-delay: .12s }
-.rise-4 { animation-delay: .16s }
+   A double hairline with a lozenge at the centre, the way a border
+   is stitched onto a hem. `.gota` is the rule; `.gota-top` is the
+   thin gold line that sits under dark chrome.
+---------------------------------------------------------------- */
+.gota-top { box-shadow: inset 0 -2px 0 0 var(--color-gold-leaf); }
 
-/* A pressed control should feel pressed. */
-.press { transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease; }
-.press:active { transform: scale(.982); }
+/* ---------------------------------------------------------------
+   Motion. Things arrive; they do not perform.
+---------------------------------------------------------------- */
+@keyframes rise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes sheen { from { transform: translateX(-110%) } to { transform: translateX(210%) } }
+@keyframes breathe { 0%,100% { opacity: .45; transform: scale(1) } 50% { opacity: 1; transform: scale(1.06) } }
+
+.rise  { animation: rise .38s cubic-bezier(.2,.7,.3,1) both }
+.fade  { animation: fade .3s ease-out both }
+.sheen { animation: sheen 1.5s cubic-bezier(.4,0,.2,1) infinite }
+.breathe { animation: breathe 1.6s ease-in-out infinite }
+.rise-1 { animation-delay: .04s } .rise-2 { animation-delay: .08s }
+.rise-3 { animation-delay: .12s } .rise-4 { animation-delay: .16s }
+
+.press { transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease }
+.press:active { transform: scale(.982) }
+
+/* ---------------------------------------------------------------
+   Dye blooming in water, while her listing is written.
+
+   Indigo IS a dye. An artisan watching colour spread in water is
+   watching something she recognises; a generic AI sparkle would be
+   our software talking about itself.
+---------------------------------------------------------------- */
+.dye { filter: blur(30px) saturate(1.15); opacity: .8; mix-blend-mode: multiply }
+.dye span { position: absolute; border-radius: 9999px; mix-blend-mode: multiply; will-change: transform }
+@keyframes dye-a { 0%,100% { transform: translate(0,0) scale(1) } 33% { transform: translate(34%,18%) scale(1.18) } 66% { transform: translate(-16%,26%) scale(.9) } }
+@keyframes dye-b { 0%,100% { transform: translate(0,0) scale(1.05) } 33% { transform: translate(-28%,22%) scale(.88) } 66% { transform: translate(20%,-18%) scale(1.2) } }
+@keyframes dye-c { 0%,100% { transform: translate(0,0) scale(.95) } 50% { transform: translate(24%,-24%) scale(1.22) } }
+@keyframes dye-d { 0%,100% { transform: translate(0,0) scale(1.1) } 50% { transform: translate(-22%,-20%) scale(.92) } }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise, .fade, .sheen, .breathe, .press { animation: none !important; transition: none !important; }
-  .rise, .fade { opacity: 1 !important; transform: none !important; }
+  .rise, .fade, .sheen, .breathe, .press, .dye span {
+    animation: none !important; transition: none !important;
+  }
+  .rise, .fade { opacity: 1 !important; transform: none !important }
+  .dye { opacity: .3 }
 }
 
 /* ---------------------------------------------------------------
-   Dye blooming in water.
-
-   Shown only while the app is writing her listing — the one wait long
-   enough to be worth filling, and the only place in the app that
-   animates at this scale.
-
-   It is dye rather than a shimmer or a spinner because indigo IS a dye;
-   the mark, the palette and the craft all come from the same place, and
-   an artisan watching colour spread in water is watching something she
-   recognises. A generic AI sparkle would have been the opposite: our
-   software talking about itself.
-
-   Four blobs, `multiply` so overlaps genuinely mix into new colours
-   rather than stacking, and transform-only keyframes so a budget phone
-   moves layers on the GPU instead of repainting. Blur is applied once
-   to the container, not per blob — four separate blur filters is what
-   makes this kind of thing stutter.
----------------------------------------------------------------- */
-.dye {
-  filter: blur(30px) saturate(1.15);
-  opacity: .8;
-  mix-blend-mode: multiply;
-}
-.dye span {
-  position: absolute;
-  border-radius: 9999px;
-  mix-blend-mode: multiply;
-  will-change: transform;
-}
-@keyframes dye-a { 0%,100% { transform: translate(0,0) scale(1) }
-                   33% { transform: translate(34%,18%) scale(1.18) }
-                   66% { transform: translate(-16%,26%) scale(.9) } }
-@keyframes dye-b { 0%,100% { transform: translate(0,0) scale(1.05) }
-                   33% { transform: translate(-28%,22%) scale(.88) }
-                   66% { transform: translate(20%,-18%) scale(1.2) } }
-@keyframes dye-c { 0%,100% { transform: translate(0,0) scale(.95) }
-                   50% { transform: translate(24%,-24%) scale(1.22) } }
-@keyframes dye-d { 0%,100% { transform: translate(0,0) scale(1.1) }
-                   50% { transform: translate(-22%,-20%) scale(.92) } }
-
-@media (prefers-reduced-motion: reduce) {
-  .dye span { animation: none !important; }
-  .dye { opacity: .3; }
-}
-
-/* ---------------------------------------------------------------
-   On a desktop screen the app is a 480px column, which would
-   otherwise float in a sea of white and read as broken. Give it a
-   ground and an edge so it reads as a phone held up deliberately —
-   which is also how it gets demoed on a projector.
+   On a desktop the app is a 480px column, which would otherwise
+   float in a sea of white and read as broken. Give it a ground and
+   an edge, so it reads as a phone held up deliberately — which is
+   also how it gets demoed on a projector.
 ---------------------------------------------------------------- */
 @media (min-width: 620px) {
   body {
     background:
-      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-indigo) 10%, transparent), transparent 62%),
-      radial-gradient(circle at 12% 88%, color-mix(in srgb, var(--color-clay) 8%, transparent), transparent 46%),
-      #EDE6D9;
+      radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--color-indigo) 22%, transparent), transparent 55%),
+      radial-gradient(circle at 8% 92%, color-mix(in srgb, var(--color-clay) 14%, transparent), transparent 45%),
+      radial-gradient(circle at 92% 80%, color-mix(in srgb, var(--color-gold-leaf) 16%, transparent), transparent 45%),
+      #E4D8BE;
   }
   #root > div {
     min-height: 100dvh;
-    box-shadow: 0 0 0 1px var(--color-line), 0 24px 60px -30px rgba(58, 44, 26, .45);
+    box-shadow: 0 0 0 1px var(--color-line-2), 0 30px 70px -34px rgba(36, 28, 18, .55);
   }
 }
 
 @media (prefers-color-scheme: dark) {
   @media (min-width: 620px) {
     body { background:
-      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-indigo) 18%, transparent), transparent 62%),
-      #0C0A07; }
+      radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--color-indigo) 30%, transparent), transparent 55%),
+      #0B0805; }
   }
 }

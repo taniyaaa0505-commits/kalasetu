@@ -49,7 +49,7 @@ export default function Working({
   }, [title, lang])
 
   return (
-    <div className="fade relative overflow-hidden rounded-panel border border-line bg-surface shadow-card">
+    <div className="fade relative overflow-hidden rounded-panel border border-line-2/70 bg-surface shadow-card">
       {behind
         ? <img src={behind} alt="" className="block w-full opacity-25" />
         : <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-2">

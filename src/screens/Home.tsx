@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Screen from '../components/Screen'
 import Icon from '../components/Icon'
+import { Gota, Corner } from '../components/Ornament'
 import BigButton from '../components/BigButton'
 import { listProducts, newId, subscribeProducts } from '../services/db'
 import { listMessages } from '../services/messages'
@@ -94,8 +95,20 @@ export default function Home() {
             reads as an invitation; a dashed box saying "nothing here" reads as
             a screen that failed to load. */}
         {empty && (
-          <div className="rise rise-1 mb-5 mt-3 flex flex-col items-center gap-2.5 text-center">
-            <Artisan width={262} />
+          <div className="rise rise-1 mb-5 mt-3 flex flex-col items-center gap-3 text-center">
+            {/* A jharokha: her work seen through a carved window, with the
+                brackets where the arch meets its pillars. */}
+            <div className="relative w-full max-w-[19rem] p-2">
+              <div className="arch overflow-hidden rounded-b-panel bg-surface p-2 shadow-card ring-1 ring-gold-leaf/45">
+                <div className="arch overflow-hidden rounded-b-card">
+                  <Artisan width={288} />
+                </div>
+              </div>
+              <Corner className="absolute -left-0.5 -top-0.5" />
+              <Corner className="absolute -right-0.5 -top-0.5 -scale-x-100" />
+              <Corner className="absolute -bottom-0.5 -left-0.5 -scale-y-100" />
+              <Corner className="absolute -bottom-0.5 -right-0.5 -scale-100" />
+            </div>
             <Speakable text={t('noProducts')} className="text-base leading-relaxed text-ink-2" />
           </div>
         )}
@@ -169,10 +182,10 @@ export default function Home() {
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
-    <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">
-      <span className="h-px w-4 bg-line-2" aria-hidden />
-      {children}
-    </h2>
+    <div className="mb-3">
+      <Gota className="mb-2" />
+      <h2 className="text-center text-xs font-semibold uppercase tracking-[0.16em] text-gold">{children}</h2>
+    </div>
   )
 }
 
@@ -205,7 +218,7 @@ function WhatWeDo() {
       <ul className="flex flex-col gap-2">
         {caps.map(c => (
           <li key={c.text}
-            className="flex items-center gap-3 rounded-card border border-line bg-surface px-3 py-2.5 shadow-rest">
+            className="flex items-center gap-3 rounded-card border border-line-2/70 bg-surface px-3 py-2.5 shadow-rest">
             <span aria-hidden
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-clay-wash text-lg font-semibold text-clay">
               {c.icon}
@@ -244,7 +257,7 @@ function ProductCard({
     <li className="relative">
       <button
         onClick={onOpen}
-        className="press block w-full min-h-0 overflow-hidden rounded-card border border-line bg-surface text-left shadow-card"
+        className="press block w-full min-h-0 overflow-hidden rounded-card border border-line-2/70 bg-surface text-left shadow-card"
       >
         <div className="relative aspect-square w-full bg-surface-2">
           {photo
@@ -347,7 +360,7 @@ function SoFar({ products, orders, draft }: {
       <div className="grid grid-cols-3 gap-2">
         {stats.map(([value, label]) => (
           <div key={label}
-            className="rounded-card border border-line bg-surface px-2 py-3 text-center shadow-rest">
+            className="rounded-card border border-line-2/70 bg-surface px-2 py-3 text-center shadow-rest">
             <p className="text-2xl font-bold tabular-nums leading-tight text-indigo">{value}</p>
             <p className="mt-0.5 text-xs text-ink-3">{label}</p>
           </div>

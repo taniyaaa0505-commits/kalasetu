@@ -111,7 +111,7 @@ export default function Price() {
           {/* Where that number sits between what she must not go below and
               what the market pays. One line, because three separate figures
               make her hold three facts and work out how they relate. */}
-          <div className="rounded-card border border-line bg-surface p-4 shadow-rest">
+          <div className="rounded-card border border-line-2/70 bg-surface p-4 shadow-rest">
             <PriceScale
               price={price}
               labels={{ floor: t('yourCost'), market: t('marketRange'), suggested: t('weSuggest') }}
@@ -136,7 +136,7 @@ function Stepper({ label, unit, value, step, hint, onChange }: {
         <button onClick={() => onChange(Math.max(0, value - step))}
           aria-label="−"
           className="press h-14 w-14 min-h-0 rounded-card border-2 border-line bg-surface text-2xl shadow-rest active:bg-surface-2">−</button>
-        <div className="flex-1 rounded-card border border-line bg-surface py-3 text-center text-2xl font-semibold tabular-nums shadow-rest">
+        <div className="flex-1 rounded-card border border-line-2/70 bg-surface py-3 text-center text-2xl font-semibold tabular-nums shadow-rest">
           {unit === '₹' ? `₹${value}` : `${value} ${unit}`}
         </div>
         <button onClick={() => onChange(value + step)}
@@ -149,7 +149,7 @@ function Stepper({ label, unit, value, step, hint, onChange }: {
 
 function Row({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="flex items-baseline justify-between rounded-card border border-line bg-surface px-4 py-3 shadow-rest">
+    <div className="flex items-baseline justify-between rounded-card border border-line-2/70 bg-surface px-4 py-3 shadow-rest">
       <div>
         <p className="text-sm text-ink-2">{label}</p>
         {hint && <p className="text-xs text-gold">{hint}</p>}

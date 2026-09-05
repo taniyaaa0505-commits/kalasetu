@@ -290,8 +290,8 @@ export default function Review() {
           {/* Her listing, laid out the way a marketplace lays one out — her
               photograph first and largest, the words under it. She should be
               looking at her own work, not at a form the app filled in. */}
-          <article className="overflow-hidden rounded-panel border border-line bg-surface shadow-card">
-            {photo && <img src={photo} alt="" className="block aspect-square w-full object-cover" />}
+          <article className="arch overflow-hidden rounded-b-panel border border-line-2/70 bg-surface shadow-card ring-1 ring-gold-leaf/30">
+            {photo && <img src={photo} alt="" className="arch block aspect-square w-full object-cover" />}
             <div className="flex flex-col gap-3 p-4">
               <span className="flex w-fit items-center gap-1.5 rounded-full bg-wash px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo">
                 <Icon name="ai" className="text-xs" />{t('screenListing')}
@@ -341,7 +341,7 @@ export default function Review() {
             <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-3">
               {t('tellMore')}
             </h2>
-            <div className="rounded-xl border border-line bg-surface p-4">
+            <div className="rounded-xl border border-line-2/70 bg-surface p-4">
               <MicButton
                 recording={asking === FREE_FORM}
                 label={asking === FREE_FORM ? t('stopSpeaking') : t('tellMore')}
@@ -398,7 +398,7 @@ function Question({
       {recording
         ? <p className="mt-2 text-ink-2">{partial || t('answering')}</p>
         : answer
-          ? <div className="mt-2 rounded-card border border-line bg-surface p-3">
+          ? <div className="mt-2 rounded-card border border-line-2/70 bg-surface p-3">
               <Speakable text={answer} className="leading-relaxed" />
             </div>
           : null}
@@ -439,7 +439,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <section>
       <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-3">{label}</h2>
-      <div className="rounded-card border border-line bg-surface p-4 shadow-rest">{children}</div>
+      <div className="rounded-card border border-line-2/70 bg-surface p-4 shadow-rest">{children}</div>
     </section>
   )
 }

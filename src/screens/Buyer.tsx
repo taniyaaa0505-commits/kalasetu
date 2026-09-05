@@ -9,6 +9,7 @@
  */
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Scallop } from '../components/Ornament'
 import { subscribeProducts } from '../services/db'
 import type { Product } from '../types'
 
@@ -21,16 +22,17 @@ export default function Buyer() {
 
   return (
     <div className="min-h-full bg-paper">
-      <header className="weave border-b border-line bg-surface px-6 py-5">
+      <header className="jaali relative bg-night px-6 pb-6 pt-5 text-surface">
         <button onClick={() => nav('/')} className="press mb-2 min-h-0 py-1.5 pr-2 text-sm text-ink-3">← back to the app</button>
         <div className="flex items-center gap-3">
           <img src="./icons/mark-96.png" alt="" aria-hidden width={40} height={40}
-            className="shrink-0 rounded-lg border border-line" />
+            className="shrink-0 rounded-lg ring-1 ring-gold-leaf/50" />
           <div>
-            <h1 className="text-2xl font-bold leading-tight tracking-tight">Artisan Marketplace</h1>
-            <p className="text-sm text-ink-3">Handmade, direct from the maker</p>
+            <h1 className="text-2xl font-bold leading-tight tracking-tight text-surface">Artisan Marketplace</h1>
+            <p className="text-sm text-surface/65">Handmade, direct from the maker</p>
           </div>
         </div>
+        <Scallop className="absolute inset-x-0 -bottom-2 text-night" />
       </header>
 
       <div className="mx-auto max-w-5xl p-6">
@@ -44,8 +46,8 @@ export default function Buyer() {
             {items.map((p, i) => (
               <li key={p.id} className={'rise ' + ['', 'rise-1', 'rise-2', 'rise-3', 'rise-4'][Math.min(i, 4)]}>
                 <button onClick={() => nav(`/buyer/${p.id}`)}
-                  className="press block w-full min-h-0 overflow-hidden rounded-panel border border-line bg-surface text-left shadow-card">
-                {p.cleanPhoto && <img src={p.cleanPhoto} alt="" className="aspect-square w-full bg-surface-2 object-cover" />}
+                  className="press block w-full min-h-0 overflow-hidden rounded-b-panel border border-line-2/70 bg-surface text-left shadow-card ring-1 ring-gold-leaf/25">
+                {p.cleanPhoto && <img src={p.cleanPhoto} alt="" className="arch aspect-square w-full bg-surface-2 object-cover" />}
                 <div className="p-4">
                   <p className="font-semibold leading-snug">{p.listing?.titleEn}</p>
                   <p className="mt-1 line-clamp-2 text-sm text-ink-3">{p.listing?.descriptionEn}</p>

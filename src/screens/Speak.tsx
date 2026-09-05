@@ -113,7 +113,7 @@ export default function SpeakScreen() {
                      shadow-rest outline-none placeholder:text-ink-3"
         />
       ) : (
-        <div className="min-h-[5.25rem] rounded-card border border-line bg-surface p-3.5 text-lg leading-relaxed shadow-rest">
+        <div className="min-h-[5.25rem] rounded-card border border-line-2/70 bg-surface p-3.5 text-lg leading-relaxed shadow-rest">
           {text || <span className="text-ink-3">…</span>}
         </div>
       )}

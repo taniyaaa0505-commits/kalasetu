@@ -8,6 +8,7 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Thread from './Thread'
+import { Scallop } from './Ornament'
 import LangButton from './LangButton'
 
 export default function Screen({
@@ -27,25 +28,29 @@ export default function Screen({
   return (
     <div className="mx-auto flex h-full max-w-[480px] flex-col bg-paper">
       {(title || onBack || step) && (
-        <header className="weave flex items-center gap-3 border-b border-line bg-surface px-4 pb-3
-                           pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <header className="jaali relative flex items-center gap-3 bg-night px-4 pb-4
+                           pt-[max(0.75rem,env(safe-area-inset-top))] text-surface">
           {onBack && (
             <button
               onClick={() => { if (onBack() !== false) nav(-1) }}
               aria-label="Go back"
-              className="press -ml-2 flex h-11 w-11 min-h-0 items-center justify-center rounded-full text-2xl text-ink-2 active:bg-wash"
+              className="press -ml-2 flex h-11 w-11 min-h-0 items-center justify-center rounded-full text-2xl text-surface/80 active:bg-white/10"
             >←</button>
           )}
           {brand && (
             <img
               src="./icons/mark-96.png" alt="" aria-hidden
               width={36} height={36}
-              className="-my-1 shrink-0 rounded-lg border border-line"
+              className="-my-1 shrink-0 rounded-lg ring-1 ring-gold-leaf/50"
             />
           )}
-          {title && <h1 className="text-lg font-semibold tracking-tight">{title}</h1>}
+          {title && <h1 className="text-lg font-semibold tracking-tight text-surface">{title}</h1>}
           {/* Always reachable, on every screen, without scrolling. */}
           <div className="ml-auto"><LangButton /></div>
+          {/* The canopy. A jharokha ends in half-domes, and this is the one
+              stroke that makes the app read as Indian before a word of it has
+              been read. */}
+          <Scallop className="absolute inset-x-0 -bottom-2 text-night" />
         </header>
       )}
 
@@ -66,7 +71,7 @@ export default function Screen({
  *  Position, not text — she cannot read a step count. */
 function StepDots({ step }: { step: number }) {
   return (
-    <div className="bg-surface pb-3">
+    <div className="bg-paper pb-3 pt-4">
       <Thread
         ariaLabel={`Step ${step} of 6`}
         beads={[1, 2, 3, 4, 5, 6].map(n => ({ done: n < step, current: n === step }))}
