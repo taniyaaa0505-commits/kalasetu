@@ -82,47 +82,59 @@ export default function BuyerProduct() {
 
   if (!p) return <div className="p-10 text-center text-ink-3">Loading…</div>
 
+  const field = 'w-full rounded-card border border-line bg-surface px-3.5 py-3 text-[15px] ' +
+                'outline-none transition-colors placeholder:text-ink-3 focus-visible:border-indigo'
+
   return (
-    <div className="min-h-full bg-white">
-      <header className="border-b border-line px-6 py-4">
-        <button onClick={() => nav('/buyer')} className="min-h-0 text-sm text-ink-3">← all products</button>
+    <div className="min-h-full bg-paper">
+      <header className="weave border-b border-line bg-surface px-6 py-4">
+        <button onClick={() => nav('/buyer')} className="press min-h-0 py-1.5 pr-2 text-sm text-ink-3">← all products</button>
       </header>
 
       <div className="mx-auto grid max-w-5xl gap-8 p-6 md:grid-cols-2">
         <div>
-          {p.cleanPhoto && <img src={p.cleanPhoto} alt="" className="w-full rounded-xl border border-line" />}
-          <h1 className="mt-4 text-2xl font-bold tracking-tight">{p.listing?.titleEn}</h1>
+          {/* Her work, at the size of the thing being bought. */}
+          {p.cleanPhoto && (
+            <img src={p.cleanPhoto} alt=""
+              className="rise aspect-square w-full rounded-panel border border-line bg-surface object-cover shadow-card" />
+          )}
+          <h1 className="mt-5 text-[26px] font-bold leading-tight tracking-tight">{p.listing?.titleEn}</h1>
           <p className="mt-2 leading-relaxed text-ink-2">{p.listing?.descriptionEn}</p>
-          <p className="mt-4 text-3xl font-bold tabular-nums">₹{p.price?.suggested}</p>
+
+          <div className="mt-4 flex flex-wrap items-end gap-x-4 gap-y-2">
+            <p className="text-[34px] font-bold leading-none tabular-nums text-indigo">₹{p.price?.suggested}</p>
+            <p className="text-sm text-ink-3">per piece · direct from the maker</p>
+          </div>
           {p.price && <div className="mt-3 max-w-xs"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
 
           {/* Bulk order form. The problem statement asks for B2B buyers, so
               quantity is the first thing on screen, not an afterthought. */}
-          <form onSubmit={order} className="mt-6 rounded-xl border border-line p-4">
-            <h2 className="mb-3 font-semibold">Place a bulk order</h2>
+          <form onSubmit={order} className="mt-6 rounded-panel border border-line bg-surface p-5 shadow-card">
+            <h2 className="mb-4 text-lg font-bold tracking-tight">Place a bulk order</h2>
 
-            <label className="mb-1 block text-sm text-ink-2">Quantity</label>
-            <div className="mb-3 flex items-center gap-2">
-              <button type="button" onClick={() => setQty(Math.max(1, qty - 5))}
-                className="min-h-0 h-10 w-10 rounded-lg border border-line">−</button>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-ink-3">Quantity</label>
+            <div className="mb-4 flex items-center gap-2">
+              <button type="button" aria-label="−" onClick={() => setQty(Math.max(1, qty - 5))}
+                className="press h-12 w-12 min-h-0 rounded-card border border-line bg-surface text-xl shadow-rest active:bg-surface-2">−</button>
               <input type="number" min={1} value={qty}
                 onChange={e => setQty(Math.max(1, +e.target.value || 1))}
-                className="w-24 rounded-lg border border-line px-3 py-2 text-center tabular-nums outline-none focus-visible:border-indigo" />
-              <button type="button" onClick={() => setQty(qty + 5)}
-                className="min-h-0 h-10 w-10 rounded-lg border border-line">+</button>
-              <span className="ml-2 text-ink-3">× ₹{p.price?.suggested}</span>
+                className="w-24 rounded-card border border-line bg-surface px-3 py-3 text-center text-lg font-semibold tabular-nums outline-none focus-visible:border-indigo" />
+              <button type="button" aria-label="+" onClick={() => setQty(qty + 5)}
+                className="press h-12 w-12 min-h-0 rounded-card border border-line bg-surface text-xl shadow-rest active:bg-surface-2">+</button>
+              <span className="ml-1 text-sm text-ink-3">× ₹{p.price?.suggested}</span>
             </div>
 
             <div className="mb-3 grid gap-2 sm:grid-cols-2">
-              <input value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Your name"
-                className="rounded-lg border border-line px-3 py-2 outline-none focus-visible:border-indigo" />
-              <input value={buyerOrg} onChange={e => setBuyerOrg(e.target.value)} placeholder="Company"
-                className="rounded-lg border border-line px-3 py-2 outline-none focus-visible:border-indigo" />
+              <input value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Your name" className={field} />
+              <input value={buyerOrg} onChange={e => setBuyerOrg(e.target.value)} placeholder="Company" className={field} />
             </div>
 
+            {/* Its own line: the placeholder is a sentence and was being cut in
+                half inside a half-width box. */}
             <input value={orderNote} onChange={e => setOrderNote(e.target.value)}
-              placeholder="Anything she should know? (she will hear this in her language)"
-              className="mb-3 w-full rounded-lg border border-line px-3 py-2 outline-none focus-visible:border-indigo" />
+              placeholder="Anything she should know?"
+              className={field + ' mb-1'} />
+            <p className="mb-3 text-xs text-ink-3">She will hear this read out in her own language.</p>
 
             {trouble && (
               <p className="mb-3 rounded-card border border-danger/30 bg-gold-wash px-3 py-2 text-sm text-danger">
@@ -130,10 +142,15 @@ export default function BuyerProduct() {
               </p>
             )}
 
-            <div className="flex items-center justify-between">
-              <p className="text-xl font-bold tabular-nums">₹{(qty * (p.price?.suggested ?? 0)).toLocaleString('en-IN')}</p>
+            <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-3">Total</p>
+                <p className="text-2xl font-bold leading-tight tabular-nums">
+                  ₹{(qty * (p.price?.suggested ?? 0)).toLocaleString('en-IN')}
+                </p>
+              </div>
               <button disabled={placing || !p.price}
-                className="min-h-0 rounded-lg bg-indigo px-5 py-2.5 font-semibold text-white disabled:opacity-40">
+                className="press min-h-0 shrink-0 rounded-card bg-indigo px-6 py-3.5 font-semibold text-white shadow-card disabled:opacity-40 disabled:shadow-none">
                 {placing ? 'Placing…' : 'Place order'}
               </button>
             </div>
@@ -146,10 +163,10 @@ export default function BuyerProduct() {
           )}
         </div>
 
-        <section className="flex flex-col rounded-xl border border-line">
+        <section className="flex flex-col overflow-hidden rounded-panel border border-line bg-surface shadow-card">
           <header className="border-b border-line px-4 py-3">
-            <h2 className="font-semibold">Message the artisan</h2>
-            <p className="text-sm text-ink-3">
+            <h2 className="font-bold tracking-tight">Message the artisan</h2>
+            <p className="mt-0.5 text-sm text-ink-3">
               You write in English. She hears it in her own language, and answers by speaking.
             </p>
           </header>
@@ -184,11 +201,11 @@ export default function BuyerProduct() {
             <input
               value={text} onChange={e => setText(e.target.value)}
               placeholder="Ask about size, quantity, delivery…"
-              className="min-w-0 flex-1 rounded-lg border border-line px-3 py-2 outline-none focus-visible:border-indigo"
+              className={'min-w-0 flex-1 ' + field}
             />
             <button
               disabled={!text.trim() || sending}
-              className="min-h-0 rounded-lg bg-indigo px-4 py-2 font-semibold text-white disabled:opacity-40"
+              className="press min-h-0 shrink-0 rounded-card bg-indigo px-5 font-semibold text-white shadow-card disabled:opacity-40 disabled:shadow-none"
             >Send</button>
           </form>
         </section>

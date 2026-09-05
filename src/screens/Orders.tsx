@@ -51,7 +51,12 @@ export default function Orders() {
 
   return (
     <Screen title={t('orders')} onBack={() => {}}>
-      {orders.length === 0 && <p className="py-20 text-center text-ink-3">{t('noOrders')}</p>}
+      {orders.length === 0 && (
+        <div className="flex flex-col items-center gap-3 py-20 text-center">
+          <span aria-hidden className="text-4xl opacity-40">📦</span>
+          <p className="text-ink-3">{t('noOrders')}</p>
+        </div>
+      )}
 
       <ul className="flex flex-col gap-4">
         {orders.map(o => (
@@ -119,16 +124,17 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
   const isNew = o.status === 'placed'
 
   return (
-    <li className={'rounded-2xl border-2 p-4 ' + (isNew ? 'border-indigo bg-wash' : 'border-line bg-surface')}>
+    <li className={'rise rounded-panel p-4 shadow-card ' +
+      (isNew ? 'border-2 border-indigo bg-wash' : 'border border-line bg-surface')}>
       <div className="flex items-start gap-3">
         {product?.cleanPhoto && (
-          <img src={product.cleanPhoto} alt="" className="h-20 w-20 shrink-0 rounded-lg object-cover" />
+          <img src={product.cleanPhoto} alt="" className="h-20 w-20 shrink-0 rounded-card border border-line bg-surface-2 object-cover" />
         )}
         <div className="min-w-0 flex-1">
           <span className={'inline-block rounded-full border px-2 py-0.5 text-xs font-semibold ' + STATUS_STYLE[o.status]}>
             {STATUS_LABEL[o.status]()}
           </span>
-          <p className="mt-1 truncate font-semibold">{product?.listing?.titleHi ?? product?.listing?.titleEn}</p>
+          <p className="mt-1.5 truncate text-[17px] font-bold leading-tight tracking-tight">{product?.listing?.titleHi ?? product?.listing?.titleEn}</p>
           <p className="text-sm text-ink-2">{o.buyerOrg || o.buyerName}</p>
         </div>
       </div>
@@ -158,7 +164,7 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
       {(o.noteLocal || o.note) && (
         <button
           onClick={() => speak(o.noteLocal || o.note || '', asrCode(lang))}
-          className="mt-3 flex min-h-0 w-full items-start gap-2 rounded-lg border border-line bg-paper p-3 text-left"
+          className="press mt-3 flex min-h-0 w-full items-start gap-2 rounded-card border border-line bg-paper p-3 text-left"
         >
           <span aria-hidden className="text-indigo">🔊</span>
           <span>
@@ -179,7 +185,7 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
       {o.status === 'accepted' && (
         <div className="mt-4 flex flex-col gap-2">
           <BigButton icon="📦" label={t('markShipped')} onClick={() => onAnswer(o.id, 'shipped')} />
-          <button onClick={onOpenChat} className="min-h-0 text-sm text-indigo underline">
+          <button onClick={onOpenChat} className="press min-h-0 py-1.5 text-sm text-indigo underline">
             💬 {t('messages')}
           </button>
         </div>
@@ -190,8 +196,8 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
 
 function Cell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-line bg-paper px-3 py-2">
-      <p className="text-xs text-ink-3">{label}</p>
+    <div className="rounded-card border border-line bg-paper px-3 py-2.5">
+      <p className="text-xs font-medium text-ink-3">{label}</p>
       <p className="text-xl font-bold tabular-nums">{value}</p>
     </div>
   )

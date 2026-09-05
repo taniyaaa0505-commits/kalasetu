@@ -30,7 +30,11 @@ export default function Thread({
   // box and the beads shrink with it — which is what "congested" looks like.
   // The tour has ten of these; the selling flow has six.
   const gap = size === 'lg' ? 78 : beads.length > 7 ? 30 : 42
-  const padX = r + 6
+  // With captions the widest thing at each end is the TEXT, not the bead, and
+  // a bead's worth of padding clipped the first and last words — "नया ऑर्डर"
+  // was rendering as "ाया ऑर्डर". Give the labelled variant half a gap.
+  const labelled = beads.some(b => b.label)
+  const padX = labelled ? gap / 2 : r + 6
   const w = padX * 2 + gap * (beads.length - 1)
   const cy = r + 3
   const h = size === 'lg' ? cy + 26 : cy + r + 3
