@@ -33,6 +33,15 @@ export default function Buyer() {
             <p className="text-sm text-surface/65">Handmade, direct from the maker</p>
           </div>
         </div>
+        {/* Not in the artisan's app — she never sees this one. It belongs on
+            the demo surface, where the person asking "so what did it change?"
+            is already standing. */}
+        <button onClick={() => nav('/impact')}
+          className="press absolute right-6 top-[max(1.25rem,env(safe-area-inset-top))] min-h-0
+                     rounded-full border border-gold-leaf/50 px-3 py-1.5 text-sm text-surface/80
+                     active:bg-white/10">
+          Impact →
+        </button>
         <Scallop className="absolute inset-x-0 -bottom-2 text-night" />
       </header>
 
