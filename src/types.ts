@@ -82,6 +82,15 @@ export interface Product {
   transcript?: string      // what she said, as text
   answers?: Answer[]       // what she added after reading back the first draft
   cost?: CostInput
+  /**
+   * What she used to be paid for one of these — by a middleman, or at a fair.
+   *
+   * The single number this whole project is judged on. The problem statement
+   * is owned by the Ministry of Social Justice, and what they are buying is
+   * income change, not an app. Undefined until she tells us: a default here
+   * would be us inventing the result.
+   */
+  usualPrice?: number
   listing?: Listing
   price?: PriceSuggestion
 }

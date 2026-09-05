@@ -12,7 +12,7 @@ import ConfirmRemove from '../components/ConfirmRemove'
 import Artisan from '../components/Artisan'
 import Speakable from '../components/Speakable'
 import { asrCode } from '../types'
-import { t, getLang, useLang, prefersEnglish } from '../lib/i18n'
+import { t, tf, getLang, useLang, prefersEnglish } from '../lib/i18n'
 import type { Order, Product } from '../types'
 
 export default function Home() {
@@ -306,9 +306,25 @@ function SoFar({ products, orders, draft }: {
   const nav = useNavigate()
   const lang = useLang()
 
-  const earned = orders.filter(o => o.status === 'delivered').reduce((n, o) => n + o.total, 0)
+  const delivered = orders.filter(o => o.status === 'delivered')
+  const earned = delivered.reduce((n, o) => n + o.total, 0)
   const live = orders.filter(o => o.status !== 'declined').length
   const onSale = products.filter(p => p.status === 'published').length
+
+  /**
+   * How much more she got than she used to.
+   *
+   * The number the Ministry of Social Justice is actually buying. Counted only
+   * where BOTH sides are real — a delivered order, and a price she told us she
+   * used to be paid — so it is a fact about her, not an estimate about her. A
+   * product she never answered for contributes nothing rather than a guess.
+   */
+  const extra = delivered.reduce((n, o) => {
+    const was = products.find(p => p.id === o.productId)?.usualPrice
+    if (!was || o.unitPrice <= was) return n
+    return n + (o.unitPrice - was) * o.quantity
+  }, 0)
+  const askedAnyUsual = products.some(p => p.usualPrice)
 
   const stats: [string, string][] = [
     [`₹${earned}`, t('earnedLabel')],
@@ -337,6 +353,31 @@ function SoFar({ products, orders, draft }: {
           </div>
         ))}
       </div>
+
+      {/* The headline. Not a fourth stat squeezed into the row — this is the
+          one number the whole project is judged on, so it gets its own line
+          and its own colour, and it only appears once it is TRUE. */}
+      {extra > 0 && (
+        <button
+          onClick={() => speak(`${t('extraEarned')}. ${tf('moreThisTime', { n: extra })}`, asrCode(lang))}
+          className="press mt-2 flex w-full items-center gap-3 rounded-card border-2 border-good bg-sage-wash px-4 py-3 text-left"
+        >
+          <span aria-hidden className="text-2xl">📈</span>
+          <span className="flex-1">
+            <span className="block text-xl font-bold leading-tight tabular-nums text-good">₹{extra}</span>
+            <span className="block text-sm text-ink-2">{t('extraEarned')}</span>
+          </span>
+          <span aria-hidden className="text-good">🔊</span>
+        </button>
+      )}
+
+      {/* She has never been asked, so we have nothing to compare against.
+          Say what is missing rather than showing a silent zero. */}
+      {extra === 0 && !askedAnyUsual && onSale > 0 && (
+        <p className="mt-2 rounded-card border border-line bg-surface px-4 py-3 text-[15px] leading-snug text-ink-3">
+          📈 {t('tellUsUsual')}
+        </p>
+      )}
 
       {/* One next thing, never a list of them. */}
       {draft ? (

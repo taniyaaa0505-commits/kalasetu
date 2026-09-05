@@ -8,26 +8,34 @@ import { suggestPrice } from '../services/pricing'
 import { speak } from '../lib/speak'
 import PriceInNotes from '../components/PriceInNotes'
 import PriceScale from '../components/PriceScale'
-import { t } from '../lib/i18n'
+import { t, tf, useLang } from '../lib/i18n'
+import { asrCode } from '../types'
 import type { CostInput, PriceSuggestion } from '../types'
 
 export default function Price() {
   const { id = '' } = useParams()
   const nav = useNavigate()
+  const lang = useLang()
 
   const [cost, setCost] = useState<CostInput>({ materialCost: 300, hours: 16 })
   const [craft, setCraft] = useState<string>()
+  // 0 means she has not told us. A default here would invent the result.
+  const [usual, setUsual] = useState(0)
   const [price, setPrice] = useState<PriceSuggestion>()
 
   useEffect(() => {
-    getProduct(id).then(p => { if (p?.cost) setCost(p.cost); setCraft(p?.listing?.craft) })
+    getProduct(id).then(p => {
+      if (p?.cost) setCost(p.cost)
+      if (p?.usualPrice) setUsual(p.usualPrice)
+      setCraft(p?.listing?.craft)
+    })
   }, [id])
 
   // Recompute on every change — the floor is pure maths, it is instant.
   useEffect(() => { setPrice(suggestPrice(cost, craft)) }, [cost, craft])
 
   async function next() {
-    await patchProduct(id, { cost, price })
+    await patchProduct(id, { cost, price, usualPrice: usual || undefined })
     nav(`/p/${id}/publish`)
   }
 
@@ -42,6 +50,13 @@ export default function Price() {
         onChange={v => setCost({ ...cost, materialCost: v })} />
       <Stepper label={t('hoursTaken')} unit={t('hours')} value={cost.hours} step={2}
         onChange={v => setCost({ ...cost, hours: v })} />
+
+      {/* The one number this project is actually judged on.
+          Optional, and it starts at zero rather than at a guess: a default
+          would be us inventing the income change we then take credit for. */}
+      <Stepper label={t('usualPrice')} unit="₹" value={usual} step={50}
+        hint={usual ? undefined : t('usualHint')}
+        onChange={setUsual} />
 
       {price && (
         <div className="rise mt-7 flex flex-col gap-3">
@@ -75,6 +90,24 @@ export default function Price() {
             </div>
           </div>
 
+          {usual > 0 && price.suggested > usual && (
+            <button
+              onClick={() => speak(tf('moreThisTime', { n: price.suggested - usual }), asrCode(lang))}
+              className="press flex w-full items-center gap-3 rounded-card border-2 border-good bg-sage-wash px-4 py-3 text-left"
+            >
+              <span aria-hidden className="text-2xl">📈</span>
+              <span className="flex-1">
+                <span className="block text-lg font-bold leading-tight text-good">
+                  {tf('moreThisTime', { n: price.suggested - usual })}
+                </span>
+                <span className="block text-sm text-ink-2">
+                  ₹{usual} → ₹{price.suggested}
+                </span>
+              </span>
+              <span aria-hidden className="text-good">🔊</span>
+            </button>
+          )}
+
           {/* Where that number sits between what she must not go below and
               what the market pays. One line, because three separate figures
               make her hold three facts and work out how they relate. */}
@@ -92,8 +125,9 @@ export default function Price() {
   )
 }
 
-function Stepper({ label, unit, value, step, onChange }: {
-  label: string; unit: string; value: number; step: number; onChange: (v: number) => void
+function Stepper({ label, unit, value, step, hint, onChange }: {
+  label: string; unit: string; value: number; step: number; hint?: string
+  onChange: (v: number) => void
 }) {
   return (
     <div className="mb-4">
