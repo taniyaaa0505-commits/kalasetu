@@ -171,4 +171,5 @@ export const mr: Strings = {
   understood: 'ठीक आहे',
   tapHere: 'हे दाबा',
   stepDone: 'झाले. आता पुढे दाबा.',
+  priceEstimated: 'या वस्तूचा बाजारभाव आमच्याकडे नाही. हा अंदाज आहे.',
 }

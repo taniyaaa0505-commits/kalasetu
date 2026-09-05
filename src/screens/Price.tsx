@@ -37,6 +37,7 @@ export default function Price() {
    */
   const [cost, setCost] = useState<CostInput>({ materialCost: 200, hours: 4 })
   const [craft, setCraft] = useState<string>()
+  const [material, setMaterial] = useState<string>()
   // 0 means she has not told us. A default here would invent the result.
   const [usual, setUsual] = useState(0)
   const [price, setPrice] = useState<PriceSuggestion>()
@@ -46,11 +47,12 @@ export default function Price() {
       if (p?.cost) setCost(p.cost)
       if (p?.usualPrice) setUsual(p.usualPrice)
       setCraft(p?.listing?.craft)
+      setMaterial(p?.listing?.material)
     })
   }, [id])
 
   // Recompute on every change — the floor is pure maths, it is instant.
-  useEffect(() => { setPrice(suggestPrice(cost, craft)) }, [cost, craft])
+  useEffect(() => { setPrice(suggestPrice(cost, craft, material)) }, [cost, craft, material])
 
   // Arrival only. The number changes on every tap of a stepper, and a voice
   // reading it out each time would make the screen unusable — the price has
@@ -147,6 +149,23 @@ export default function Price() {
               price={price}
               labels={{ floor: t('yourCost'), market: t('marketRange'), suggested: t('weSuggest') }}
             />
+
+            {/* Say it when we are guessing.
+                The band above is real listing prices for nine crafts and
+                arithmetic on her own costs for everything else. She cannot
+                tell those apart by looking, so the app has to tell her —
+                the same rule that stops the AI inventing a material applies
+                to us inventing a market. */}
+            {price.estimated && (
+              <p className="mt-3 rounded-lg bg-gold-wash px-3 py-2 text-xs leading-snug text-gold">
+                {t('priceEstimated')}
+              </p>
+            )}
+            {price.basis && (
+              <p className="mt-3 text-xs leading-snug text-ink-3">
+                {price.basis.n} × {price.basis.market === 'retail' ? '🏪' : '📦'} · {price.basis.source}
+              </p>
+            )}
           </div>
 
           <Row label={t('yourCost')} value={`₹${price.floor}`} hint={t('dontSellBelow')} />

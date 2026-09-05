@@ -63,6 +63,11 @@ export interface PriceSuggestion {
   suggested: number
   /** Plain-language reason, read aloud. e.g. "higher because Diwali is near" */
   reason: string
+  /** True when we had no comparables for this craft and the band is arithmetic
+   *  on her own costs. The screen must say so — see services/comparables.ts. */
+  estimated?: boolean
+  /** Where the band came from, when it came from anywhere. */
+  basis?: { n: number; market: 'retail' | 'wholesale'; source: string }
 }
 
 /** Raw numbers the artisan gives us (by voice or by tapping +/-) to compute the floor. */

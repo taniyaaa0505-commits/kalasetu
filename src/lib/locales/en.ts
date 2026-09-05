@@ -165,4 +165,5 @@ export const en: Strings = {
   understood: 'All right',
   tapHere: 'Tap this',
   stepDone: 'Done. Now press next.',
+  priceEstimated: 'We have no market prices for this craft — this is an estimate.',
 }

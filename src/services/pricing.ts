@@ -5,15 +5,28 @@
  * it works on day one. It is also the ethical core of the pitch: the app
  * will not let her price below what her own labour is worth.
  *
- * The market band is the part that needs data. It is stubbed for now.
+ * The market band needed data, and now has some. See ./comparables.ts —
+ * roughly 130 real listing prices across nine crafts, each row citing the page
+ * it was read from. Where a craft is not in that table the app says it is
+ * estimating rather than pretending otherwise.
  */
 import type { CostInput, PriceSuggestion } from '../types'
+import { comparablesFor, type Comparable } from './comparables'
 import { t, tf } from '../lib/i18n'
 
-/** Configurable so we can defend the number if a judge asks where it came from.
- *  TODO: source a real figure (state minimum wage for skilled artisan work)
- *  and cite it on the slide. */
-export const DIGNIFIED_DAY_WAGE = 450   // rupees for an 8-hour day
+/**
+ * A dignified day's pay, and where the number comes from.
+ *
+ * Rajasthan's notified minimum wage for SKILLED work is ₹316 a day (Labour
+ * Department, revised 1 Jan 2025; unskilled ₹300, semi-skilled ₹308). We pay
+ * above it on purpose — a legal floor for construction labour is not a fair
+ * price for a craft that took a decade to learn — but it anchors the figure to
+ * something a judge can look up rather than to a number we liked.
+ *
+ * If you change this, change the citation with it.
+ */
+export const DIGNIFIED_DAY_WAGE = 450   // rupees for an 8-hour day; 1.42× the
+                                        // Rajasthan skilled-work minimum
 export const HOURS_PER_DAY = 8
 export const OVERHEAD_RATE = 0.15       // packaging, transport, wastage
 
@@ -24,13 +37,28 @@ export function fairWageFloor(cost: CostInput): number {
 }
 
 /**
- * STUB — replace when the comparables dataset exists.
+ * What this kind of thing sells for.
  *
- * Real version: look up similar products by craft + material + size in the
- * comparables table, return the 25th and 75th percentile.
- * For now we derive a plausible band from the floor so the UI is buildable.
+ * Real comparables when we have them for the craft, and an honest admission
+ * when we do not. `estimated` is not decoration — it is what stops the app
+ * claiming knowledge it does not have, and it is carried all the way out to
+ * `PriceSuggestion` so the screen can say so.
+ *
+ * The band is NOT clamped to her floor. For a hand-thrown water pot the real
+ * wholesale band is ₹220–300 and her floor is nearer ₹500, so the band sits
+ * BELOW the floor — and that is the most important thing this screen can ever
+ * show her. Hiding it would turn the one honest measurement in the app into
+ * decoration.
  */
-export function marketBand(floor: number, _craft?: string): { low: number; high: number } {
+export function marketBand(
+  floor: number, craft?: string, material?: string,
+): { low: number; high: number; from?: Comparable } {
+  const from = comparablesFor(craft, material)
+  if (from) return { low: from.low, high: from.high, from }
+
+  // No comparables for this craft. Fall back to the old multiplier, which is
+  // arithmetic on her own costs and knows nothing about any market — so
+  // whatever uses this must say "estimated".
   return { low: Math.round(floor * 1.8), high: Math.round(floor * 2.6) }
 }
 
@@ -46,9 +74,9 @@ function seasonBoost(month = new Date().getMonth()): { factor: number; key?: Sea
 
 type SeasonKey = 'reasonDiwali' | 'reasonRakhi' | 'reasonWedding'
 
-export function suggestPrice(cost: CostInput, craft?: string): PriceSuggestion {
+export function suggestPrice(cost: CostInput, craft?: string, material?: string): PriceSuggestion {
   const floor = fairWageFloor(cost)
-  const band = marketBand(floor, craft)
+  const band = marketBand(floor, craft, material)
   const season = seasonBoost()
 
   const mid = (band.low + band.high) / 2
@@ -62,7 +90,13 @@ export function suggestPrice(cost: CostInput, craft?: string): PriceSuggestion {
     floor,
     marketLow: band.low,
     marketHigh: band.high,
+    // Never below the floor. The band may legitimately sit under it — see
+    // marketBand — but what we ASK her to charge never does.
     suggested: Math.max(suggested, floor),
     reason: parts.join(', ') || t('reasonMarket'),
+    estimated: !band.from,
+    basis: band.from
+      ? { n: band.from.n, market: band.from.market, source: band.from.source }
+      : undefined,
   }
 }

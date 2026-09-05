@@ -169,4 +169,5 @@ export const bn: Strings = {
   understood: 'ঠিক আছে',
   tapHere: 'এটি চাপুন',
   stepDone: 'হয়ে গেছে। এবার আগে চাপুন।',
+  priceEstimated: 'এই জিনিসের বাজারদর আমাদের কাছে নেই। এটি একটি আন্দাজ।',
 }
