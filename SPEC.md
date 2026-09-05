@@ -13,9 +13,14 @@ professional product listing, priced fairly, published where buyers already are.
 The golden path is six steps. Nothing else matters until all six work end to end:
 
 ```
+0 which language?  ← before anything, because everything after it is words
 1 photograph → 2 clean the photo → 3 speak 30s → 4 AI writes it → 5 price → 6 publish
    on phone       on phone           on phone      needs net       on phone   needs net
 ```
+
+The first time through, the guide rings each of these controls in turn and says
+what it does — on the real app, not a simulation of it. After that every screen
+still narrates itself. See "The guided first run" and "What every screen says".
 
 ---
 
@@ -29,6 +34,14 @@ The golden path is six steps. Nothing else matters until all six work end to end
    translated *and* spoken.
 6. **No hardcoded colours.** Use the tokens in `index.css`.
 7. **Never enhance a photo into a lie.** No colour shifting, no hiding defects.
+8. **One voice at a time.** Two utterances at once is worse than silence — she
+   cannot re-read the half she missed. Anything that would start a second voice,
+   or open the microphone while this one is running, disables itself.
+9. **Nothing the app says follows her off the page.** A sentence about a screen
+   she has left is the app talking about somewhere she is no longer looking.
+10. **Never say a thing twice.** Two rings on one button, or a caption
+    repeating what the screen beneath it already says, reads as the app
+    stuttering. Cutting a step is usually the fix.
 
 ---
 
@@ -37,22 +50,26 @@ The golden path is six steps. Nothing else matters until all six work end to end
 ```
 src/
   lib/          things that work everywhere, no business logic
-    speak.ts      text-to-speech          ✅ works
+    speak.ts      text-to-speech          ✅ web + native, one voice at a time
     listen.ts     speech-to-text          ✅ works (Chrome/Android)
-    i18n.ts       all user-facing strings ⚠️  Hindi + English only
+    i18n.ts       all user-facing strings ✅ all six languages
+    guide.ts      the guided first run    ✅ runs ON the app, not a simulation
+    arrival.ts    what a screen says      ✅ every step narrates itself
+    idle.ts       has she stalled?        ✅ gates the beacon
   services/     anything that talks to the outside world
     idb.ts        raw IndexedDB plumbing  ✅
     store/        picks a backend         ✅ local (IndexedDB) or cloud (Firestore)
     firebase.ts   cloud config            ⚠️  needs .env to switch on
     db.ts         products                ✅ works
-    pricing.ts    fair-price engine       ✅ floor works, band is fake
-    gemini.ts     the AI brain            ⚠️  works, but needs a key
-    bgRemove.ts   cut out the background  ❌ stub — returns the original
-    queue.ts      offline job queue       ❌ stub
+    pricing.ts    fair-price engine       ✅ floor works, band is STILL fake
+    gemini.ts     the AI brain            ✅ works; chains models past a spent quota
+    bgRemove.ts   cut out the background  ✅ real — RMBG-1.4, in the browser
+    queue.ts      offline job queue       ✅ real — IndexedDB, survives a close
     messages.ts   artisan <-> buyer chat  ✅ works (translation needs the key)
     orders.ts     bulk orders             ✅ works (no payments)
   components/   shared UI
   screens/      one file per step of the golden path
+                Start.tsx is the language screen, shown before anything else
                 Chat.tsx and BuyerProduct.tsx are the two sides of the
                 translated conversation
 ```
@@ -86,14 +103,16 @@ Without a key the app uses mock listing text, so the flow still works.
 
 | # | Task | Owner | Notes |
 |---|------|-------|-------|
-| 1 | Real background removal | Camera | `npm i @huggingface/transformers`, model `briaai/RMBG-1.4`, run in-browser, composite onto white in `bgRemove.ts` |
+| 1 | ~~Real background removal~~ | Camera | **Done.** `briaai/RMBG-1.4` in the browser. First run ~37s and 50 MB; every run after ~10s and 0 bytes |
 | 2 | ~~Get the Gemini key working~~ | AI | **Done.** Key in local `.env`. Models chosen by benchmark, not guesswork — see below |
 | 3 | ~~Fill in UI strings for the other 4 languages~~ | Voice | **Done.** All six live in `lib/locales/`, one file each, every locale typed against `hi.ts` so a missing key fails the build. Still wants a native speaker's eye — Maithili most of all |
 | 4 | Firestore instead of IndexedDB | Data | Only `db.ts` changes. **This is what makes the demo's best moment possible** — right now the buyer page reads local storage, so a phone and a laptop cannot see each other's products |
-| 5 | ~~PWA~~ / offline queue | Data | **PWA done** — installable, app shell precached. Still to do: make `queue.ts` real with IndexedDB |
-| 6 | Comparables dataset | Pricing | ~300 rows scraped by hand. Replaces the fake `marketBand()` |
+| 5 | ~~PWA / offline queue~~ | Data | **Done.** Installable, shell precached, and `queue.ts` is a real IndexedDB job store that survives the app being closed |
+| 6 | **Comparables dataset** | Pricing | **The most important thing left.** ~300 rows collected by hand from iTokri, GoCoop, Jaypore, Amazon Karigar. Replaces the fake `marketBand()` — see "deliberately fake" below. One day, ₹0, and it is the one weakness a judge can find in 90 seconds |
 | 7 | ~~Capacitor → APK~~ | Data | **Set up.** `npx cap add android` done, launcher icons from the brand mark, and a manual **APK** workflow in Actions that builds a debug APK on ubuntu — nobody needs a 2 GB SDK locally. **Untested on a real phone**, and speech is the risk: see below |
-| 8 | Ministry dashboard | Buyer/pitch | Artisans onboarded, GMV, income delta |
+| 8 | Ministry dashboard | Buyer/pitch | Artisans onboarded, GMV, income delta. The data model already supports it |
+| 9 | Rotate several Gemini keys | AI | The daily quota is per PROJECT, so one key per teammate multiplies it. See the quota note below |
+| 10 | Native-speaker pass on 4 locales | Voice | Bengali, Marathi, Tamil, Maithili are machine-translated. Coverage is complete; wording is provisional |
 
 ---
 
@@ -116,13 +135,59 @@ before changing either.
 - The translate prompt insists on Arabic numerals. Without it the model wrote
   the quantity as `२००`, and a price she misreads is worse than no translation.
 
-**Your key is in `.env`, which is gitignored. It is NOT in the deployed app** —
-that build reads a GitHub Actions secret, which is not set. See below.
+**Your key is in `.env`, which is gitignored.** The deployed PWA and the APK
+read GitHub Actions secrets, and all seven of those **are set** — Gemini and
+Firebase are both live in the deployed build.
+
+### The free tier gives you TWENTY listings a day
+
+Not per minute. Per day, per model, per project. The API says so itself when it
+refuses:
+
+```
+GenerateRequestsPerDayPerProjectPerModel-FreeTier, limit: 20, model: gemini-3.5-flash
+```
+
+That is not a demo budget; it is barely a rehearsal, and a team testing all
+afternoon will spend it before anyone stands up to present. Two consequences,
+both already handled in `gemini.ts` — do not undo either:
+
+**A 429 is not retried.** It used to be, and on a per-day quota that made
+things worse: every retry spent another request from a bucket that was already
+empty, so one listing burned three of the twenty and still failed. A 429 now
+carries the API's own `RetryInfo` and is only retried when it says to come back
+within eight seconds. Longer than that is the day's allowance, and waiting
+cannot fix it.
+
+**Each job names a CHAIN, not a model.** The bucket is per model, so a model
+that is spent is not a failure — it is a reason to use the next one. The
+benchmarked choice is still first and still the only one the happy path
+touches; the rest turn "we ran out" into "slightly different words".
+
+| Job | Chain |
+|---|---|
+| Listing | `gemini-3.5-flash` → `3.6-flash` → `3-flash-preview` → `3.5-flash-lite` |
+| Translate | `3.1-flash-lite` → `3.5-flash-lite` → `flash-lite-latest` |
+
+One trap worth writing down, because the error names no field:
+**`thinkingBudget: 0` is rejected by most of these models the moment you also
+ask for structured JSON output** — plain `400 Request contains an invalid
+argument` and nothing more. Only the primary and `gemini-3-flash-preview` take
+both. Turning thinking off is worth seconds, so we still send it; a model that
+objects gets the same request again without it and is remembered as fussy for
+the session.
+
+If ~80 listings a day is still not enough, the next lever is free: the quota is
+per *project*, so a key from each teammate multiplies it. `tools/quota.test.mjs`
+guards all of the above.
 
 ## The APK
 
 Run the **APK** workflow from the Actions tab (or push a `v*` tag) and download
-`pehchaan-apk` from the run. It is a **debug** APK on purpose: a release build
+`pehchaan-apk` from the run. The artifact is named after the commit it was
+built from — `pehchaan-main-<sha>.apk` — so check that against `git log` before
+demoing. **The APK does not rebuild itself when you push**; it went 23 commits
+stale once and nobody noticed until it mattered. It is a **debug** APK on purpose: a release build
 needs a keystore and an unsigned one will not install, which defeats the point.
 On the phone, allow "install from unknown sources" once.
 
@@ -147,6 +212,15 @@ The split is entirely inside `lib/speak.ts` and `lib/listen.ts`, chosen once
 from `Capacitor.isNativePlatform()`. Both wear the same shape, so no screen
 knows which one it got, and the web build is byte-for-byte the same behaviour
 it always had.
+
+**One thing genuinely behaves differently, and it is worth testing on hardware:
+the guided first run.** On the speak screen the guide rings the microphone —
+unless the browser has no recogniser, in which case it rings the typing
+fallback instead, with `cannotHear` as its caption. Android's WebView is
+exactly that browser. Pointing an artisan at a microphone that cannot work,
+with the caption card sitting over the one control that would get her out of
+it, is the worst thing this guide could do, so the branch exists. It is tested
+locally by faking the capability; **check it on a real phone before a demo.**
 
 Two Android details that will waste a day if you forget them:
 
@@ -205,11 +279,27 @@ One motif, used consistently. Do not add a second.
 | **Mic ring** (`MicRing.tsx`) | Speak, Chat | Moves with her real voice. She cannot read the transcript, so this is her only proof the phone is hearing her |
 | **Before/after wipe** (`BeforeAfter.tsx`) | Capture | Two stacked images make you compare from memory; one frame with a handle does not |
 | **Price scale** (`PriceScale.tsx`) | Price | Shows how floor, market and suggestion *relate*. Below the floor is hatched — that region is a refusal, not a low option |
-| **Kolam** (`Kolam.tsx`) | Publish success | A kolam is drawn at a threshold on a good morning. Her work is now out in the world |
+| **Bloom** (`Bloom.tsx`) | Publish success | A ring drawn from the logo's four segments. Replaced `Kolam.tsx`, which was a generic flourish rather than ours |
+| **Jharokha arch** (`.arch`, `Empty.tsx`, `Shopfront.tsx`) | product cards, empty screens | The cusped window. An empty screen gets a lit niche, not a grey glyph at 40% opacity — that is the visual language of a page that failed, and she cannot tell the two apart |
+| **Beacon** (`.beacon`) | the one control to press | See its own section. Off unless she has stalled |
 
 Rules for anything added later:
 
 - No gradients on buttons — contrast dies in sunlight
+- **Never letter-space anything but English.** Devanagari, Bengali and Tamil
+  build a syllable from a consonant plus marks that hang off it, and tracking
+  pulls the marks away from what they belong to: "आपकी दुकान" at .16em reads as
+  loose debris. Five of our six languages are in those scripts. The `.label`
+  rule applies tracking only under `html[lang^="en"]`, and `<html lang>` now
+  tracks the chosen language — it used to say "hi" forever, which also
+  announced Tamil in Hindi to a screen reader
+- **Green means yes.** Publish this, accept this order. It is not a colour for
+  navigation; spending it on "go home" is what stops it meaning anything where
+  it has to
+- **A popover states its own ink.** Two bugs of exactly one shape: the language
+  button and every row of its dropdown inherited cream text from the night
+  header and sat on a cream panel. Both survived unnoticed because emoji ignore
+  the text colour, so the glyph showed and only the words vanished
 - No pattern behind text
 - Nothing may sit between her and the next tap; decoration never delays an action
 - Colour is never the only signal — icon and word too
@@ -291,25 +381,84 @@ leave an orphaned order or message behind.
 Still open: **unlisting is not deleting.** When a real product sells out she
 wants it hidden from buyers, not erased. Do not conflate the two.
 
-## The first-run tour
+## The guided first run
 
-`/tour`. Shown automatically the first time the app opens, and reachable any
-time from the 🎓 button on Home. `lib/tour.ts` remembers that she has seen it.
+There is no tour screen any more, and `screens/Tour.tsx` was deleted. What was
+there was a **simulation**: ten screens of a pretend clay pot with fake buttons
+that did nothing, ending in "now you try" and an empty home screen. She had
+watched a film about an app, not used one, and everything she had just been
+shown was somewhere she was no longer looking.
 
-Ten steps, each of which **speaks itself the moment it appears**. Four of them
-are hands-on — she presses the real camera, microphone, tap-to-hear and publish
-buttons — because watching is not learning and her hands should know the flow
-before anything is at stake.
+The guide now runs **on the real app**. `lib/guide.ts` holds the whole thing:
+an ordered list of steps, persisted in localStorage, and `components/Coach.tsx`
+draws one. It darkens the screen, rings the actual control, says out loud what
+it does, and waits for her to press *that* control. A step ends because she
+really photographed something, not because she pressed "next" on a picture of
+photographing something. By the end she has a real published listing made from
+her own photograph and her own voice.
 
-**It touches no hardware, no network and no data.** The photos are drawn
-(`tools/make-demo-images.mjs`), the transcript is scripted, the price is fixed.
-That is deliberate: it has to run on a stranger's phone in a hall with bad wifi,
-which is exactly when a demo matters most. `tools/tour.test.mjs` asserts this —
-it fails if anyone adds `getUserMedia`, `fetch`, `listen` or `saveProduct` to
-that screen.
+`Start.tsx` comes before all of it: one screen, one question, which language.
+Nothing else is shown until it is answered, because everything else is words.
 
-It reuses the real `PriceScale`, `PriceInNotes`, `Kolam` and `Thread`, so what
-she learns is what she later meets rather than a lookalike.
+Five rules that are load-bearing — `tools/guide.test.mjs` asserts them:
+
+- **Never a trap.** The dim is an outward box-shadow on a box with no pointer
+  events, so every control on the screen stays live and "skip" is on every
+  card. An artisan who takes a wrong turn in a locked overlay has no way back.
+- **The guide can never fall behind her.** She can outrun a ring that is
+  waiting for a target that never appears, so `advanceGuide` jumps forward
+  rather than requiring an exact match.
+- **A self-skip is silent.** A step whose target is not on this screen gives up
+  and moves on — and used to announce the next one, so the app talked twice, in
+  full sentences, at someone who had touched nothing.
+- **Escape hatches are unburiable.** The caption card picks the side that
+  covers least, and anything marked `data-guide-keep` costs fifty times an
+  ordinary control. That is how "type instead" stays reachable on the speak
+  screen, which is exactly the screen where the microphone may not work.
+- **Fewer steps is better.** Two rings on the same action bar one after another
+  read as the photo step happening twice. Where no placement worked, the step
+  was deleted rather than squeezed in.
+
+## What every screen says
+
+`lib/arrival.ts`. The guide talks her through the app once and then goes quiet
+forever, and every screen after that used to open in silence — fine for someone
+who can read the instruction printed at the top of it, useless for the person
+this app is for.
+
+Each step of the golden path now says three things: what this screen is for as
+she arrives, what is happening while it happens, and that it is finished when
+it is. Once per screen, keyed on the text. Never over the guide, which is
+already talking. And `Screen.tsx` stops the voice on unmount, so a sentence
+never follows her onto the next page.
+
+**One voice at a time, everywhere.** `speak()` exposes whether the phone is
+talking and anything that would start a second voice — or listen while this one
+runs — disables itself off it. The microphone is the one that mattered: it
+could open mid-word, so the recogniser's first words were the app's, not hers.
+Navigation never disables. `tools/speech.test.mjs` guards the ordering.
+
+## The beacon
+
+`lib/idle.ts` plus `.beacon` in `index.css`. A gold ring that pulses around the
+one control to press.
+
+Two decisions, and the second is the important one:
+
+- It is a ring **outside** the control, never a shine across it. A highlight
+  sweeping over a button is a gradient on a button, and the rule below exists
+  because gradients lose contrast in direct sunlight — which is where a woman
+  photographing her work in a courtyard is standing.
+- It is **off by default**. A permanent glow on every screen's main button was
+  the first instinct and it is worse: a thing that always moves stops being
+  seen within a day, and then the moment you truly need her eye has nothing
+  left to grab it with. Nothing rings until 4.5 seconds without a touch, and it
+  goes the instant she acts. Someone moving confidently never sees it.
+
+On the price screen it follows what is **missing**: it rings "what did you used
+to get" while that is still ₹0, and only moves to "next" once she has answered.
+That field is the only input the income figure is computed from and the one
+everybody skips.
 
 ## The app icon
 
@@ -331,9 +480,13 @@ shapes survive.
 ## The PWA
 
 `vite-plugin-pwa`, `autoUpdate`, `display: standalone`. Installs to the home
-screen with a kolam icon (generated by `tools/make-icons.mjs`).
+screen with the brand mark (generated by `tools/make-icons.mjs`).
 
-- App shell precached: 16 files, about 911 KB
+- App shell precached: 25 files, about 770 KB — including the three display
+  font subsets, so headings survive airplane mode in whichever language she
+  chose. `unicode-range` means a phone downloads exactly one of them: Devanagari
+  77 KB, Bengali 43 KB, Tamil 19 KB, never the sum. `scripts/make-font.sh`
+  regenerates them
 - The 23 MB ONNX runtime is **excluded from precache** and runtime-cached
   instead — precaching it would make installing brutal on a metered connection
 - The Hugging Face model is runtime-cached too, so background removal works
@@ -402,3 +555,8 @@ cross between them. Across two devices this needs Firestore.
   demo sentences; anything else is stored and clearly marked "not translated".
   We never invent a translation.
 - **The ₹450/day wage** in `pricing.ts` — replace with a sourced figure and cite it.
+- **The cost defaults.** ₹200 of material and half a day. Deliberately modest:
+  they used to be ₹300 and *sixteen hours*, two working days assumed on her
+  behalf for every object, so a clay lamp, a dupatta and a plastic bottle all
+  priced at exactly ₹3,040. A default is us guessing her labour, and guessing
+  high produces a price no buyer pays. The floor is there for her to raise.
