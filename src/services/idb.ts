@@ -15,10 +15,11 @@ import type { Product } from '../types'
 // IndexedDB database on her phone, and renaming it would orphan every product
 // she has already made. The name is invisible to her; her work is not.
 const DB_NAME = 'kalasetu'
-const DB_VERSION = 3
+const DB_VERSION = 4
 export const STORE = 'products'
 export const MSG_STORE = 'messages'
 export const ORDER_STORE = 'orders'
+export const JOB_STORE = 'jobs'      // work that needs a network, parked until there is one
 const LEGACY_KEY = 'kalasetu.products'      // the old localStorage home
 
 let dbPromise: Promise<IDBDatabase> | null = null
@@ -43,6 +44,10 @@ function open(): Promise<IDBDatabase> {
           const orders = upgraded.createObjectStore(ORDER_STORE, { keyPath: 'id' })
           orders.createIndex('productId', 'productId')
           orders.createIndex('status', 'status')
+        }
+        if (!upgraded.objectStoreNames.contains(JOB_STORE)) {
+          const jobs = upgraded.createObjectStore(JOB_STORE, { keyPath: 'id' })
+          jobs.createIndex('productId', 'productId')
         }
       }
 

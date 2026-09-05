@@ -7,6 +7,7 @@ import Speakable from '../components/Speakable'
 import Working from '../components/Working'
 import { getProduct, patchProduct } from '../services/db'
 import { generateListing, geminiConfigured } from '../services/gemini'
+import { enqueue, isOnline, onConnectivityChange } from '../services/queue'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
 import { t, useLang, prefersEnglish } from '../lib/i18n'
@@ -25,6 +26,8 @@ export default function Review() {
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState<string>()
   const [photo, setPhoto] = useState<string>()
+  // Parked because there is no signal, rather than failed.
+  const [parked, setParked] = useState(false)
 
   // What she has told us since the first draft, and whether the draft on
   // screen already reflects it.
@@ -46,12 +49,28 @@ export default function Review() {
 
   useEffect(() => {
     (async () => {
+      // Everything here is guarded, including reading the product. Offline,
+      // the Firestore chunk may fail to load at all and this read rejects —
+      // unguarded that left `busy` true and the screen sat on "preparing"
+      // for ever, which is the worst possible way to have no signal.
+      try {
       const p = await getProduct(id)
-      if (!p) return
+      if (!p) { setBusy(false); return }
       answersRef.current = p.answers ?? []
       setAnswers(p.answers ?? [])
       setPhoto(p.cleanPhoto ?? p.photo)
       if (p.listing) { setListing(p.listing); setBusy(false); return }
+
+      // Writing the listing happens on somebody else's computer, so it is one
+      // of the two things in this app that genuinely cannot happen offline.
+      // Do not fail her for that: take what she gave us, promise to finish it,
+      // and let her carry on to the price.
+      if (!isOnline()) {
+        await enqueue({ kind: 'generate-listing', productId: id })
+        setParked(true); setBusy(false)
+        return
+      }
+
       try {
         const l = await generateListing(
           p.cleanPhoto ?? p.photo ?? '', p.transcript ?? '', p.lang ?? lang, p.answers ?? [],
@@ -59,13 +78,32 @@ export default function Review() {
         setListing(l)
         await patchProduct(id, { listing: l })
       } catch (e) {
-        setError(e instanceof Error ? e.message : String(e))
+        // A request that never left the phone is the signal dropping, not a
+        // broken app. Park it and say so; anything else is a real fault and
+        // she gets a plain sentence with the detail underneath.
+        if (!isOnline()) {
+          await enqueue({ kind: 'generate-listing', productId: id })
+          setParked(true)
+        } else {
+          setError(e instanceof Error ? e.message : String(e))
+        }
       } finally { setBusy(false) }
+      } catch (e) {
+        if (!isOnline()) { await enqueue({ kind: 'generate-listing', productId: id }).catch(() => {}); setParked(true) }
+        else setError(e instanceof Error ? e.message : String(e))
+        setBusy(false)
+      }
     })()
   }, [id])
 
   // Never leave the microphone open or the phone talking to an empty screen.
   useEffect(() => () => { recRef.current?.stop(); stopSpeaking() }, [])
+
+  // If she is still standing here when the signal returns, write it now
+  // rather than making her go back and forth.
+  useEffect(() => onConnectivityChange(online => {
+    if (online && parked) void rewrite()
+  }), [parked])
 
   /**
    * Read a question out loud, then listen for the answer.
@@ -133,6 +171,7 @@ export default function Review() {
       )
       setListing(l)
       setDirty(false)
+      setParked(false)
       await patchProduct(id, { listing: l })
     } catch (e) {
       // The old listing stays on screen. A failed rewrite must never cost her
@@ -172,7 +211,7 @@ export default function Review() {
             </div>
           : <BigButton
               icon={<Icon name="next" />} label={t('next')}
-              onClick={() => nav(`/p/${id}/price`)} disabled={!listing || rewriting}
+              onClick={() => nav(`/p/${id}/price`)} disabled={rewriting}
             />
       }
     >
@@ -184,7 +223,26 @@ export default function Review() {
       {!listenSupported() && (
         <p className="mb-4 rounded-lg bg-gold-wash p-3 text-sm text-gold">{t('cannotHear')}</p>
       )}
-      {error && <p className="mb-4 rounded-lg bg-gold-wash p-3 text-sm text-danger">{error}</p>}
+      {parked && (
+        <div className="mb-4 rounded-card border border-gold/40 bg-gold-wash p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-gold">
+            <span aria-hidden>📶</span>{t('noSignal')}
+          </p>
+          <Speakable text={t('writeWhenOnline')} className="mt-1 text-[15px] leading-snug text-gold" />
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-card border border-danger/30 bg-gold-wash p-4">
+          <Speakable text={t('couldNotWrite')} className="text-[15px] font-semibold text-danger" />
+          <button onClick={() => void rewrite()}
+            className="press mt-2 min-h-0 rounded-full border border-danger/40 px-3 py-1.5 text-sm font-medium text-danger">
+            {t('tryAgainNow')}
+          </button>
+          {/* The technical reason, kept for us and out of her way. */}
+          <p className="mt-2 text-xs leading-snug text-ink-3">{error}</p>
+        </div>
+      )}
 
       {listing && (
         <div className={'flex flex-col gap-5 transition-opacity ' + (rewriting ? 'opacity-50' : '')}>

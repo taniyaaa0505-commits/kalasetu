@@ -11,6 +11,7 @@ import Chat from './screens/Chat'
 import Orders from './screens/Orders'
 import Tour from './screens/Tour'
 import StorageError from './components/StorageError'
+import QueueRunner from './components/QueueRunner'
 
 /**
  * HashRouter, not BrowserRouter, on purpose: URLs look like /#/p/123/capture,
@@ -25,6 +26,7 @@ export default function App() {
   return (
     <HashRouter>
       <StorageError />
+      <QueueRunner />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/tour"          element={<Tour />} />
