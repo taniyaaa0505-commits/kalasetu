@@ -181,7 +181,12 @@ export default function Home() {
              body={[t('capPhoto'), t('capWords'), t('capPrice')].join('. ')} />
       <Coach step="homeOrders" target="orders" title={t('tourOrders')} body={t('tourOrdersSub')} />
       <Coach step="homeLang"   target="lang"   title={t('language')}  body={t('tourSpeaksSub')} />
-      <Coach step="homeAdd"    target="action" title={t('tourStart')} body={t('tourPhotoSub')} mode="tap" />
+      {/* No body. It used to carry the same sentence the camera screen's own
+          ring says one tap later — "press the big button and photograph your
+          product", twice, on two consecutive screens. The ring is around the
+          button and the card already says "tap this"; the title is the whole
+          instruction. */}
+      <Coach step="homeAdd"    target="action" title={t('tourStart')} mode="tap" />
 
       {removing && (
           <ConfirmRemove

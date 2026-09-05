@@ -60,6 +60,50 @@ export function useSpeaking(): boolean {
   )
 }
 
+/* ---------------- the first sentence the app ever says ----------------
+ *
+ * Two browser behaviours conspire to swallow exactly one utterance — the most
+ * important one in the app, the line on the opening screen that asks her which
+ * language she speaks. She cannot read that screen, so if it does not speak,
+ * she is looking at six words in six scripts with no idea what is being asked.
+ *
+ *  1. `getVoices()` is EMPTY for the first moments of a page load, and an
+ *     utterance queued before the list arrives is silently dropped. It fills
+ *     in asynchronously and announces itself with `voiceschanged`.
+ *
+ *  2. Chrome on Android will not speak at all until the page has had a real
+ *     user gesture. Nothing we can do about that from script — an autoplaying
+ *     voice is exactly what the rule exists to stop.
+ *
+ * So: wait for the voices, and if the very first line still never made a
+ * sound, say it the instant she touches the screen — whatever she touches.
+ * Tapping a language already speaks that language's sample, so the replay
+ * stands down if anything else starts talking first.
+ */
+let unlocked = false
+let everSpoke = false
+let pendingFirst: { text: string; lang: string } | null = null
+let replay: ReturnType<typeof setTimeout> | undefined
+
+function whenVoicesReady(run: () => void) {
+  if (window.speechSynthesis.getVoices().length) { run(); return }
+  let fired = false
+  const go = () => { if (!fired) { fired = true; run() } }
+  window.speechSynthesis.addEventListener('voiceschanged', go, { once: true })
+  setTimeout(go, 1200)      // some engines never fire it; do not wait forever
+}
+
+if (typeof document !== 'undefined' && !NATIVE) {
+  document.addEventListener('pointerdown', () => {
+    unlocked = true
+    const first = pendingFirst
+    pendingFirst = null
+    if (!first || everSpoke) return
+    // Give whatever she actually tapped the right of way.
+    replay = setTimeout(() => { if (!everSpoke) speak(first.text, first.lang) }, 350)
+  }, { once: true, capture: true })
+}
+
 export function speechSupported(): boolean {
   if (NATIVE) return true
   return typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -76,6 +120,7 @@ export function speechSupported(): boolean {
 export function speak(text: string, lang?: string, onDone?: () => void) {
   if (!enabled || !speechSupported() || !text) { onDone?.(); return }
   const voice = lang ?? asrCode(getLang())
+  clearTimeout(replay)          // something real is talking; stand the replay down
   setTalking(true)
 
   if (NATIVE) {
@@ -93,6 +138,7 @@ export function speak(text: string, lang?: string, onDone?: () => void) {
   }
 
   window.speechSynthesis.cancel()
+  if (!unlocked) pendingFirst = { text, lang: voice }
 
   let done = false
   const finish = () => { if (!done) { done = true; setTalking(false); onDone?.() } }
@@ -101,9 +147,10 @@ export function speak(text: string, lang?: string, onDone?: () => void) {
   u.lang = voice
   u.rate = 0.88          // slower than default — clarity beats speed here
   u.pitch = 1
+  u.onstart = () => { everSpoke = true }
   u.onend = finish
   u.onerror = finish
-  window.speechSynthesis.speak(u)
+  whenVoicesReady(() => window.speechSynthesis.speak(u))
 
   /**
    * A phone with no voice installed for the chosen language fires NEITHER
