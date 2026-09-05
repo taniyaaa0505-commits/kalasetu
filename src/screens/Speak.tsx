@@ -7,6 +7,8 @@ import Speakable from '../components/Speakable'
 import MicRing from '../components/MicRing'
 import Coach from '../components/Coach'
 import { useSay } from '../lib/arrival'
+import { useIdle } from '../lib/idle'
+import { getGuideStep } from '../lib/guide'
 import { advanceGuide } from '../lib/guide'
 import { getProduct, patchProduct } from '../services/db'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
@@ -28,6 +30,7 @@ export default function SpeakScreen() {
   const [error, setError] = useState<string>()
   const [typing, setTyping] = useState(false)
   const talking = useSpeaking()
+  const nudge = useIdle() && getGuideStep() === 'done'
 
   const recRef = useRef<Recogniser | null>(null)
 
@@ -79,7 +82,8 @@ export default function SpeakScreen() {
   return (
     <Screen
       title={t('screenSpeak')} step={3} onBack={() => { recRef.current?.stop(); stopSpeaking() }}
-      action={<BigButton icon={<Icon name="next" />} label={t('next')} onClick={next} disabled={!hasText || recording} />}
+      action={<BigButton icon={<Icon name="next" />} label={t('next')} onClick={next}
+        disabled={!hasText || recording} beacon={nudge && hasText && !recording} />}
     >
       {/* Everything on this screen has to be visible at once — the picker, the
           microphone, her words, the two ways to check them and the way out to

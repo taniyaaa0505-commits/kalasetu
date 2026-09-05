@@ -24,7 +24,7 @@ const STYLES: Record<Variant, string> = {
 }
 
 export default function BigButton({
-  icon, label, onClick, variant = 'primary', disabled, lang, speakOnTap = true, size = 'md',
+  icon, label, onClick, variant = 'primary', disabled, lang, speakOnTap = true, size = 'md', beacon,
 }: {
   /** An emoji when the symbol IS the thing (a camera, a bin), an <Icon/> when
    *  it stands for an idea. See components/Icon.tsx. */
@@ -39,6 +39,10 @@ export default function BigButton({
    *  product". Everywhere else the step's own button is the only thing in the
    *  footer anyway, so it does not need the extra weight. */
   size?: 'md' | 'lg'
+  /** Ring it, because this is the one thing to press and she has stopped.
+   *  Callers gate this on useIdle(); see lib/idle.ts for why it is not on
+   *  by default. */
+  beacon?: boolean
 }) {
   const current = useLang()
   return (
@@ -49,6 +53,8 @@ export default function BigButton({
         'press flex w-full items-center justify-center rounded-2xl px-5 font-display font-semibold ' +
         'disabled:opacity-40 disabled:shadow-none ' +
         (size === 'lg' ? 'min-h-[5.375rem] gap-4 text-2xl ' : 'min-h-[4rem] gap-3 text-xl ') +
+        // Never on a button she cannot press.
+        (beacon && !disabled ? 'beacon ' : '') +
         STYLES[variant]
       }
     >

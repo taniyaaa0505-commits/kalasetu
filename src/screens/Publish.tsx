@@ -5,6 +5,8 @@ import Icon from '../components/Icon'
 import { Gota } from '../components/Ornament'
 import Coach from '../components/Coach'
 import { useSay } from '../lib/arrival'
+import { useIdle } from '../lib/idle'
+import { getGuideStep } from '../lib/guide'
 import { advanceGuide, endGuide } from '../lib/guide'
 import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
@@ -37,6 +39,7 @@ export default function Publish() {
   // The last instruction in the flow. `published` is spoken by publish()
   // itself, so this only covers the arrival.
   useSay(t('tourPublishSub'), !done)
+  const nudge = useIdle() && getGuideStep() === 'done'
 
   async function publish() {
     advanceGuide('publishSend')
@@ -72,7 +75,7 @@ export default function Publish() {
   return (
     <Screen
       title={t('screenSend')} step={6} onBack={() => {}}
-      action={<BigButton icon="✅" label={t('publish')} variant="good" onClick={publish} />}
+      action={<BigButton icon="✅" label={t('publish')} variant="good" onClick={publish} beacon={nudge} />}
     >
       <Coach step="publishSend" target="action" mode="tap"
              title={t('tourPublishStep')} body={t('tourPublishSub')} />

@@ -9,6 +9,8 @@ import { listMessages } from '../services/messages'
 import { subscribeOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import Coach from '../components/Coach'
+import { useIdle } from '../lib/idle'
+import { getGuideStep } from '../lib/guide'
 import { advanceGuide, restartGuide, useGuideStep } from '../lib/guide'
 import ConfirmRemove from '../components/ConfirmRemove'
 import Shopfront from '../components/Shopfront'
@@ -62,6 +64,10 @@ export default function Home() {
     nav(`/p/${newId()}/capture`)
   }
 
+  // Ring the one thing to do, but only for someone who has stopped. The guide
+  // has its own ring, so never both.
+  const nudge = useIdle() && guide === 'done'
+
   const empty = products.length === 0
   const waiting = orders.filter(o => o.status === 'placed').length
   const draft = products.find(p => p.status !== 'published')
@@ -69,7 +75,8 @@ export default function Home() {
   return (
     <Screen
       title={t('appName')} brand
-      action={<BigButton icon={<Icon name="camera" />} label={t('addProduct')} onClick={startNew} size="lg" />}
+      action={<BigButton icon={<Icon name="camera" />} label={t('addProduct')}
+        onClick={startNew} size="lg" beacon={nudge} />}
     >
       <div className="flex min-h-full flex-col">
 

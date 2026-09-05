@@ -7,6 +7,8 @@ import Speakable from '../components/Speakable'
 import Working from '../components/Working'
 import Coach from '../components/Coach'
 import { useSay } from '../lib/arrival'
+import { useIdle } from '../lib/idle'
+import { getGuideStep } from '../lib/guide'
 import { advanceGuide } from '../lib/guide'
 import BeforeAfter from '../components/BeforeAfter'
 import { getProduct, saveProduct, patchProduct } from '../services/db'
@@ -78,6 +80,7 @@ export default function Capture() {
   }
 
   const busy = progress !== undefined
+  const nudge = useIdle() && getGuideStep() === 'done'
 
   // Arriving: what this screen is for. Working narrates the wait itself.
   useSay(t('photoPrompt'), !photo)
@@ -91,11 +94,12 @@ export default function Capture() {
       action={
         photo
           ? <div className="flex flex-col gap-2">
-              <BigButton icon={<Icon name="next" />} label={t('next')}
+              <BigButton icon={<Icon name="next" />} label={t('next')} beacon={nudge}
                 onClick={() => nav(`/p/${id}/speak`)} disabled={busy || !saved} />
               <BigButton icon={<Icon name="redo" />} label={t('retakePhoto')} variant="quiet" onClick={() => fileRef.current?.click()} />
             </div>
-          : <BigButton icon={<Icon name="camera" />} label={t('takePhoto')} onClick={() => fileRef.current?.click()} />
+          : <BigButton icon={<Icon name="camera" />} label={t('takePhoto')} beacon={nudge}
+              onClick={() => fileRef.current?.click()} />
       }
     >
       {/* The only ring on this screen. Nothing rings while the cut-out runs —

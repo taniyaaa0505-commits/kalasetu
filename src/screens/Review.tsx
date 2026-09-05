@@ -6,6 +6,8 @@ import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import Working from '../components/Working'
 import Coach from '../components/Coach'
+import { useIdle } from '../lib/idle'
+import { getGuideStep } from '../lib/guide'
 import { advanceGuide } from '../lib/guide'
 import { getProduct, patchProduct } from '../services/db'
 import { generateListing, geminiConfigured, GeminiError } from '../services/gemini'
@@ -238,6 +240,8 @@ export default function Review() {
     </Screen>
   )
 
+  const nudge = useIdle() && getGuideStep() === 'done'
+
   const answerFor = (q: string) => answers.find(a => a.question === q)?.answer
   // Free-form additions, plus answers to questions the model has since stopped
   // asking — she should still be able to hear back everything she added.
@@ -263,7 +267,7 @@ export default function Review() {
               />
             </div>
           : <BigButton
-              icon={<Icon name="next" />} label={t('next')}
+              icon={<Icon name="next" />} label={t('next')} beacon={nudge}
               onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }} disabled={rewriting}
             />
       }

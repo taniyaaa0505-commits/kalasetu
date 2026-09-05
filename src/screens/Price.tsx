@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
 import Coach from '../components/Coach'
 import { useSay } from '../lib/arrival'
+import { useIdle } from '../lib/idle'
+import { getGuideStep } from '../lib/guide'
 import { advanceGuide } from '../lib/guide'
 import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
@@ -55,6 +57,9 @@ export default function Price() {
   // its own speaker for when she wants to hear it.
   useSay(t('tellUsCost'))
 
+  // The guide has its own ring; two at once is noise.
+  const nudge = useIdle() && getGuideStep() === 'done'
+
   async function next() {
     await patchProduct(id, { cost, price, usualPrice: usual || undefined })
     nav(`/p/${id}/publish`)
@@ -63,7 +68,7 @@ export default function Price() {
   return (
     <Screen
       title={t('price')} step={5} onBack={() => {}}
-      action={<BigButton icon={<Icon name="next" />} label={t('next')}
+      action={<BigButton icon={<Icon name="next" />} label={t('next')} beacon={nudge && usual > 0}
         onClick={() => { advanceGuide('priceNext'); next() }} />}
     >
       <Coach step="priceNext" target="action" mode="tap"
@@ -81,6 +86,7 @@ export default function Price() {
           would be us inventing the income change we then take credit for. */}
       <Stepper label={t('usualPrice')} unit="₹" value={usual} step={50}
         hint={usual ? undefined : t('usualHint')}
+        beacon={nudge && usual === 0}
         onChange={setUsual} />
 
       {price && (
@@ -150,12 +156,13 @@ export default function Price() {
   )
 }
 
-function Stepper({ label, unit, value, step, hint, onChange }: {
+function Stepper({ label, unit, value, step, hint, onChange, beacon }: {
   label: string; unit: string; value: number; step: number; hint?: string
   onChange: (v: number) => void
+  beacon?: boolean
 }) {
   return (
-    <div className="mb-4">
+    <div className={'mb-4 rounded-panel ' + (beacon ? 'beacon' : '')}>
       <p className="mb-2 text-[0.9375rem] font-medium">{label}</p>
       <div className="flex items-center gap-3">
         <button onClick={() => onChange(Math.max(0, value - step))}

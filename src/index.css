@@ -240,8 +240,34 @@ html[lang^="en"] .label { letter-spacing: .14em }
 .flame { animation: flame 2.8s ease-in-out infinite; transform-origin: center bottom }
 @keyframes flame { 0%,100% { transform: scaleY(1) } 50% { transform: scaleY(1.08) scaleX(.97) } }
 
+/* ---------------------------------------------------------------
+   BEACON — "this is the one to press".
+
+   A ring that pulses OUTSIDE the control, never a shine across it.
+   The obvious version is a highlight sweeping over the button, and
+   it is the wrong one here: that is a gradient on a button, and the
+   rule in SPEC.md exists because gradients lose their contrast in
+   direct sunlight — which is where a woman photographing her work
+   in a courtyard is standing. This leaves the button's own colour
+   untouched and puts the movement in the space around it.
+
+   Never on by default. See lib/idle.ts for when it is allowed to
+   run at all.
+---------------------------------------------------------------- */
+.beacon { position: relative }
+.beacon::after {
+  content: ""; position: absolute; inset: -3px; border-radius: inherit;
+  border: 2.5px solid var(--color-gold-leaf);
+  animation: beacon 1.9s cubic-bezier(.2,.7,.3,1) infinite;
+  pointer-events: none;
+}
+@keyframes beacon {
+  0%        { transform: scale(1);     opacity: .95 }
+  70%, 100% { transform: scale(1.055); opacity: 0 }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .rise, .fade, .sheen, .breathe, .press, .pull, .flame, .dye span {
+  .rise, .fade, .sheen, .breathe, .press, .pull, .flame, .beacon::after, .dye span {
     animation: none !important; transition: none !important;
   }
   .rise, .fade { opacity: 1 !important; transform: none !important }
