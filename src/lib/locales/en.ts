@@ -163,4 +163,5 @@ export const en: Strings = {
   cannotRemove: 'This cannot be removed',
   cannotRemoveOrders: 'It has an order. Finish the order first.',
   understood: 'All right',
+  tapHere: 'Tap this',
 }

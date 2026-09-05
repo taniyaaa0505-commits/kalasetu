@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
+import Coach from '../components/Coach'
+import { advanceGuide } from '../lib/guide'
 import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
@@ -42,8 +44,12 @@ export default function Price() {
   return (
     <Screen
       title={t('price')} step={5} onBack={() => {}}
-      action={<BigButton icon={<Icon name="next" />} label={t('next')} onClick={next} />}
+      action={<BigButton icon={<Icon name="next" />} label={t('next')}
+        onClick={() => { advanceGuide('priceNext'); next() }} />}
     >
+      <Coach step="priceNext" target="action" mode="tap"
+             title={t('tourPublishStep')} body={t('tourPublishSub')} />
+
       {/* No typing. She taps + and - . */}
       <p className="mb-4 text-[0.9375rem] leading-snug text-ink-2">{t('tellUsCost')}</p>
       <Stepper label={t('materialCost')} unit="₹" value={cost.materialCost} step={50}
@@ -73,8 +79,8 @@ export default function Price() {
               onClick={() => speak(`${t('weSuggest')} ${price.suggested} ${t('rupees')}. ${price.reason}`)}
               className="press block w-full min-h-0 text-left active:opacity-70"
             >
-              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-indigo">
-                <span aria-hidden>🔊</span>{t('weSuggest')}
+              <p className="flex items-center gap-2 text-xs font-semibold label uppercase text-indigo">
+                <Icon name="speak" />{t('weSuggest')}
                 <Icon name="ai" className="ml-auto text-base opacity-50" />
               </p>
               <p className="my-1 text-[3.25rem] font-bold leading-none tracking-tight text-indigo tabular-nums">
@@ -95,7 +101,7 @@ export default function Price() {
               onClick={() => speak(tf('moreThisTime', { n: price.suggested - usual }), asrCode(lang))}
               className="press flex w-full items-center gap-3 rounded-card border-2 border-good bg-sage-wash px-4 py-3 text-left"
             >
-              <span aria-hidden className="text-2xl">📈</span>
+              <Icon name="rising" className="text-2xl" />
               <span className="flex-1">
                 <span className="block text-lg font-bold leading-tight text-good">
                   {tf('moreThisTime', { n: price.suggested - usual })}
@@ -104,7 +110,7 @@ export default function Price() {
                   ₹{usual} → ₹{price.suggested}
                 </span>
               </span>
-              <span aria-hidden className="text-good">🔊</span>
+              <Icon name="speak" className="text-good" />
             </button>
           )}
 
@@ -136,7 +142,7 @@ function Stepper({ label, unit, value, step, hint, onChange }: {
         <button onClick={() => onChange(Math.max(0, value - step))}
           aria-label="−"
           className="press h-14 w-14 min-h-0 rounded-card border-2 border-line bg-surface text-2xl shadow-rest active:bg-surface-2">−</button>
-        <div className="flex-1 rounded-card border border-line-2/70 bg-surface py-3 text-center text-2xl font-semibold tabular-nums shadow-rest">
+        <div className="flex-1 rounded-card border border-line-2/70 bg-surface py-3 text-center font-display text-2xl font-semibold tabular-nums shadow-rest">
           {unit === '₹' ? `₹${value}` : `${value} ${unit}`}
         </div>
         <button onClick={() => onChange(value + step)}
@@ -154,7 +160,7 @@ function Row({ label, value, hint }: { label: string; value: string; hint?: stri
         <p className="text-sm text-ink-2">{label}</p>
         {hint && <p className="text-xs text-gold">{hint}</p>}
       </div>
-      <p className="text-xl font-semibold tabular-nums">{value}</p>
+      <p className="font-display text-xl font-semibold tabular-nums">{value}</p>
     </div>
   )
 }

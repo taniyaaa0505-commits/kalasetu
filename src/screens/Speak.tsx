@@ -5,12 +5,15 @@ import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import MicRing from '../components/MicRing'
+import Coach from '../components/Coach'
+import { advanceGuide } from '../lib/guide'
 import { getProduct, patchProduct } from '../services/db'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
 import LanguagePicker from '../components/LanguagePicker'
 import { asrCode } from '../types'
+import type { ReactNode } from 'react'
 
 export default function SpeakScreen() {
   const { id = '' } = useParams()
@@ -31,6 +34,7 @@ export default function SpeakScreen() {
   }, [id])
 
   function start() {
+    advanceGuide('speakMic')
     // Never let the phone's own voice bleed into the microphone.
     stopSpeaking()
     // Clear first. Without this, a failed attempt leaves the old words on
@@ -74,7 +78,7 @@ export default function SpeakScreen() {
           microphone, her words, the two ways to check them and the way out to
           typing. She should never have to scroll to find out whether the phone
           heard her. Sizes here are chosen against that, not by taste. */}
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">
+      <p className="mb-1.5 text-xs font-semibold label uppercase text-ink-3">
         {t('chooseLanguage')}
       </p>
       <div className="mb-3"><LanguagePicker compact /></div>
@@ -89,12 +93,23 @@ export default function SpeakScreen() {
 
       {/* The ring moves with her actual voice. She cannot read the
           transcript, so this is her only proof the phone is hearing her. */}
+      {/* Ring the microphone — unless this browser has no recogniser, in which
+          case ring the typing fallback instead. Pointing an artisan at a
+          microphone that cannot work, with the caption card sitting over the
+          one control that would have got her out of it, is the worst thing
+          this guide could do. Android's WebView is exactly that browser, so
+          this is the APK, not a hypothetical. */}
+      <Coach step="speakMic"
+             target={listenSupported() ? 'mic' : 'type'}
+             title={listenSupported() ? t('tourSpeakStep') : t('typeInstead')}
+             body={listenSupported() ? t('tourSpeakSub') : t('cannotHear')} mode="tap" />
+
       {!typing && <MicRing
         size="sm"
         recording={recording}
         speaking={speaking}
         pulse={pulse}
-        icon={recording ? '⏹' : hasText ? '🔄' : '🎤'}
+        icon={<Icon name={recording ? 'stop' : hasText ? 'redo' : 'mic'} />}
         label={recording ? t('stopSpeaking') : hasText ? t('sayAgain') : t('speakNow')}
         onClick={() => (recording ? stop() : start())}
       />}
@@ -122,11 +137,12 @@ export default function SpeakScreen() {
           cannot hear, a noisy hall, or a helper doing it for her. Secondary on
           purpose: speaking is the point of this app, typing is the escape. */}
       <button
-        onClick={() => { stop(); setTyping(v => !v) }}
+        data-guide="type" data-guide-keep
+        onClick={() => { stop(); advanceGuide('speakMic'); setTyping(v => !v) }}
         className="press mx-auto mt-2.5 flex h-11 min-h-0 items-center gap-2 rounded-full border border-line
                    bg-surface px-4 text-sm font-medium text-ink-2 shadow-rest active:bg-surface-2"
       >
-        <span aria-hidden>{typing ? '🎤' : '⌨️'}</span>
+        <Icon name={typing ? 'mic' : 'keyboard'} />
         <span>{typing ? t('speakNow') : t('typeInstead')}</span>
       </button>
 
@@ -134,15 +150,15 @@ export default function SpeakScreen() {
           useful — otherwise she has no way to know it came out wrong. */}
       {hasText && !recording && !typing && (
         <div className="mt-2.5 grid grid-cols-2 gap-3">
-          <SmallButton icon="🔊" label={t('hearItBack')} onClick={playBack} />
-          <SmallButton icon="🔄" label={t('sayAgain')} onClick={start} />
+          <SmallButton icon={<Icon name="speak" />} label={t('hearItBack')} onClick={playBack} />
+          <SmallButton icon={<Icon name="redo" />} label={t('sayAgain')} onClick={start} />
         </div>
       )}
     </Screen>
   )
 }
 
-function SmallButton({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+function SmallButton({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}

@@ -8,9 +8,10 @@ import { listProducts, newId, subscribeProducts } from '../services/db'
 import { listMessages } from '../services/messages'
 import { subscribeOrders } from '../services/orders'
 import { speak } from '../lib/speak'
-import { tourSeen } from '../lib/tour'
+import Coach from '../components/Coach'
+import { advanceGuide, restartGuide, useGuideStep } from '../lib/guide'
 import ConfirmRemove from '../components/ConfirmRemove'
-import Artisan from '../components/Artisan'
+import Shopfront from '../components/Shopfront'
 import Speakable from '../components/Speakable'
 import { asrCode } from '../types'
 import { t, tf, getLang, useLang, prefersEnglish } from '../lib/i18n'
@@ -26,10 +27,12 @@ export default function Home() {
   const announced = useRef(false)
   const [removing, setRemoving] = useState<Product | null>(null)
 
-  // First time she opens the app, show her how it works before anything else.
+  // Nothing at all until she has a language. Everything below this line is
+  // words, and none of them are legible to her until she has answered that.
+  const guide = useGuideStep()
   useEffect(() => {
-    if (!tourSeen()) nav('/tour', { replace: true })
-  }, [nav])
+    if (guide === 'language') nav('/start', { replace: true })
+  }, [guide, nav])
 
   useEffect(() => subscribeProducts(async list => {
     setProducts(list)
@@ -51,6 +54,7 @@ export default function Home() {
   }), [])
 
   function startNew() {
+    advanceGuide('homeAdd')     // she pressed the real button, not a picture of it
     // Navigate FIRST, and let the camera screen create it. Saving here woke the
     // subscription above, so the list redrew with an empty stub in it — visible
     // for a frame — before the router moved, and left a nameless product behind
@@ -65,7 +69,7 @@ export default function Home() {
   return (
     <Screen
       title={t('appName')} brand
-      action={<BigButton icon="📷" label={t('addProduct')} onClick={startNew} size="lg" />}
+      action={<BigButton icon={<Icon name="camera" />} label={t('addProduct')} onClick={startNew} size="lg" />}
     >
       <div className="flex min-h-full flex-col">
 
@@ -85,11 +89,18 @@ export default function Home() {
 
         {/* What this app is FOR, in one line, before anything else on the
             screen. She may have been handed the phone by someone else and have
-            no idea what she is looking at. */}
-        <Speakable
-          text={empty ? t('tagline') : t('whatToday')}
-          className="text-[1.375rem] font-bold leading-tight tracking-tight"
-        />
+            no idea what she is looking at.
+
+            Only while the shop is empty. Once there is work in it the line
+            became "what shall we do today?" — a question the screen below it
+            already answers, taking a whole heading's worth of the one part of
+            the page she sees without scrolling. Her earnings go there now. */}
+        {empty && (
+          <Speakable
+            text={t('tagline')}
+            className="font-display text-[1.375rem] font-bold leading-tight tracking-tight"
+          />
+        )}
 
         {/* An empty shop is the first thing she ever sees. A woman at her work
             reads as an invitation; a dashed box saying "nothing here" reads as
@@ -101,7 +112,7 @@ export default function Home() {
             <div className="relative w-full max-w-[19rem] p-2">
               <div className="arch overflow-hidden rounded-b-panel bg-surface p-2 shadow-card ring-1 ring-gold-leaf/45">
                 <div className="arch overflow-hidden rounded-b-card">
-                  <Artisan width={288} />
+                  <Shopfront width={288} />
                 </div>
               </div>
               <Corner className="absolute -left-0.5 -top-0.5" />
@@ -120,17 +131,29 @@ export default function Home() {
             Above the two errands, not below them, because on an empty shop
             Orders has nothing in it and the promise is the thing worth the
             first screenful. */}
-        {empty && <WhatWeDo />}
+        {empty && <div data-guide="what"><WhatWeDo /></div>}
+
+        {/* The record her work builds — and it goes FIRST.
+            It used to sit under the product grid, which meant the one number
+            this whole project is judged on ("you got ₹X more than you used
+            to") was three screens down, below however many things she had
+            listed. She would never see it, and neither would anyone she was
+            trying to convince — a loan officer, a buyer, her family. It is the
+            answer to "is this app worth my time", so it is the first thing on
+            the screen after what the app is. */}
+        {!empty && <SoFar products={products} orders={orders} draft={draft} />}
 
         {/* The two side errands. Adding a product is NOT here — it is pinned to
             the bottom of the screen, so it stays under her thumb however long
             the shop below gets. */}
         <div className="rise rise-2 mt-4 grid grid-cols-2 gap-3">
-          <Tile icon={<Icon name="learn" />} label={t('learnHow')} onClick={() => nav('/tour')} />
-          <Tile
-            icon="📦" label={t('orders')} onClick={() => nav('/orders')}
-            badge={waiting > 0 ? waiting : undefined}
-          />
+          <Tile icon={<Icon name="learn" />} label={t('learnHow')} onClick={restartGuide} />
+          <div data-guide="orders" className="contents">
+            <Tile
+              icon={<Icon name="box" />} label={t('orders')} onClick={() => nav('/orders')}
+              badge={waiting > 0 ? waiting : undefined}
+            />
+          </div>
         </div>
 
         {!empty && (
@@ -152,12 +175,15 @@ export default function Home() {
           </section>
         )}
 
-        {/* The record her work builds. It is also the whole loan argument: an
-            artisan applying to NSFDC has no books, and this is the first time
-            her selling has ever been written down anywhere. */}
-        {!empty && <SoFar products={products} orders={orders} draft={draft} />}
+        {/* The empty home, one control at a time. Each one rings the real thing
+          and says out loud what it is for. */}
+      <Coach step="homeWhat"   target="what"   title={t('weWillDo')}
+             body={[t('capPhoto'), t('capWords'), t('capPrice')].join('. ')} />
+      <Coach step="homeOrders" target="orders" title={t('tourOrders')} body={t('tourOrdersSub')} />
+      <Coach step="homeLang"   target="lang"   title={t('language')}  body={t('tourSpeaksSub')} />
+      <Coach step="homeAdd"    target="action" title={t('tourStart')} body={t('tourPhotoSub')} mode="tap" />
 
-        {removing && (
+      {removing && (
           <ConfirmRemove
             product={removing}
             onClose={() => setRemoving(null)}
@@ -184,7 +210,7 @@ function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <div className="mb-3">
       <Gota className="mb-2" />
-      <h2 className="text-center text-xs font-semibold uppercase tracking-[0.16em] text-gold">{children}</h2>
+      <h2 className="text-center font-body text-xs font-semibold label uppercase text-gold">{children}</h2>
     </div>
   )
 }
@@ -201,8 +227,8 @@ function SectionTitle({ children }: { children: ReactNode }) {
 function WhatWeDo() {
   const lang = useLang()
   const caps = [
-    { icon: '📷', text: t('capPhoto') },
-    { icon: '🎤', text: t('capWords') },
+    { icon: <Icon name="camera" />, text: t('capPhoto') },
+    { icon: <Icon name="mic" />, text: t('capWords') },
     { icon: '₹',  text: t('capPrice') },
   ]
   return (
@@ -211,8 +237,8 @@ function WhatWeDo() {
         onClick={() => speak([t('weWillDo'), ...caps.map(c => c.text)].join('. '), asrCode(lang))}
         className="press mb-3 flex min-h-0 items-center gap-2 py-1 active:opacity-60"
       >
-        <span aria-hidden className="text-indigo">🔊</span>
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">{t('weWillDo')}</span>
+        <Icon name="speak" className="text-indigo" />
+        <span className="text-xs font-semibold label uppercase text-ink-3">{t('weWillDo')}</span>
       </button>
 
       <ul className="flex flex-col gap-2">
@@ -259,13 +285,21 @@ function ProductCard({
         onClick={onOpen}
         className="press block w-full min-h-0 overflow-hidden rounded-card border border-line-2/70 bg-surface text-left shadow-card"
       >
-        <div className="relative aspect-square w-full bg-surface-2">
-          {photo
-            ? <img src={photo} alt="" className="h-full w-full object-cover" />
-            : <span className="flex h-full w-full items-center justify-center text-4xl opacity-40" aria-hidden>📦</span>}
+        <div className="relative aspect-square w-full">
+          {/* Her work seen through the same carved window as everywhere else.
+              The badge is a sibling, not a child: inside the clip it loses its
+              corner to the curve of the arch. */}
+          <div className="arch-deep h-full w-full overflow-hidden bg-surface-2">
+            {photo
+              ? <img src={photo} alt="" className="h-full w-full object-cover" />
+              : <span className="flex h-full w-full items-center justify-center text-4xl opacity-40"><Icon name="box" /></span>}
+          </div>
 
+          {/* At the TOP of the card it sat in the arch's shoulder, half on the
+              dome and half off it, and read as a mistake. The bottom edge of
+              the window is straight. */}
           <span className={
-            'absolute left-2 top-2 rounded-full px-2 py-1 text-[11px] font-bold shadow-rest ' +
+            'absolute bottom-2 left-2 rounded-full px-2 py-1 text-[11px] font-bold shadow-rest ' +
             (live ? 'bg-good text-white' : 'bg-gold-wash text-gold')
           }>
             {live ? t('onSale') : t('incomplete')}
@@ -275,7 +309,7 @@ function ProductCard({
         {/* Right padding keeps the price clear of the bin sitting over it. */}
         <div className="px-3 pt-2 pb-3 pr-14">
           <p className="line-clamp-2 min-h-[2.6em] text-sm font-semibold leading-snug">{title}</p>
-          <p className="mt-1 text-lg font-bold tabular-nums text-indigo">
+          <p className="mt-1 font-display text-lg font-bold tabular-nums text-indigo">
             {product.price ? `₹${product.price.suggested}` : '—'}
           </p>
         </div>
@@ -288,7 +322,7 @@ function ProductCard({
           aria-label={t('messages')}
           className="press absolute right-2 top-2 flex h-9 min-h-0 items-center gap-1 rounded-full bg-indigo px-2.5 text-white shadow-card"
         >
-          <span aria-hidden className="text-sm">💬</span>
+          <Icon name="chat" className="text-sm" />
           <span className="text-xs font-bold tabular-nums">{messages}</span>
         </button>
       )}
@@ -297,7 +331,7 @@ function ProductCard({
         onClick={onRemove}
         aria-label={`${t('remove')} — ${title}`}
         className="press absolute bottom-2 right-2 flex h-11 w-11 min-h-0 items-center justify-center rounded-full border border-line bg-surface/90 text-base backdrop-blur active:bg-surface-2"
-      >🗑</button>
+      ><Icon name="trash" /></button>
     </li>
   )
 }
@@ -346,22 +380,22 @@ function SoFar({ products, orders, draft }: {
   ]
 
   return (
-    <section className="rise rise-4 mt-8">
+    <section className="rise rise-2 mt-5">
       <button
         onClick={() => speak(
           `${t('soFar')}. ${t('earnedLabel')} ${earned} ${t('rupees')}. ` +
           `${live} ${t('orders')}. ${onSale} ${t('onSale')}.`, asrCode(lang))}
         className="press mb-3 flex min-h-0 items-center gap-2 py-1 active:opacity-60"
       >
-        <span aria-hidden className="text-indigo">🔊</span>
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">{t('soFar')}</span>
+        <Icon name="speak" className="text-indigo" />
+        <span className="text-xs font-semibold label uppercase text-ink-3">{t('soFar')}</span>
       </button>
 
       <div className="grid grid-cols-3 gap-2">
         {stats.map(([value, label]) => (
           <div key={label}
             className="rounded-card border border-line-2/70 bg-surface px-2 py-3 text-center shadow-rest">
-            <p className="text-2xl font-bold tabular-nums leading-tight text-indigo">{value}</p>
+            <p className="font-display text-2xl font-bold tabular-nums leading-tight text-indigo">{value}</p>
             <p className="mt-0.5 text-xs text-ink-3">{label}</p>
           </div>
         ))}
@@ -375,12 +409,12 @@ function SoFar({ products, orders, draft }: {
           onClick={() => speak(`${t('extraEarned')}. ${tf('moreThisTime', { n: extra })}`, asrCode(lang))}
           className="press mt-2 flex w-full items-center gap-3 rounded-card border-2 border-good bg-sage-wash px-4 py-3 text-left"
         >
-          <span aria-hidden className="text-2xl">📈</span>
+          <Icon name="rising" className="text-2xl" />
           <span className="flex-1">
-            <span className="block text-xl font-bold leading-tight tabular-nums text-good">₹{extra}</span>
+            <span className="block font-display text-xl font-bold leading-tight tabular-nums text-good">₹{extra}</span>
             <span className="block text-sm text-ink-2">{t('extraEarned')}</span>
           </span>
-          <span aria-hidden className="text-good">🔊</span>
+          <Icon name="speak" className="text-good" />
         </button>
       )}
 
@@ -388,7 +422,7 @@ function SoFar({ products, orders, draft }: {
           Say what is missing rather than showing a silent zero. */}
       {extra === 0 && !askedAnyUsual && onSale > 0 && (
         <p className="mt-2 rounded-card border border-line bg-surface px-4 py-3 text-[15px] leading-snug text-ink-3">
-          📈 {t('tellUsUsual')}
+          <Icon name="rising" /> {t('tellUsUsual')}
         </p>
       )}
 
@@ -398,7 +432,7 @@ function SoFar({ products, orders, draft }: {
           onClick={() => nav(`/p/${draft.id}/capture`)}
           className="press mt-2 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left"
         >
-          <span aria-hidden className="text-xl">✏️</span>
+          <Icon name="rewrite" className="text-xl" />
           <span className="flex-1 text-[0.9375rem] font-medium leading-snug text-gold">{t('finishDraft')}</span>
           <span aria-hidden className="text-lg text-gold">›</span>
         </button>

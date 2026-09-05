@@ -167,4 +167,5 @@ export const bn: Strings = {
   cannotRemove: 'এটি সরানো যাবে না',
   cannotRemoveOrders: 'এর অর্ডার এসেছে। আগে অর্ডার শেষ করুন।',
   understood: 'ঠিক আছে',
+  tapHere: 'এটি চাপুন',
 }

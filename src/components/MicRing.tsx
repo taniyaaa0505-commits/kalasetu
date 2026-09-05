@@ -11,6 +11,7 @@
  * had understood her.
  */
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 
 export default function MicRing({
   recording, speaking, pulse, icon, label, onClick, size = 'md',
@@ -20,7 +21,7 @@ export default function MicRing({
   speaking: boolean
   /** Increments each time new words arrive — each bump is a visible ripple. */
   pulse: number
-  icon: string
+  icon: ReactNode
   label: string
   onClick: () => void
   /** 'sm' on the Speak screen, which has to fit the picker, the transcript,
@@ -75,6 +76,7 @@ export default function MicRing({
       })}
 
       <button
+        data-guide="mic"
         onClick={onClick}
         className={
           'press relative flex min-h-0 flex-col items-center justify-center gap-1 ' +
@@ -84,7 +86,7 @@ export default function MicRing({
         }
       >
         <span aria-hidden className={small ? 'text-4xl' : 'text-5xl'}>{icon}</span>
-        <span className={small ? 'text-sm font-semibold' : 'text-base font-semibold'}>{label}</span>
+        <span className={'font-display ' + (small ? 'text-sm font-semibold' : 'text-base font-semibold')}>{label}</span>
       </button>
     </div>
   )

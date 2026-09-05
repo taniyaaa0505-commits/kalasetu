@@ -58,8 +58,16 @@ export default function Screen({
 
       <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5">{children}</main>
 
+      {/* data-guide: every screen's primary action lives in this one footer,
+          so the guide can ring "the button you press next" without knowing
+          which screen it is on. See lib/guide.ts. */}
       {action && (
-        <footer className="border-t border-line bg-surface/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+        <footer data-guide="action"
+          className="relative bg-surface/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+          {/* The header's canopy, upside down. The action bar is the other
+              fixed edge of every screen, and a plain grey rule between the two
+              was the one place the room stopped being a room. */}
+          <Scallop className="absolute inset-x-0 -top-2 -scale-y-100 text-surface" />
           {action}
         </footer>
       )}

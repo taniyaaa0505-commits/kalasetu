@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
+import Icon from '../components/Icon'
+import { Gota } from '../components/Ornament'
+import Coach from '../components/Coach'
+import { advanceGuide, endGuide } from '../lib/guide'
 import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
 import { speak } from '../lib/speak'
 import PriceInNotes from '../components/PriceInNotes'
-import Bloom from '../components/Bloom'
 import { t, useLang, prefersEnglish } from '../lib/i18n'
+import { asrCode } from '../types'
 import type { Product } from '../types'
 
 /**
@@ -30,24 +34,30 @@ export default function Publish() {
   useEffect(() => { getProduct(id).then(setP) }, [id])
 
   async function publish() {
+    advanceGuide('publishSend')
     await patchProduct(id, { status: 'published' })
     setDone(true)
-    speak(t('published'))
+    // The guide ends HERE, on a real published listing of her own.
+    endGuide()
+    speak(t('published'), asrCode(lang))
   }
 
   if (done) return (
-    <Screen action={<BigButton icon="🏠" label={t('goHome')} variant="quiet" onClick={() => nav('/')} />}>
-      <div className="flex flex-col items-center gap-4 py-14 text-center">
-        {/* A kolam is drawn at a threshold on a good morning. Her work is
-            now out in the world — that is the right gesture, not confetti. */}
-        <Bloom />
-        <p className="text-2xl font-semibold">{t('published')}</p>
-        <button onClick={() => nav('/buyer')} className="text-indigo underline">
-          {t('buyerViewLink')} →
-        </button>
-        <button onClick={() => nav(`/p/${id}/chat`)} className="text-indigo underline">
-          💬 {t('messages')} →
-        </button>
+    <Screen action={
+      <BigButton icon={<Icon name="back" />} label={t('goHome')} variant="good"
+        onClick={() => nav('/')} />
+    }>
+      {/* One thing to look at and one thing to press.
+          This screen had four choices on it — marketplace, messages, orders,
+          home — and every one of them was a place she had never been, offered
+          at the exact moment she had just finished her first listing and had
+          no idea what any of them meant. The listing is already sent; there is
+          nothing left here that has to happen now. */}
+      <div className="flex min-h-full flex-col items-center justify-center gap-5 text-center">
+        <img src="./icons/icon-192.png" alt="" aria-hidden width={128} height={128}
+          className="rise block rounded-3xl shadow-card ring-1 ring-gold-leaf/40" />
+        <Gota className="w-40" />
+        <p className="font-display text-2xl font-semibold leading-snug">{t('published')}</p>
       </div>
     </Screen>
   )
@@ -57,16 +67,19 @@ export default function Publish() {
       title={t('screenSend')} step={6} onBack={() => {}}
       action={<BigButton icon="✅" label={t('publish')} variant="good" onClick={publish} />}
     >
+      <Coach step="publishSend" target="action" mode="tap"
+             title={t('tourPublishStep')} body={t('tourPublishSub')} />
+
       {p?.cleanPhoto && (
         <img src={p.cleanPhoto} alt=""
           className="arch mb-4 w-full rounded-b-panel border border-line-2/70 bg-surface shadow-card ring-1 ring-gold-leaf/30" />
       )}
       <p className="text-lg font-semibold">{mine ? p?.listing?.titleEn : p?.listing?.titleHi}</p>
-      <p className="mt-1 text-3xl font-bold tabular-nums text-indigo">₹{p?.price?.suggested}</p>
+      <p className="mt-1 font-display text-3xl font-bold tabular-nums text-indigo">₹{p?.price?.suggested}</p>
       {p?.price && <div className="mt-3"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
 
       {/* What actually happens: it appears on our buyer marketplace. */}
-      <p className="mt-6 mb-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
+      <p className="mt-6 mb-2 text-xs font-semibold label uppercase text-ink-3">
         {t('sentTo')}
       </p>
       <ul className="flex flex-wrap gap-2">
@@ -76,7 +89,7 @@ export default function Publish() {
       </ul>
 
       {/* What does not happen yet, said plainly. */}
-      <p className="mt-5 mb-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
+      <p className="mt-5 mb-2 text-xs font-semibold label uppercase text-ink-3">
         {t('plannedChannels')} · <span className="text-gold">{t('notConnectedYet')}</span>
       </p>
       <ul className="flex flex-wrap gap-2">

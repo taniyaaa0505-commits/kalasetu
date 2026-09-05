@@ -5,6 +5,8 @@ import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import Working from '../components/Working'
+import Coach from '../components/Coach'
+import { advanceGuide } from '../lib/guide'
 import { getProduct, patchProduct } from '../services/db'
 import { generateListing, geminiConfigured, GeminiError } from '../services/gemini'
 import { enqueue, isOnline, onConnectivityChange } from '../services/queue'
@@ -180,7 +182,11 @@ export default function Review() {
   }
 
   /** Ask the model to write it again, this time knowing what she told us. */
+  // She answered something. That, not the scroll, is the end of the step.
+  useEffect(() => { if (dirty) advanceGuide('reviewQuestions') }, [dirty])
+
   async function rewrite() {
+    advanceGuide('reviewRewrite')
     const p = await getProduct(id)
     if (!p) return
 
@@ -224,21 +230,32 @@ export default function Review() {
       action={
         dirty
           ? <div className="flex flex-col gap-2">
-              <BigButton
-                icon={<Icon name="rewrite" />} label={rewriting ? t('rewriting') : t('writeAgain')}
-                onClick={rewrite} disabled={rewriting || asking !== null}
-              />
+              <div data-guide="rewrite">
+                <BigButton
+                  icon={<Icon name="rewrite" />} label={rewriting ? t('rewriting') : t('writeAgain')}
+                  onClick={rewrite} disabled={rewriting || asking !== null}
+                />
+              </div>
               <BigButton
                 icon={<Icon name="next" />} label={t('next')} variant="quiet"
-                onClick={() => nav(`/p/${id}/price`)} disabled={!listing || rewriting}
+                onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }} disabled={!listing || rewriting}
               />
             </div>
           : <BigButton
               icon={<Icon name="next" />} label={t('next')}
-              onClick={() => nav(`/p/${id}/price`)} disabled={rewriting}
+              onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }} disabled={rewriting}
             />
       }
     >
+      <Coach step="reviewQuestions" target="questions" mode="tap"
+             title={tf('askedMore', { n: openQuestions })} body={t('tellUsMore')} />
+      <Coach step="reviewRewrite"   target="rewrite"   mode="tap"
+             title={t('writeAgain')} body={t('youAlsoSaid')} />
+      <Coach step="reviewListen"    target="listen"    mode="tap"
+             title={t('hearItBack')} body={t('forTheBuyer')} />
+      <Coach step="reviewNext"      target="action"    mode="tap"
+             title={t('tourPriceStep')} body={t('tourPriceSub')} />
+
       {!geminiConfigured() && (
         <p className="mb-4 rounded-lg bg-gold-wash p-3 text-sm text-gold">
           Demo text — add <code>VITE_GEMINI_API_KEY</code> to <code>.env</code> for the real thing.
@@ -274,10 +291,11 @@ export default function Review() {
 
       {listing && openQuestions > 0 && (
         <button
+          data-guide="questions"
           onClick={() => questionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
           className="press mb-4 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left"
         >
-          <span aria-hidden className="text-xl">🔊</span>
+          <Icon name="speak" className="text-xl" />
           <span className="flex-1 text-[15px] font-semibold leading-snug text-gold">
             {tf('askedMore', { n: openQuestions })}
           </span>
@@ -293,11 +311,13 @@ export default function Review() {
           <article className="arch overflow-hidden rounded-b-panel border border-line-2/70 bg-surface shadow-card ring-1 ring-gold-leaf/30">
             {photo && <img src={photo} alt="" className="arch block aspect-square w-full object-cover" />}
             <div className="flex flex-col gap-3 p-4">
-              <span className="flex w-fit items-center gap-1.5 rounded-full bg-wash px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo">
+              <span className="flex w-fit items-center gap-1.5 rounded-full bg-wash px-2.5 py-1 text-[11px] font-semibold label uppercase text-indigo">
                 <Icon name="ai" className="text-xs" />{t('screenListing')}
               </span>
-              <Speakable text={mine ? listing.titleEn : listing.titleHi}
-                className="text-xl font-bold leading-tight tracking-tight" />
+              <div data-guide="listen" onClickCapture={() => advanceGuide('reviewListen')}>
+                <Speakable text={mine ? listing.titleEn : listing.titleHi}
+                  className="font-display text-xl font-bold leading-tight tracking-tight" />
+              </div>
               <Speakable text={mine ? listing.descriptionEn : listing.descriptionHi}
                 className="leading-relaxed text-ink-2" />
             </div>
@@ -316,7 +336,7 @@ export default function Review() {
               it out loud, which is the only half of this she can actually do. */}
           {listing.questions.length > 0 && (
             <div ref={questionsRef} className="rounded-panel border-2 border-gold bg-gold-wash p-4 shadow-rest">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gold">
+              <p className="mb-3 text-xs font-semibold label uppercase text-gold">
                 {t('tellUsMore')}
               </p>
               <div className="flex flex-col gap-4">
@@ -338,7 +358,7 @@ export default function Review() {
 
           {/* Anything the model never thought to ask about. */}
           <section>
-            <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-3">
+            <h2 className="mb-1 text-xs font-semibold label uppercase text-ink-3">
               {t('tellMore')}
             </h2>
             <div className="rounded-xl border border-line-2/70 bg-surface p-4">
@@ -429,7 +449,7 @@ function MicButton({
         (recording ? 'bg-danger text-white shadow-card' : 'border-2 border-indigo bg-surface text-indigo shadow-rest active:bg-wash')
       }
     >
-      <span aria-hidden className="text-xl">{recording ? '⏹' : '🎤'}</span>
+      <Icon name={recording ? 'stop' : 'mic'} className="text-xl" />
       <span>{label}</span>
     </button>
   )
@@ -438,7 +458,7 @@ function MicButton({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-3">{label}</h2>
+      <h2 className="mb-1 text-xs font-semibold label uppercase text-ink-3">{label}</h2>
       <div className="rounded-card border border-line-2/70 bg-surface p-4 shadow-rest">{children}</div>
     </section>
   )

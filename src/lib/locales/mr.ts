@@ -169,4 +169,5 @@ export const mr: Strings = {
   cannotRemove: 'हे काढता येणार नाही',
   cannotRemoveOrders: 'याची ऑर्डर आली आहे. आधी ऑर्डर पूर्ण करा.',
   understood: 'ठीक आहे',
+  tapHere: 'हे दाबा',
 }

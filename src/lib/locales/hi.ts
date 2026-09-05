@@ -167,6 +167,7 @@ export const hi = {
   cannotRemove: 'यह नहीं हट सकता',
   cannotRemoveOrders: 'इसका ऑर्डर आया हुआ है। पहले ऑर्डर पूरा कीजिए।',
   understood: 'ठीक है',
+  tapHere: 'यह दबाइए',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

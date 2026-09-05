@@ -5,6 +5,8 @@ import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import Working from '../components/Working'
+import Coach from '../components/Coach'
+import { advanceGuide } from '../lib/guide'
 import BeforeAfter from '../components/BeforeAfter'
 import { getProduct, saveProduct, patchProduct } from '../services/db'
 import { removeBackground, preloadModel, shrink, type Progress } from '../services/bgRemove'
@@ -42,6 +44,9 @@ export default function Capture() {
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    // She has taken a real photograph. That, not a "next" button, is what
+    // finishes this step of the guide.
+    advanceGuide('capturePhoto')
 
     // Home only picked an id; this is where the product starts existing. Done
     // before the long wait below so the patch at the end has something to
@@ -79,12 +84,19 @@ export default function Capture() {
       action={
         photo
           ? <div className="flex flex-col gap-2">
-              <BigButton icon={<Icon name="next" />} label={t('next')} onClick={() => nav(`/p/${id}/speak`)} disabled={busy || !saved} />
-              <BigButton icon="🔄" label={t('retakePhoto')} variant="quiet" onClick={() => fileRef.current?.click()} />
+              <BigButton icon={<Icon name="next" />} label={t('next')}
+                onClick={() => { advanceGuide('captureNext'); nav(`/p/${id}/speak`) }} disabled={busy || !saved} />
+              <BigButton icon={<Icon name="redo" />} label={t('retakePhoto')} variant="quiet" onClick={() => fileRef.current?.click()} />
             </div>
-          : <BigButton icon="📷" label={t('takePhoto')} onClick={() => fileRef.current?.click()} />
+          : <BigButton icon={<Icon name="camera" />} label={t('takePhoto')} onClick={() => fileRef.current?.click()} />
       }
     >
+      <Coach step="capturePhoto" target="action" title={t('tourPhoto')} body={t('tourPhotoSub')} mode="tap" />
+      {/* Nothing rings while the cut-out runs — Working is already saying what
+          it is doing out loud, and a ring around a progress bar asks her to
+          press something she must not press. */}
+      <Coach step="captureNext"  target="action" title={t('tourCleaning')} body={t('tourCleaningSub')} mode="tap" />
+
       {/* capture="environment" opens the phone's real camera app — better photos
           than getUserMedia, and zero code. */}
       <input
@@ -177,7 +189,7 @@ function Sample({ src, label, highlight }: { src: string; label: string; highlig
         className={'aspect-square w-full rounded-xl border-2 object-cover ' +
           (highlight ? 'border-indigo' : 'border-line')}
       />
-      <figcaption className={'mt-1 text-center text-xs font-semibold uppercase tracking-widest ' +
+      <figcaption className={'mt-1 text-center text-xs font-semibold label uppercase ' +
         (highlight ? 'text-indigo' : 'text-ink-3')}>{label}</figcaption>
     </figure>
   )

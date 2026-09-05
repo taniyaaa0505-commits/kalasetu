@@ -9,7 +9,7 @@ import Buyer from './screens/Buyer'
 import BuyerProduct from './screens/BuyerProduct'
 import Chat from './screens/Chat'
 import Orders from './screens/Orders'
-import Tour from './screens/Tour'
+import Start from './screens/Start'
 import StorageError from './components/StorageError'
 import QueueRunner from './components/QueueRunner'
 
@@ -29,7 +29,7 @@ export default function App() {
       <QueueRunner />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/tour"          element={<Tour />} />
+        <Route path="/start"         element={<Start />} />
         <Route path="/p/:id/capture" element={<Capture />} />
         <Route path="/p/:id/speak"   element={<SpeakScreen />} />
         <Route path="/p/:id/review"  element={<Review />} />
