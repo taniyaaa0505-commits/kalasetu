@@ -31,6 +31,75 @@ const NO_THINKING = { thinkingConfig: { thinkingBudget: 0 } }
 const ENDPOINT = (m: string, k: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${k}`
 
+/**
+ * Statuses that mean "not now" rather than "not ever".
+ *
+ * 503 is the one we actually keep seeing: Gemini's free tier is shared and it
+ * sheds load. Nothing about the request is wrong, so failing her over it — and
+ * asking her to press a button again — is the app blaming her for somebody
+ * else's capacity.
+ */
+const RETRYABLE = new Set([408, 429, 500, 502, 503, 504])
+
+export class GeminiError extends Error {
+  readonly status: number
+  constructor(status: number, message: string) {
+    super(`Gemini ${status}: ${message}`)
+    this.name = 'GeminiError'
+    this.status = status
+  }
+  /** Worth trying again, either now or in a minute. */
+  get retryable(): boolean { return RETRYABLE.has(this.status) }
+}
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+/**
+ * POST to Gemini, retrying the transient failures.
+ *
+ * Three attempts with widening gaps and a little jitter, so a hall full of
+ * phones on the same overloaded model does not retry in lockstep. Roughly six
+ * seconds of extra patience in the worst case — she is already watching a
+ * screen that says what it is doing, and six quiet seconds beats an error.
+ *
+ * A 400 is ours and is thrown at once: retrying a bad request just wastes her
+ * battery and her time.
+ */
+async function post(url: string, body: unknown, attempts = 3): Promise<Response> {
+  let last: GeminiError | undefined
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    let res: Response
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+    } catch (err) {
+      // The request never left the phone. Treat it as transient — it usually
+      // is — but let the caller see it is a network problem, not a refusal.
+      last = new GeminiError(0, err instanceof Error ? err.message : String(err))
+      if (attempt === attempts - 1) throw last
+      await sleep(700 * 2 ** attempt + Math.random() * 400)
+      continue
+    }
+
+    if (res.ok) return res
+
+    // The body is a page of JSON; keep the one sentence a human can read.
+    const raw = await res.text()
+    let why = raw.slice(0, 160)
+    try { why = JSON.parse(raw)?.error?.message ?? why } catch { /* not JSON */ }
+
+    last = new GeminiError(res.status, why)
+    if (!last.retryable || attempt === attempts - 1) throw last
+    await sleep(700 * 2 ** attempt + Math.random() * 400)
+  }
+
+  throw last ?? new GeminiError(0, 'unknown failure')
+}
+
 /** Newer models can return several parts. Join every text part, not just the first. */
 function textOf(json: any): string {
   const parts = json?.candidates?.[0]?.content?.parts ?? []
@@ -152,21 +221,7 @@ export async function generateListing(
     },
   }
 
-  const res = await fetch(ENDPOINT(LISTING_MODEL, key), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-
-  if (!res.ok) {
-    // The raw body is a page of JSON. Pull the one sentence out of it, so the
-    // detail we show under the friendly message is readable by a human.
-    const raw = await res.text()
-    let why = raw.slice(0, 160)
-    try { why = JSON.parse(raw)?.error?.message ?? why } catch { /* not JSON */ }
-    throw new Error(`Gemini ${res.status}: ${why}`)
-  }
-
+  const res = await post(ENDPOINT(LISTING_MODEL, key), body)
   const text = textOf(await res.json())
   if (!text) throw new Error('Gemini returned nothing usable.')
   return JSON.parse(text) as Listing
@@ -231,13 +286,10 @@ export async function translate(text: string, from: string, to: string): Promise
     generationConfig: { temperature: 0.2, ...NO_THINKING },
   }
 
-  const res = await fetch(ENDPOINT(TRANSLATE_MODEL, key), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(`Translate failed (${res.status})`)
-
+  // Two attempts, not three: a chat message she is waiting on should not sit
+  // there for six seconds, and an untranslated message is already handled —
+  // the UI marks it and retries later rather than pretending.
+  const res = await post(ENDPOINT(TRANSLATE_MODEL, key), body, 2)
   const out = textOf(await res.json())
   if (!out) throw new Error('Translate returned nothing')
   return out

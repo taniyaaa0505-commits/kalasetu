@@ -57,6 +57,8 @@ export const bn: Strings = {
   screenListing: 'বিবরণ',
   screenSend: 'পাঠান',
   preparing: 'তৈরি হচ্ছে',
+  busyNow: 'সার্ভিস ব্যস্ত',
+  writeWhenFree: 'সার্ভিস এখন ব্যস্ত। একটু পরে বিবরণ নিজেই লেখা হয়ে যাবে। আপনি এগিয়ে যেতে পারেন।',
   noSignal: 'নেটওয়ার্ক নেই',
   writeWhenOnline: 'সিগন্যাল ফিরলেই আপনার বিবরণ নিজেই লেখা হয়ে যাবে। আপনি এগিয়ে যেতে পারেন।',
   couldNotWrite: 'এখন বিবরণ লেখা গেল না',

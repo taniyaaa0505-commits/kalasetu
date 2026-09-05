@@ -66,6 +66,8 @@ export const mai: Strings = {
   screenListing: 'विवरण',
   screenSend: 'पठाउ',
   preparing: 'तैयार भऽ रहल अछि',
+  busyNow: 'सेवा व्यस्त अछि',
+  writeWhenFree: 'सेवा अखन व्यस्त अछि। थोड़ेक कालमे विवरण अपने आप बनि जाएत। अहाँ आगू बढ़ि सकैत छी।',
   noSignal: 'नेटवर्क नहि अछि',
   writeWhenOnline: 'सिग्नल एलापर अहाँक विवरण अपने आप बनि जाएत। अहाँ आगू बढ़ि सकैत छी।',
   couldNotWrite: 'अखन विवरण नहि बनि सकल',

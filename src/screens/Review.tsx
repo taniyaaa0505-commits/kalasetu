@@ -6,7 +6,7 @@ import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import Working from '../components/Working'
 import { getProduct, patchProduct } from '../services/db'
-import { generateListing, geminiConfigured } from '../services/gemini'
+import { generateListing, geminiConfigured, GeminiError } from '../services/gemini'
 import { enqueue, isOnline, onConnectivityChange } from '../services/queue'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
@@ -27,7 +27,8 @@ export default function Review() {
   const [error, setError] = useState<string>()
   const [photo, setPhoto] = useState<string>()
   // Parked because there is no signal, rather than failed.
-  const [parked, setParked] = useState(false)
+  // 'offline' vs 'busy' — the reason changes what we tell her.
+  const [parked, setParked] = useState<null | 'offline' | 'busy'>(null)
   const questionsRef = useRef<HTMLDivElement | null>(null)
   const announced = useRef(false)
 
@@ -69,7 +70,7 @@ export default function Review() {
       // and let her carry on to the price.
       if (!isOnline()) {
         await enqueue({ kind: 'generate-listing', productId: id })
-        setParked(true); setBusy(false)
+        setParked(isOnline() ? 'busy' : 'offline'); setBusy(false)
         return
       }
 
@@ -80,19 +81,22 @@ export default function Review() {
         setListing(l)
         await patchProduct(id, { listing: l })
       } catch (e) {
-        // A request that never left the phone is the signal dropping, not a
-        // broken app. Park it and say so; anything else is a real fault and
-        // she gets a plain sentence with the detail underneath.
-        if (!isOnline()) {
+        // Two different failures, two different answers. A dropped signal or
+        // an overloaded model is "not now" — park it, say so, let her carry
+        // on, and QueueRunner finishes it when it can. Anything else is a
+        // real fault and she gets a plain sentence with the detail under it.
+        if (!isOnline() || (e instanceof GeminiError && e.retryable)) {
           await enqueue({ kind: 'generate-listing', productId: id })
-          setParked(true)
+          setParked(isOnline() ? 'busy' : 'offline')
         } else {
           setError(e instanceof Error ? e.message : String(e))
         }
       } finally { setBusy(false) }
       } catch (e) {
-        if (!isOnline()) { await enqueue({ kind: 'generate-listing', productId: id }).catch(() => {}); setParked(true) }
-        else setError(e instanceof Error ? e.message : String(e))
+        if (!isOnline() || (e instanceof GeminiError && e.retryable)) {
+          await enqueue({ kind: 'generate-listing', productId: id }).catch(() => {})
+          setParked(isOnline() ? 'busy' : 'offline')
+        } else setError(e instanceof Error ? e.message : String(e))
         setBusy(false)
       }
     })()
@@ -190,7 +194,7 @@ export default function Review() {
       )
       setListing(l)
       setDirty(false)
-      setParked(false)
+      setParked(null)
       await patchProduct(id, { listing: l })
     } catch (e) {
       // The old listing stays on screen. A failed rewrite must never cost her
@@ -246,9 +250,13 @@ export default function Review() {
       {parked && (
         <div className="mb-4 rounded-card border border-gold/40 bg-gold-wash p-4">
           <p className="flex items-center gap-2 text-sm font-semibold text-gold">
-            <span aria-hidden>📶</span>{t('noSignal')}
+            <span aria-hidden>{parked === 'busy' ? '⏳' : '📶'}</span>
+            {parked === 'busy' ? t('busyNow') : t('noSignal')}
           </p>
-          <Speakable text={t('writeWhenOnline')} className="mt-1 text-[15px] leading-snug text-gold" />
+          <Speakable
+            text={parked === 'busy' ? t('writeWhenFree') : t('writeWhenOnline')}
+            className="mt-1 text-[15px] leading-snug text-gold"
+          />
         </div>
       )}
 

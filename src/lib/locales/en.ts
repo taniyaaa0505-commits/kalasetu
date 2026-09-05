@@ -51,6 +51,8 @@ export const en: Strings = {
   screenListing: 'Description',
   screenSend: 'Send',
   preparing: 'Getting ready',
+  busyNow: 'Service is busy',
+  writeWhenFree: 'The service is busy. Your description will be written shortly, by itself. You can carry on.',
   noSignal: 'No signal',
   writeWhenOnline: 'Your description will be written as soon as the signal is back. You can carry on.',
   couldNotWrite: 'Could not write the description just now',

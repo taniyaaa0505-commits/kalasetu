@@ -55,6 +55,8 @@ export const hi = {
   screenListing: 'विवरण',
   screenSend: 'भेजें',
   preparing: 'तैयार हो रहा है',
+  busyNow: 'ऐप अभी व्यस्त है',
+  writeWhenFree: 'ऐप अभी व्यस्त है। थोड़ी देर में विवरण अपने आप बन जाएगा। आप आगे बढ़ सकती हैं।',
   noSignal: 'नेटवर्क नहीं है',
   writeWhenOnline: 'सिग्नल आते ही आपका विवरण अपने आप बन जाएगा। आप आगे बढ़ सकती हैं।',
   couldNotWrite: 'अभी विवरण नहीं बन पाया',

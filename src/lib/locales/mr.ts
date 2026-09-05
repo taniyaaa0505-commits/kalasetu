@@ -59,6 +59,8 @@ export const mr: Strings = {
   screenListing: 'माहिती',
   screenSend: 'पाठवा',
   preparing: 'तयार होत आहे',
+  busyNow: 'सेवा व्यस्त आहे',
+  writeWhenFree: 'सेवा सध्या व्यस्त आहे. थोड्या वेळात माहिती आपोआप तयार होईल. तुम्ही पुढे जाऊ शकता.',
   noSignal: 'नेटवर्क नाही',
   writeWhenOnline: 'सिग्नल आल्यावर तुमची माहिती आपोआप तयार होईल. तुम्ही पुढे जाऊ शकता.',
   couldNotWrite: 'आत्ता माहिती तयार होऊ शकली नाही',
