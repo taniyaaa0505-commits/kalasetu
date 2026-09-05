@@ -12,6 +12,7 @@ import { getGuideStep } from '../lib/guide'
 import { advanceGuide } from '../lib/guide'
 import BeforeAfter from '../components/BeforeAfter'
 import { getProduct, saveProduct, patchProduct } from '../services/db'
+import { artisanId } from '../services/artisan'
 import { removeBackground, preloadModel, shrink, type Progress } from '../services/bgRemove'
 import { t, getLang } from '../lib/i18n'
 
@@ -55,7 +56,12 @@ export default function Capture() {
     // before the long wait below so the patch at the end has something to
     // patch even if she leaves the screen and comes back.
     if (!(await getProduct(id))) {
-      await saveProduct({ id, createdAt: Date.now(), status: 'draft', lang: getLang() })
+      await saveProduct({
+        id, createdAt: Date.now(), status: 'draft', lang: getLang(),
+        // Stamped once, here, where the product starts existing. Never asked
+        // for and never shown — see services/artisan.ts.
+        artisanId: await artisanId(),
+      })
     }
 
     const original = await fileToDataUrl(file)

@@ -79,6 +79,15 @@ export interface CostInput {
 export interface Product {
   id: string
   createdAt: number
+  /**
+   * Which artisan made it. An anonymous-auth uid, or a device id when there is
+   * no cloud — see services/artisan.ts, which explains why this is not a login.
+   *
+   * Optional because products created before this existed do not have one, and
+   * the impact dashboard counts those honestly as unattributed rather than
+   * folding them into somebody.
+   */
+  artisanId?: string
   status: 'draft' | 'published'
   lang: LangCode
 

@@ -318,6 +318,28 @@ us, the cleaned one is a square auto-cropped to the product's bounding box. The
 subject jumps between them, so it read as a glitch. It is now hero + inset,
 tap to swap.
 
+## Who made it — identity without a login
+
+`services/artisan.ts`. Every product carries an `artisanId`, stamped once when
+it is first created, so the impact dashboard can answer the Ministry's first
+question. It is **anonymous auth** — Firebase hands the device a stable uid
+with no interface at all.
+
+A sign-in screen was the obvious fix and it is the wrong one. This app is for
+someone who cannot read the word "email" and has never typed on a phone, and a
+login would stop her at the door for the sake of a number on a page she never
+opens.
+
+**It counts devices, not people**, and the dashboard prints that rather than
+hiding behind the word "users": reinstalling makes a new artisan, and two women
+sharing a handset are one. A phone-number sign-in fixes both and costs her a
+keyboard — a trade for a supervised pilot, not for a product she opens alone.
+
+> **Anonymous sign-in must be switched on in the Firebase console** —
+> Authentication -> Sign-in method -> Anonymous. Until it is, the API answers
+> `auth/configuration-not-found`, and the app falls back to a `local_` device
+> id so nothing breaks. `tools/artisans.mjs` shows which kind you have.
+
 ## Storage — one API, two backends
 
 `services/store` decides once, at startup, from whether Firebase is configured:

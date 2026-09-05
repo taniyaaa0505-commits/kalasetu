@@ -32,6 +32,17 @@ export default function Impact() {
   useEffect(() => subscribeProducts(setProducts), [])
   useEffect(() => subscribeOrders(setOrders), [])
 
+  /**
+   * Artisans, at last — and counted as what they are.
+   *
+   * A distinct anonymous-auth uid per device, stamped when a product is first
+   * created. Products made before that existed carry none; they are reported
+   * separately rather than folded into somebody, because a metric that
+   * silently absorbs its own unknowns is not a metric.
+   */
+  const ids = new Set(products.map(p => p.artisanId).filter(Boolean) as string[])
+  const unattributed = products.filter(p => !p.artisanId).length
+
   const published = products.filter(p => p.status === 'published')
   const delivered = orders.filter(o => o.status === 'delivered')
   const gmv = delivered.reduce((n, o) => n + o.total, 0)
@@ -95,7 +106,11 @@ export default function Impact() {
 
         <Gota className="my-8" />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <Stat label="Artisans onboarded" value={String(ids.size)}
+            note={unattributed
+              ? `+ ${unattributed} product${unattributed === 1 ? '' : 's'} from before sign-in`
+              : 'distinct devices, no sign-in required'} />
           <Stat label="Products catalogued" value={String(products.length)}
             note="one photo + 30s of speech each" />
           <Stat label="Live listings" value={String(published.length)}
@@ -152,10 +167,15 @@ export default function Impact() {
           </h2>
           <ul className="mt-3 flex flex-col gap-2 text-[15px] leading-snug text-ink-2">
             <li>
-              <b>Artisans onboarded is not on this page</b>, because there is no artisan
-              identity in the data model — a product has no owner field, so one device is
-              one artisan and the figure cannot be aggregated honestly. Adding it is a
-              schema change plus sign-in, and it is the next thing this dashboard needs.
+              <b>Artisans onboarded counts devices, not people.</b> Every product is stamped
+              with an anonymous-auth id at creation — no sign-in screen, nothing to read or
+              type, because a login would stop her at the door for the sake of a number on a
+              page she never opens. The cost is that reinstalling produces a new artisan and
+              two women sharing one handset count as one. A phone-number sign-in fixes both
+              and costs her a keyboard: a trade for a supervised pilot, not for a product she
+              opens alone.
+              {unattributed > 0 && <> {unattributed} product{unattributed === 1 ? '' : 's'} predate
+              this and are excluded from the count rather than assigned to anyone.</>}
             </li>
             <li>
               <b>Measurement coverage is {coverage}%</b> — {measurable.length} of {delivered.length}{' '}
