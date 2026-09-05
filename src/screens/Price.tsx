@@ -19,7 +19,20 @@ export default function Price() {
   const nav = useNavigate()
   const lang = useLang()
 
-  const [cost, setCost] = useState<CostInput>({ materialCost: 300, hours: 16 })
+  /*
+   * Deliberately modest, and it did not used to be.
+   *
+   * The defaults were ₹300 and SIXTEEN HOURS — two full working days assumed
+   * on her behalf for every object in the app, which is why every product she
+   * never adjusted came out at exactly ₹3,040: a clay lamp, a dupatta, a
+   * plastic bottle, all ₹3,040. A default is us guessing her labour, and
+   * guessing high produces a price no buyer pays, which helps nobody.
+   *
+   * Half a day and ₹200 of material is the smallest honest starting point.
+   * The floor is a floor — it is there for her to raise once she has told us
+   * what she actually spent, and the steppers are two taps.
+   */
+  const [cost, setCost] = useState<CostInput>({ materialCost: 200, hours: 4 })
   const [craft, setCraft] = useState<string>()
   // 0 means she has not told us. A default here would invent the result.
   const [usual, setUsual] = useState(0)

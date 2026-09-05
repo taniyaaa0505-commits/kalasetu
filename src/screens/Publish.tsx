@@ -43,9 +43,11 @@ export default function Publish() {
   }
 
   if (done) return (
+    /* Not green. Green is the app's yes — publish this, accept this order —
+       and going home is neither. Spending the confirm colour on plain
+       navigation is what stops it meaning anything where it has to. */
     <Screen action={
-      <BigButton icon={<Icon name="back" />} label={t('goHome')} variant="good"
-        onClick={() => nav('/')} />
+      <BigButton icon={<Icon name="back" />} label={t('goHome')} onClick={() => nav('/')} />
     }>
       {/* One thing to look at and one thing to press.
           This screen had four choices on it — marketplace, messages, orders,

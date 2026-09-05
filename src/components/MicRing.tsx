@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 export default function MicRing({
-  recording, speaking, pulse, icon, label, onClick, size = 'md',
+  recording, speaking, pulse, icon, label, onClick, disabled, size = 'md',
 }: {
   recording: boolean
   /** The recogniser can currently hear speech. */
@@ -24,6 +24,9 @@ export default function MicRing({
   icon: ReactNode
   label: string
   onClick: () => void
+  /** True while the phone itself is talking. Opening the microphone then means
+   *  the recogniser's first words are the app's, not hers. */
+  disabled?: boolean
   /** 'sm' on the Speak screen, which has to fit the picker, the transcript,
    *  the replay controls and the typed fallback on one screen with this. */
   size?: 'md' | 'sm'
@@ -77,12 +80,13 @@ export default function MicRing({
 
       <button
         data-guide="mic"
+        disabled={disabled}
         onClick={onClick}
         className={
           'press relative flex min-h-0 flex-col items-center justify-center gap-1 ' +
           'rounded-full text-white shadow-card ' +
           (small ? 'h-[7.375rem] w-[7.375rem]' : 'h-[9.75rem] w-[9.75rem]') + ' ' +
-          (recording ? 'bg-danger' : 'bg-indigo')
+          (recording ? 'bg-danger' : 'bg-indigo') + ' disabled:opacity-45 disabled:shadow-none'
         }
       >
         <span aria-hidden className={small ? 'text-4xl' : 'text-5xl'}>{icon}</span>

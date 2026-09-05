@@ -117,12 +117,33 @@ export default function Review() {
    * talks. So it says how many, and then asks the first one.
    */
   useEffect(() => {
-    const qs = listing?.questions ?? []
-    const open = qs.filter(q => !answersRef.current.some(a => a.question === q && a.answer.trim()))
-    if (!open.length || announced.current) return
+    if (!listing || announced.current) return
+    const open = (listing.questions ?? [])
+      .filter(q => !answersRef.current.some(a => a.question === q && a.answer.trim()))
     announced.current = true
-    speak(`${tf('askedMore', { n: open.length })}. ${open[0]}`, asrCode(lang))
-  }, [listing, lang])
+
+    /*
+     * Order matters, and it was wrong.
+     *
+     * This used to open with "the app wants to know three more things" the
+     * instant the listing landed — before she had heard a single word of what
+     * the app had actually written for her. She was being asked to answer
+     * follow-up questions about a description she had not yet heard.
+     *
+     * So: her listing first, in her own language, then the questions. One
+     * utterance, not two, because two `speak` calls in a row cancel each other
+     * — the second one arrives while the first is still going and cuts it off
+     * mid-sentence. Chaining through `onDone` is what makes them queue.
+     */
+    const heading = mine ? listing.titleEn : listing.titleHi
+    const body    = mine ? listing.descriptionEn : listing.descriptionHi
+    const voice   = asrCode(lang)
+
+    speak(`${heading}. ${body}`, voice, () => {
+      if (!open.length) return
+      speak(`${tf('askedMore', { n: open.length })}. ${open[0]}`, voice)
+    })
+  }, [listing, lang, mine])
 
   // If she is still standing here when the signal returns, write it now
   // rather than making her go back and forth.

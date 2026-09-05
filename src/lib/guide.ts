@@ -30,9 +30,17 @@ export const GUIDE_STEPS = [
   'homeAdd',       // and now add your first thing — for real
 
   'capturePhoto',  // press this, take a photograph
-  'captureNext',   // it has been cleaned; go on
+
+  /* And no ring on the photo screen's "next" either, for the same reason as
+     the speak screen below — but this one was worse. Both steps pointed at
+     the SAME action bar, one after the other, so from her side the photo step
+     simply happened twice: a ring, a photograph, and then a ring in exactly
+     the same place again. Its caption repeated the line the before/after
+     figure on that screen was already showing her, and `Working` narrates the
+     cleanup out loud while it runs. Three tellings of one thing. */
 
   'speakMic',      // press this and talk about it
+  'speakCheck',    // and these two are how you check it came out right
 
   /* There is deliberately no ring on the speak screen's "next".
      The mic ring is 134px tall and the action bar is pinned to the bottom, so

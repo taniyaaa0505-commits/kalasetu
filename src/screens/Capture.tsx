@@ -85,17 +85,16 @@ export default function Capture() {
         photo
           ? <div className="flex flex-col gap-2">
               <BigButton icon={<Icon name="next" />} label={t('next')}
-                onClick={() => { advanceGuide('captureNext'); nav(`/p/${id}/speak`) }} disabled={busy || !saved} />
+                onClick={() => nav(`/p/${id}/speak`)} disabled={busy || !saved} />
               <BigButton icon={<Icon name="redo" />} label={t('retakePhoto')} variant="quiet" onClick={() => fileRef.current?.click()} />
             </div>
           : <BigButton icon={<Icon name="camera" />} label={t('takePhoto')} onClick={() => fileRef.current?.click()} />
       }
     >
+      {/* The only ring on this screen. Nothing rings while the cut-out runs —
+          Working is already saying what it is doing out loud, and a ring round
+          a progress bar asks her to press something she must not press. */}
       <Coach step="capturePhoto" target="action" title={t('tourPhoto')} body={t('tourPhotoSub')} mode="tap" />
-      {/* Nothing rings while the cut-out runs — Working is already saying what
-          it is doing out loud, and a ring around a progress bar asks her to
-          press something she must not press. */}
-      <Coach step="captureNext"  target="action" title={t('tourCleaning')} body={t('tourCleaningSub')} mode="tap" />
 
       {/* capture="environment" opens the phone's real camera app — better photos
           than getUserMedia, and zero code. */}

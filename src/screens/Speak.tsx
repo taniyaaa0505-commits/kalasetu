@@ -9,7 +9,7 @@ import Coach from '../components/Coach'
 import { advanceGuide } from '../lib/guide'
 import { getProduct, patchProduct } from '../services/db'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
-import { speak, stopSpeaking } from '../lib/speak'
+import { speak, stopSpeaking, useSpeaking } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
 import LanguagePicker from '../components/LanguagePicker'
 import { asrCode } from '../types'
@@ -26,6 +26,7 @@ export default function SpeakScreen() {
   const [pulse, setPulse] = useState(0)   // bumps on each new chunk of speech
   const [error, setError] = useState<string>()
   const [typing, setTyping] = useState(false)
+  const talking = useSpeaking()
   const recRef = useRef<Recogniser | null>(null)
 
   useEffect(() => {
@@ -99,6 +100,8 @@ export default function SpeakScreen() {
           one control that would have got her out of it, is the worst thing
           this guide could do. Android's WebView is exactly that browser, so
           this is the APK, not a hypothetical. */}
+      <Coach step="speakCheck" target="playback"
+             title={t('hearItBack')} body={t('sayAgain')} />
       <Coach step="speakMic"
              target={listenSupported() ? 'mic' : 'type'}
              title={listenSupported() ? t('tourSpeakStep') : t('typeInstead')}
@@ -111,6 +114,7 @@ export default function SpeakScreen() {
         pulse={pulse}
         icon={<Icon name={recording ? 'stop' : hasText ? 'redo' : 'mic'} />}
         label={recording ? t('stopSpeaking') : hasText ? t('sayAgain') : t('speakNow')}
+        disabled={talking && !recording}
         onClick={() => (recording ? stop() : start())}
       />}
 
@@ -149,21 +153,29 @@ export default function SpeakScreen() {
       {/* The check-and-fix pair. Hearing it back is what makes "say it again"
           useful — otherwise she has no way to know it came out wrong. */}
       {hasText && !recording && !typing && (
-        <div className="mt-2.5 grid grid-cols-2 gap-3">
-          <SmallButton icon={<Icon name="speak" />} label={t('hearItBack')} onClick={playBack} />
-          <SmallButton icon={<Icon name="redo" />} label={t('sayAgain')} onClick={start} />
+        <div data-guide="playback" className="mt-2.5 grid grid-cols-2 gap-3">
+          {/* Both disabled while the phone is talking. Pressing "hear it back"
+              mid-sentence used to cut off the sentence it was already reading,
+              and "say it again" opened the microphone into the app's own
+              voice — the recogniser's first word was ours, not hers. */}
+          <SmallButton icon={<Icon name="speak" />} label={t('hearItBack')} onClick={playBack} disabled={talking} />
+          <SmallButton icon={<Icon name="redo" />} label={t('sayAgain')} onClick={start} disabled={talking} />
         </div>
       )}
     </Screen>
   )
 }
 
-function SmallButton({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
+function SmallButton({ icon, label, onClick, disabled }: {
+  icon: ReactNode; label: string; onClick: () => void; disabled?: boolean
+}) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className="press flex min-h-[3.5rem] items-center justify-center gap-2 rounded-card border-2 border-line
-                 bg-surface px-3 text-[0.9375rem] font-medium shadow-rest active:bg-surface-2"
+                 bg-surface px-3 text-[0.9375rem] font-medium shadow-rest active:bg-surface-2
+                 disabled:opacity-40 disabled:shadow-none"
     >
       <span aria-hidden className="text-xl">{icon}</span>
       <span>{label}</span>

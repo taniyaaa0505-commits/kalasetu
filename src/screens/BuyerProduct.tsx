@@ -26,6 +26,7 @@ export default function BuyerProduct() {
   const [buyerOrg, setBuyerOrg] = useState('Meridian Corporate Gifting')
   const [orderNote, setOrderNote] = useState('')
   const [placing, setPlacing] = useState(false)
+  const [placed, setPlaced] = useState(false)
   const [trouble, setTrouble] = useState<string>()
   const endRef = useRef<HTMLDivElement>(null)
 
@@ -76,6 +77,7 @@ export default function BuyerProduct() {
       })
       setOrderNote('')
       setOrders(await listOrders(id))
+      setPlaced(true)
     } catch (err) {
       setTrouble(err instanceof Error ? err.message : String(err))
     } finally { setPlacing(false) }
@@ -167,6 +169,29 @@ export default function BuyerProduct() {
             </div>
           </form>
 
+          {/* What happens next, said plainly.
+              The button went back to reading "Place order" and a row quietly
+              appeared in a list below — so the only feedback for the most
+              consequential action on this page was a row he had no reason to
+              look at. It also has to say that nothing is confirmed yet: an
+              order is a REQUEST until she accepts it, and a buyer who thinks
+              he has bought something will chase the wrong person. */}
+          {placed && (
+            <div role="status"
+              className="fade mt-4 flex items-start gap-3 rounded-card border-2 border-good bg-sage-wash px-4 py-3.5">
+              <span aria-hidden className="mt-0.5 text-lg">✅</span>
+              <div className="flex-1">
+                <p className="font-semibold text-good">Order placed</p>
+                <p className="mt-0.5 text-sm leading-snug text-ink-2">
+                  Waiting for the artisan to accept. She has been notified on her phone,
+                  and you will see the status change here.
+                </p>
+              </div>
+              <button onClick={() => setPlaced(false)} aria-label="Dismiss"
+                className="press min-h-0 shrink-0 px-1 py-0.5 text-lg leading-none text-ink-3">×</button>
+            </div>
+          )}
+
           {orders.length > 0 && (
             <ul className="mt-4 flex flex-col gap-2">
               {orders.map(o => <BuyerOrderRow key={o.id} o={o} onRefresh={async () => setOrders(await listOrders(id))} />)}
@@ -233,18 +258,51 @@ const STATUS_TEXT: Record<Order['status'], string> = {
   delivered: 'Delivered',
 }
 
+/**
+ * One order, from the buyer's side.
+ *
+ * "Mark received" is the last step in the whole system and the only one that
+ * writes `delivered` — which is the single status the artisan's income figure
+ * counts. If this silently fails, her headline number silently stops moving.
+ *
+ * It used to be a bare button with an un-awaited handler: no pressed state, no
+ * busy state, and a thrown write went nowhere at all. It worked, but a slow
+ * connection was indistinguishable from a dead control, and a failed one was
+ * indistinguishable from both. Same shape as the "Placing…" bug on this page.
+ */
 function BuyerOrderRow({ o, onRefresh }: { o: Order; onRefresh: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState<string>()
+
+  async function receive() {
+    setBusy(true); setFailed(undefined)
+    try {
+      await setStatus(o.id, 'delivered')
+      onRefresh()
+    } catch (err) {
+      setFailed(err instanceof Error ? err.message : String(err))
+    } finally { setBusy(false) }
+  }
+
   return (
-    <li className="flex items-center justify-between gap-3 rounded-xl border border-line-2/70 px-4 py-3">
-      <div>
-        <p className="font-semibold tabular-nums">{o.quantity} × ₹{o.unitPrice} = ₹{o.total.toLocaleString('en-IN')}</p>
-        <p className="text-sm text-ink-3">{STATUS_TEXT[o.status]}</p>
+    <li className="rounded-xl border border-line-2/70 px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="font-semibold tabular-nums">{o.quantity} × ₹{o.unitPrice} = ₹{o.total.toLocaleString('en-IN')}</p>
+          <p className="text-sm text-ink-3">{STATUS_TEXT[o.status]}</p>
+        </div>
+        {o.status === 'shipped' && (
+          <button
+            onClick={receive} disabled={busy}
+            className="press min-h-0 shrink-0 rounded-lg border-2 border-good bg-sage-wash px-3 py-2
+                       text-sm font-semibold text-good disabled:opacity-40"
+          >{busy ? 'Saving…' : 'Mark received'}</button>
+        )}
       </div>
-      {o.status === 'shipped' && (
-        <button
-          onClick={async () => { await setStatus(o.id, 'delivered'); onRefresh() }}
-          className="min-h-0 shrink-0 rounded-lg border border-line-2/70 px-3 py-2 text-sm font-medium"
-        >Mark received</button>
+      {failed && (
+        <p className="mt-2 text-sm text-danger">
+          Could not save that — check the connection and try again.
+        </p>
       )}
     </li>
   )
