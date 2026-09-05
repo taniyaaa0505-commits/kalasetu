@@ -69,11 +69,11 @@ export default function ConfirmRemove({ product, onClose, onRemoved }: {
 
         {blocked === false && (
           <>
-            <p className="mb-5 text-xl font-bold">{t('removeAsk')}</p>
+            <p className="mb-5 font-display text-xl font-bold">{t('removeAsk')}</p>
             {/* The safe answer sits first and reads as the default. */}
             <div className="flex flex-col gap-2">
               <BigButton icon={<Icon name="back" />} label={t('removeNo')} variant="quiet" onClick={onClose} />
-              <BigButton icon="🗑" label={t('removeYes')} variant="danger" onClick={confirm} disabled={busy} />
+              <BigButton icon={<Icon name="trash" />} label={t('removeYes')} variant="danger" onClick={confirm} disabled={busy} />
             </div>
           </>
         )}

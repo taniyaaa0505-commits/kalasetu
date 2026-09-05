@@ -6,6 +6,7 @@
 import { speak } from '../lib/speak'
 import { useLang } from '../lib/i18n'
 import { asrCode } from '../types'
+import Icon from './Icon'
 
 export default function Speakable({
   text, lang, className = '', as: Tag = 'p',
@@ -22,7 +23,7 @@ export default function Speakable({
       className="flex w-full min-h-0 items-start gap-2 text-left active:opacity-60"
       aria-label={`Hear: ${text}`}
     >
-      <span aria-hidden className="mt-[2px] shrink-0 text-indigo">🔊</span>
+      <Icon name="speak" className="mt-[3px] text-indigo" />
       <Tag className={className}>{text}</Tag>
     </button>
   )

@@ -38,7 +38,7 @@ export default function BeforeAfter({
 
       <span className={
         'pointer-events-none absolute left-2 top-2 rounded-full px-2.5 py-1 text-[11px] ' +
-        'font-semibold uppercase tracking-widest text-white ' +
+        'font-semibold label uppercase text-white ' +
         (swapped ? 'bg-black/55' : 'bg-indigo')
       }>
         {heroLabel}
@@ -49,7 +49,7 @@ export default function BeforeAfter({
                        border-2 border-white shadow-lg">
         <img src={inset} alt="" className="block w-full" draggable={false} />
         <span className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-center text-[10px]
-                         font-semibold uppercase tracking-wider text-white">
+                         font-semibold label uppercase text-white">
           {insetLabel}
         </span>
       </span>

@@ -1,6 +1,11 @@
 /**
  * Beads on a thread — our one progress motif, used in two places.
  *
+ * Gold thread, terracotta beads: gota and clay, the two materials the rest of
+ * the app is made of. It was indigo on grey, which was the chrome colour doing
+ * a craft job — correct as a progress bar, wrong as the one ornament she sees
+ * on every screen of the selling flow.
+ *
  * Craft is thread, and "setu" is a bridge, so progress in this app is drawn as
  * beads strung along a line rather than as bars or numbers. She cannot read a
  * step count; a filled bead in a row of empty ones needs no reading at all.
@@ -52,10 +57,10 @@ export default function Thread({
     >
       {/* the thread: a dim full run, with the travelled part drawn over it */}
       <line x1={cx(0)} y1={cy} x2={cx(beads.length - 1)} y2={cy}
-        stroke="var(--color-line)" strokeWidth="2" strokeLinecap="round" />
+        stroke="var(--color-gold-leaf)" strokeWidth="2" strokeLinecap="round" opacity=".3" />
       {lastDone > 0 && (
         <line x1={cx(0)} y1={cy} x2={cx(lastDone)} y2={cy}
-          stroke={broken ? 'var(--color-line-2)' : 'var(--color-indigo)'}
+          stroke={broken ? 'var(--color-line-2)' : 'var(--color-gold-leaf)'}
           strokeWidth="2" strokeLinecap="round"
           strokeDasharray={broken ? '4 4' : undefined} />
       )}
@@ -66,13 +71,13 @@ export default function Thread({
           <g key={i}>
             {/* a soft halo marks where she is now */}
             {b.current && !broken && (
-              <circle cx={cx(i)} cy={cy} r={r + 4.5} fill="var(--color-wash)"
-                stroke="var(--color-indigo)" strokeWidth="1.5" />
+              <circle cx={cx(i)} cy={cy} r={r + 4.5} fill="var(--color-clay-wash)"
+                stroke="var(--color-clay)" strokeWidth="1.5" />
             )}
             <circle
               cx={cx(i)} cy={cy} r={b.current ? r : r - 1}
-              fill={filled ? (broken ? 'var(--color-ink-3)' : 'var(--color-indigo)') : 'var(--color-surface)'}
-              stroke={filled ? (broken ? 'var(--color-ink-3)' : 'var(--color-indigo)') : 'var(--color-line-2)'}
+              fill={filled ? (broken ? 'var(--color-ink-3)' : 'var(--color-clay)') : 'var(--color-surface)'}
+              stroke={filled ? (broken ? 'var(--color-ink-3)' : 'var(--color-clay)') : 'var(--color-gold-leaf)'}
               strokeWidth="2"
             />
             {b.label && (

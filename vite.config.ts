@@ -22,8 +22,8 @@ export default defineConfig({
         scope: './',
         display: 'standalone',            // no address bar; it reads as an app
         orientation: 'portrait',
-        background_color: '#FBFAF7',
-        theme_color: '#2B3A8F',
+        background_color: '#FBF4E7',
+        theme_color: '#101A2E',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },

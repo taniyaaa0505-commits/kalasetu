@@ -81,14 +81,23 @@ export default function BuyerProduct() {
     } finally { setPlacing(false) }
   }
 
-  if (!p) return <div className="p-10 text-center text-ink-3">Loading…</div>
+  // Not the word "Loading": a gold thread pulling itself through, which is
+  // the same motif as the step beads and needs no translating.
+  if (!p) return (
+    <div className="flex min-h-full items-center justify-center bg-paper p-10">
+      <span aria-label="Loading" role="status"
+        className="block h-1 w-40 overflow-hidden rounded-full bg-gold-leaf/25">
+        <span className="pull block h-full w-1/3 rounded-full bg-gold-leaf" />
+      </span>
+    </div>
+  )
 
   const field = 'w-full rounded-card border border-line-2/70 bg-surface px-3.5 py-3 text-[15px] ' +
                 'outline-none transition-colors placeholder:text-ink-3 focus-visible:border-indigo'
 
   return (
     <div className="min-h-full bg-paper">
-      <header className="jaali relative bg-night px-6 pb-6 pt-4 text-surface">
+      <header className="jaali relative bg-night px-6 pb-6 pt-[max(1rem,env(safe-area-inset-top))] text-surface">
         <button onClick={() => nav('/buyer')} className="press min-h-0 py-1.5 pr-2 text-sm text-surface/70">← all products</button>
         <Scallop className="absolute inset-x-0 -bottom-2 text-night" />
       </header>
@@ -147,7 +156,7 @@ export default function BuyerProduct() {
             <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-3">Total</p>
-                <p className="text-2xl font-bold leading-tight tabular-nums">
+                <p className="font-display text-2xl font-bold leading-tight tabular-nums">
                   ₹{(qty * (p.price?.suggested ?? 0)).toLocaleString('en-IN')}
                 </p>
               </div>

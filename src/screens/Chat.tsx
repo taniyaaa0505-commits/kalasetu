@@ -15,6 +15,8 @@ import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
 import { asrCode, type Message, type LangCode } from '../types'
+import Icon from '../components/Icon'
+import Empty from '../components/Empty'
 
 export default function Chat() {
   const { id = '' } = useParams()
@@ -71,7 +73,7 @@ export default function Chat() {
       title={t('messages')} onBack={() => {}}
       action={
         <BigButton
-          icon={recording ? '⏹' : '🎤'}
+          icon={<Icon name={recording ? 'stop' : 'mic'} />}
           label={recording ? t('stopSpeaking') : t('replyByVoice')}
           variant={recording ? 'quiet' : 'primary'}
           onClick={() => recording ? recRef.current?.stop() : startTalking()}
@@ -86,7 +88,7 @@ export default function Chat() {
       )}
 
       {msgs.length === 0 && (
-        <p className="py-16 text-center text-ink-3">{t('noMessages')}</p>
+        <Empty kind="chat" message={t('noMessages')} />
       )}
 
       <ul className="flex flex-col gap-3">
@@ -107,7 +109,7 @@ function Bubble({ m, lang }: { m: Message; lang: string }) {
   const mine = m.from === 'artisan'
   return (
     <li className={mine ? 'self-end' : 'self-start'} style={{ maxWidth: '88%' }}>
-      <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-ink-3">
+      <p className="mb-1 text-xs font-semibold label uppercase text-ink-3">
         {mine ? t('youSaid') : t('buyerSaid')}
       </p>
       <div className={
@@ -120,7 +122,7 @@ function Bubble({ m, lang }: { m: Message; lang: string }) {
           <button
             onClick={() => speak(m.local || m.source, lang)}
             className="mt-2 flex min-h-0 items-center gap-1 text-sm text-indigo"
-          >🔊 {t('listenAgain')}</button>
+          ><Icon name="speak" /> {t('listenAgain')}</button>
         )}
         {m.untranslated && (
           <p className={'mt-2 text-xs ' + (mine ? 'text-white/70' : 'text-gold')}>

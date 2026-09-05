@@ -32,12 +32,22 @@ function read(): LangCode {
   return 'hi-IN'
 }
 
+/** Mirror the choice onto <html lang>. A screen reader picks its voice from
+ *  this, and it is what tells the stylesheet whether letter-spacing is safe:
+ *  see `.label` in index.css. It was hardcoded to "hi" in index.html and never
+ *  updated, so Tamil was being announced in Hindi. */
+function reflect(code: LangCode) {
+  try { document.documentElement.lang = code } catch { /* SSR / tests */ }
+}
+reflect(current)
+
 export function getLang(): LangCode { return current }
 
 export function setLang(code: LangCode) {
   if (code === current) return
   current = code
   try { localStorage.setItem(KEY, code) } catch { /* not fatal */ }
+  reflect(code)
   listeners.forEach(fn => fn())
 }
 

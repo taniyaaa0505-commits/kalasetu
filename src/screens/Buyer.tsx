@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom'
 import { Scallop } from '../components/Ornament'
 import { subscribeProducts } from '../services/db'
 import type { Product } from '../types'
+import Empty from '../components/Empty'
 
 export default function Buyer() {
   const nav = useNavigate()
@@ -22,7 +23,7 @@ export default function Buyer() {
 
   return (
     <div className="min-h-full bg-paper">
-      <header className="jaali relative bg-night px-6 pb-6 pt-5 text-surface">
+      <header className="jaali relative bg-night px-6 pb-6 pt-[max(1.25rem,env(safe-area-inset-top))] text-surface">
         <button onClick={() => nav('/')} className="press mb-2 min-h-0 py-1.5 pr-2 text-sm text-ink-3">← back to the app</button>
         <div className="flex items-center gap-3">
           <img src="./icons/mark-96.png" alt="" aria-hidden width={40} height={40}
@@ -37,10 +38,7 @@ export default function Buyer() {
 
       <div className="mx-auto max-w-5xl p-6">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-24 text-center">
-            <span aria-hidden className="text-4xl opacity-40">🪔</span>
-            <p className="text-ink-3">The first pieces are on their way.</p>
-          </div>
+          <Empty kind="shop" message="The first pieces are on their way." className="py-20" />
         ) : (
           <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
             {items.map((p, i) => (
@@ -51,7 +49,7 @@ export default function Buyer() {
                 <div className="p-4">
                   <p className="font-semibold leading-snug">{p.listing?.titleEn}</p>
                   <p className="mt-1 line-clamp-2 text-sm text-ink-3">{p.listing?.descriptionEn}</p>
-                  <p className="mt-3 text-xl font-bold tabular-nums text-indigo">₹{p.price?.suggested}</p>
+                  <p className="mt-3 font-display text-xl font-bold tabular-nums text-indigo">₹{p.price?.suggested}</p>
                   <p className="mt-2 flex items-center gap-1 text-sm font-medium text-clay">
                     Message the artisan <span aria-hidden>→</span>
                   </p>

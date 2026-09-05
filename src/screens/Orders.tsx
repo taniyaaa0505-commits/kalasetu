@@ -16,6 +16,8 @@ import { listProducts } from '../services/db'
 import { speak } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
 import { asrCode, type Order, type Product, type OrderStatus } from '../types'
+import Icon from '../components/Icon'
+import Empty from '../components/Empty'
 
 export default function Orders() {
   const nav = useNavigate()
@@ -52,10 +54,7 @@ export default function Orders() {
   return (
     <Screen title={t('orders')} onBack={() => {}}>
       {orders.length === 0 && (
-        <div className="flex flex-col items-center gap-3 py-20 text-center">
-          <span aria-hidden className="text-4xl opacity-40">📦</span>
-          <p className="text-ink-3">{t('noOrders')}</p>
-        </div>
+        <Empty kind="orders" message={t('noOrders')} />
       )}
 
       <ul className="flex flex-col gap-4">
@@ -166,9 +165,9 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
           onClick={() => speak(o.noteLocal || o.note || '', asrCode(lang))}
           className="press mt-3 flex min-h-0 w-full items-start gap-2 rounded-card border border-line-2/70 bg-paper p-3 text-left"
         >
-          <span aria-hidden className="text-indigo">🔊</span>
+          <Icon name="speak" className="text-indigo" />
           <span>
-            <span className="block text-xs font-semibold uppercase tracking-widest text-ink-3">{t('buyerNote')}</span>
+            <span className="block text-xs font-semibold label uppercase text-ink-3">{t('buyerNote')}</span>
             <span className="text-base">{o.noteLocal || o.note}</span>
           </span>
         </button>
@@ -184,7 +183,7 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
 
       {o.status === 'accepted' && (
         <div className="mt-4 flex flex-col gap-2">
-          <BigButton icon="📦" label={t('markShipped')} onClick={() => onAnswer(o.id, 'shipped')} />
+          <BigButton icon={<Icon name="box" />} label={t('markShipped')} onClick={() => onAnswer(o.id, 'shipped')} />
           <button onClick={onOpenChat} className="press min-h-0 py-1.5 text-sm text-indigo underline">
             💬 {t('messages')}
           </button>
@@ -198,7 +197,7 @@ function Cell({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-card border border-line-2/70 bg-paper px-3 py-2.5">
       <p className="text-xs font-medium text-ink-3">{label}</p>
-      <p className="text-xl font-bold tabular-nums">{value}</p>
+      <p className="font-display text-xl font-bold tabular-nums">{value}</p>
     </div>
   )
 }

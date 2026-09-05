@@ -59,6 +59,11 @@
   --color-danger:     #A32E1C;
 
   /* Corners. One scale. */
+  /* Type. Display for headings and money, system for everything read
+     in bulk. Both are Tailwind tokens, so `font-display` is a utility. */
+  --font-body:    system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: 'Pehchaan Display', var(--font-body);
+
   --radius-card:      1rem;
   --radius-panel:     1.375rem;
 
@@ -68,15 +73,59 @@
   --shadow-lift:  0 4px 10px rgba(74, 52, 22, .09), 0 22px 46px -22px rgba(74, 52, 22, .36);
 }
 
+/* ---------------------------------------------------------------
+   THE DISPLAY FACE.
+
+   Baloo — a rounded, slightly heavy face drawn for Indian scripts
+   with a *matched sibling per script*, which is the rare thing. So
+   a Hindi heading and a Tamil heading are the same design, not the
+   same design plus whatever the phone had lying around.
+
+   Three files, and a phone downloads exactly one of them: the
+   unicode-range descriptor makes the browser fetch a face only
+   when a glyph in that range is actually on the page. Hindi costs
+   77 KB, Bengali 43 KB, Tamil 19 KB — never the sum. All three are
+   precached (globPatterns includes woff2) so headings survive
+   airplane mode in whichever language she chose.
+
+   Subset from Google’s TTFs with fontTools by scripts/make-font.sh.
+   Body text stays on the system font, which is the fastest thing
+   on the device and already tuned for her screen.
+---------------------------------------------------------------- */
+@font-face {
+  font-family: 'Pehchaan Display';
+  font-style: normal;
+  /* A range, not 700: a `font-semibold` heading then picks this file instead
+     of synthesising a fake bold out of it. */
+  font-weight: 600 800;
+  font-display: swap;
+  src: url('/fonts/pehchaan-deva.woff2') format('woff2');
+  unicode-range: U+0020-007E, U+00A0, U+2018-201D, U+2026, U+20B9,
+                 U+0900-097F, U+A8E0-A8FF, U+200C-200D;
+}
+@font-face {
+  font-family: 'Pehchaan Display';
+  font-style: normal;
+  font-weight: 600 800;
+  font-display: swap;
+  src: url('/fonts/pehchaan-beng.woff2') format('woff2');
+  unicode-range: U+0980-09FF, U+200C-200D;
+}
+@font-face {
+  font-family: 'Pehchaan Display';
+  font-style: normal;
+  font-weight: 600 800;
+  font-display: swap;
+  src: url('/fonts/pehchaan-taml.woff2') format('woff2');
+  unicode-range: U+0B80-0BFF, U+200C-200D;
+}
+
 html, body, #root { height: 100%; }
 
 body {
   background: var(--color-paper);
   color: var(--color-ink);
-  /* No webfont: a Latin display face covers none of Devanagari, Bengali or
-     Tamil, so five of our six languages would fall back anyway — and it is
-     another download for an app that must work offline. */
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
@@ -88,6 +137,19 @@ body {
    vanished entirely, because this build drops that layer. */
 :where(button, a[role="button"]) { min-height: 56px; }
 .text-xs { font-size: .8125rem; }
+
+/* Headings and money carry the display face. :where() keeps it at zero
+   specificity, so `font-body` on a component still wins. */
+:where(h1, h2, h3) { font-family: var(--font-display); letter-spacing: -0.005em; }
+
+/* Small tracked capitals — the label above a panel.
+   Letter-spacing is a Latin idea. Devanagari, Bengali and Tamil build a
+   syllable out of a consonant plus marks that hang off it, and spacing the
+   glyphs apart pulls those marks away from what they belong to: "आपकी दुकान"
+   set at .16em reads as loose debris rather than as words. Five of our six
+   languages are in those scripts, so the tracking is English-only. */
+.label { letter-spacing: 0 }
+html[lang^="en"] .label { letter-spacing: .14em }
 
 :focus-visible { outline: 3px solid var(--color-gold-leaf); outline-offset: 2px; }
 
@@ -166,8 +228,20 @@ body {
 @keyframes dye-c { 0%,100% { transform: translate(0,0) scale(.95) } 50% { transform: translate(24%,-24%) scale(1.22) } }
 @keyframes dye-d { 0%,100% { transform: translate(0,0) scale(1.1) } 50% { transform: translate(-22%,-20%) scale(.92) } }
 
+/* The buyer pages can arrive before their product does. A gold thread pulling
+   itself through, rather than the word "Loading" in a language she may not
+   read — and the same motif as the step beads. */
+.pull { animation: pull 1.15s cubic-bezier(.65,0,.35,1) infinite }
+@keyframes pull { 0% { transform: translateX(-110%) } 100% { transform: translateX(310%) } }
+
+/* A flame leans, it does not blink. Scale only — `.breathe` drops opacity to
+   .45 at the bottom of its cycle, which on the one lit thing in a drawing of a
+   shop reads as the lamp going out. */
+.flame { animation: flame 2.8s ease-in-out infinite; transform-origin: center bottom }
+@keyframes flame { 0%,100% { transform: scaleY(1) } 50% { transform: scaleY(1.08) scaleX(.97) } }
+
 @media (prefers-reduced-motion: reduce) {
-  .rise, .fade, .sheen, .breathe, .press, .dye span {
+  .rise, .fade, .sheen, .breathe, .press, .pull, .flame, .dye span {
     animation: none !important; transition: none !important;
   }
   .rise, .fade { opacity: 1 !important; transform: none !important }
