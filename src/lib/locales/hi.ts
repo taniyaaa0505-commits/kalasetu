@@ -168,6 +168,7 @@ export const hi = {
   cannotRemoveOrders: 'इसका ऑर्डर आया हुआ है। पहले ऑर्डर पूरा कीजिए।',
   understood: 'ठीक है',
   tapHere: 'यह दबाइए',
+  stepDone: 'हो गया। अब आगे दबाइए।',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

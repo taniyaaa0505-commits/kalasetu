@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
 import Coach from '../components/Coach'
+import { useSay } from '../lib/arrival'
 import { advanceGuide } from '../lib/guide'
 import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
@@ -48,6 +49,11 @@ export default function Price() {
 
   // Recompute on every change — the floor is pure maths, it is instant.
   useEffect(() => { setPrice(suggestPrice(cost, craft)) }, [cost, craft])
+
+  // Arrival only. The number changes on every tap of a stepper, and a voice
+  // reading it out each time would make the screen unusable — the price has
+  // its own speaker for when she wants to hear it.
+  useSay(t('tellUsCost'))
 
   async function next() {
     await patchProduct(id, { cost, price, usualPrice: usual || undefined })

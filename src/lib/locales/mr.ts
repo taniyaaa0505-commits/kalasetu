@@ -170,4 +170,5 @@ export const mr: Strings = {
   cannotRemoveOrders: 'याची ऑर्डर आली आहे. आधी ऑर्डर पूर्ण करा.',
   understood: 'ठीक आहे',
   tapHere: 'हे दाबा',
+  stepDone: 'झाले. आता पुढे दाबा.',
 }

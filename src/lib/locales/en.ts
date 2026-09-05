@@ -164,4 +164,5 @@ export const en: Strings = {
   cannotRemoveOrders: 'It has an order. Finish the order first.',
   understood: 'All right',
   tapHere: 'Tap this',
+  stepDone: 'Done. Now press next.',
 }

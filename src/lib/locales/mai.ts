@@ -177,4 +177,5 @@ export const mai: Strings = {
   cannotRemoveOrders: 'एकर ऑर्डर आएल अछि। पहिने ऑर्डर पूरा करू।',
   understood: 'ठीक अछि',
   tapHere: 'ई दबाउ',
+  stepDone: 'भऽ गेल। आब आगू दबाउ।',
 }

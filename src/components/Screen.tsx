@@ -6,7 +6,9 @@
  * reaches, and never let the page scroll sideways.
  */
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { stopSpeaking } from '../lib/speak'
 import Thread from './Thread'
 import { Scallop } from './Ornament'
 import LangButton from './LangButton'
@@ -24,6 +26,20 @@ export default function Screen({
   children: ReactNode
 }) {
   const nav = useNavigate()
+
+  /*
+   * Stop talking on the way out.
+   *
+   * `speak` cancels whatever came before it, so a screen that says something
+   * on arrival already replaces the last one. This is for the screens that
+   * say nothing: without it, the sentence from the page she just left runs on
+   * underneath the page she is now looking at — the app talking about
+   * somewhere she has already gone.
+   *
+   * Safe against the incoming screen, because React runs an unmount cleanup
+   * before the next screen's effects.
+   */
+  useEffect(() => () => stopSpeaking(), [])
 
   return (
     <div className="mx-auto flex h-full max-w-[480px] flex-col bg-paper">

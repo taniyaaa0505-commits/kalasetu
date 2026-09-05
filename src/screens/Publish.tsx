@@ -4,6 +4,7 @@ import Screen from '../components/Screen'
 import Icon from '../components/Icon'
 import { Gota } from '../components/Ornament'
 import Coach from '../components/Coach'
+import { useSay } from '../lib/arrival'
 import { advanceGuide, endGuide } from '../lib/guide'
 import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
@@ -32,6 +33,10 @@ export default function Publish() {
   const [done, setDone] = useState(false)
 
   useEffect(() => { getProduct(id).then(setP) }, [id])
+
+  // The last instruction in the flow. `published` is spoken by publish()
+  // itself, so this only covers the arrival.
+  useSay(t('tourPublishSub'), !done)
 
   async function publish() {
     advanceGuide('publishSend')

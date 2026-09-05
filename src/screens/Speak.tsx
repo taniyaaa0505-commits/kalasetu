@@ -6,6 +6,7 @@ import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import MicRing from '../components/MicRing'
 import Coach from '../components/Coach'
+import { useSay } from '../lib/arrival'
 import { advanceGuide } from '../lib/guide'
 import { getProduct, patchProduct } from '../services/db'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
@@ -27,6 +28,7 @@ export default function SpeakScreen() {
   const [error, setError] = useState<string>()
   const [typing, setTyping] = useState(false)
   const talking = useSpeaking()
+
   const recRef = useRef<Recogniser | null>(null)
 
   useEffect(() => {
@@ -69,6 +71,10 @@ export default function SpeakScreen() {
   }
 
   const hasText = text.trim().length > 0
+  useSay(t('speakHint'), !typing)
+  // Only once she has stopped: announcing it mid-sentence would talk over her
+  // and, worse, be picked up by the recogniser as part of what she said.
+  useSay(t('stepDone'), hasText && !recording)
 
   return (
     <Screen

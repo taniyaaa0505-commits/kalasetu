@@ -6,6 +6,7 @@ import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
 import Working from '../components/Working'
 import Coach from '../components/Coach'
+import { useSay } from '../lib/arrival'
 import { advanceGuide } from '../lib/guide'
 import BeforeAfter from '../components/BeforeAfter'
 import { getProduct, saveProduct, patchProduct } from '../services/db'
@@ -77,6 +78,12 @@ export default function Capture() {
   }
 
   const busy = progress !== undefined
+
+  // Arriving: what this screen is for. Working narrates the wait itself.
+  useSay(t('photoPrompt'), !photo)
+  // Finished: the cut-out is done AND stored, which is exactly when "next"
+  // becomes pressable. Saying it earlier would send her at a disabled button.
+  useSay(t('stepDone'), Boolean(clean) && saved && !busy)
 
   return (
     <Screen

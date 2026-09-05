@@ -174,4 +174,5 @@ export const ta: Strings = {
   cannotRemoveOrders: 'இதற்கு ஆர்டர் வந்திருக்கிறது. முதலில் ஆர்டரை முடியுங்கள்.',
   understood: 'சரி',
   tapHere: 'இதை அழுத்துங்கள்',
+  stepDone: 'முடிந்தது. இப்போது அடுத்து அழுத்துங்கள்.',
 }
