@@ -19,6 +19,8 @@ export default function Capture() {
   const [clean, setClean] = useState<string>()
   const [progress, setProgress] = useState<Progress>()
   const [usedAI, setUsedAI] = useState<boolean>()
+  // False from the moment she picks until the photo is actually written.
+  const [saved, setSaved] = useState(true)
 
   useEffect(() => {
     let alive = true
@@ -49,7 +51,7 @@ export default function Capture() {
     }
 
     const original = await fileToDataUrl(file)
-    setPhoto(original); setClean(undefined); setUsedAI(undefined)
+    setPhoto(original); setClean(undefined); setUsedAI(undefined); setSaved(false)
     setProgress({ phase: 'thinking' })
 
     // Cut out from the FULL-resolution photo — quality matters here.
@@ -58,8 +60,15 @@ export default function Capture() {
     // But store only a small copy of the original; it is just a thumbnail.
     const thumb = await shrink(original)
 
+    // Show her the result at once — the wait is over as far as she is
+    // concerned — but hold "next" until it is actually stored. She used to be
+    // able to leave before the write landed, and the next screen would read
+    // the product back with no photo in it: verified, the read returned
+    // gotPhoto false. That is how a listing ends up written from her words
+    // with her picture missing.
     setClean(result.dataUrl); setUsedAI(result.usedAI); setProgress(undefined)
     await patchProduct(id, { photo: thumb, cleanPhoto: result.dataUrl })
+    setSaved(true)
   }
 
   const busy = progress !== undefined
@@ -70,7 +79,7 @@ export default function Capture() {
       action={
         photo
           ? <div className="flex flex-col gap-2">
-              <BigButton icon={<Icon name="next" />} label={t('next')} onClick={() => nav(`/p/${id}/speak`)} disabled={busy} />
+              <BigButton icon={<Icon name="next" />} label={t('next')} onClick={() => nav(`/p/${id}/speak`)} disabled={busy || !saved} />
               <BigButton icon="🔄" label={t('retakePhoto')} variant="quiet" onClick={() => fileRef.current?.click()} />
             </div>
           : <BigButton icon="📷" label={t('takePhoto')} onClick={() => fileRef.current?.click()} />

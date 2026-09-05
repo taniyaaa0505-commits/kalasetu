@@ -14,8 +14,12 @@
  *  3. Keep her own work on screen behind it. She just took that photo; hiding
  *     it to show a spinner is the app talking about itself.
  */
+import { useEffect, useRef } from 'react'
 import Icon from './Icon'
 import Speakable from './Speakable'
+import { speak } from '../lib/speak'
+import { useLang } from '../lib/i18n'
+import { asrCode } from '../types'
 
 export default function Working({
   title, note, percent, behind,
@@ -29,6 +33,21 @@ export default function Working({
   /** Her photo, kept visible and dimmed underneath. */
   behind?: string
 }) {
+  const lang = useLang()
+
+  // Say it, do not just show it.
+  //
+  // Every other status in this app announces itself and this one did not: she
+  // watched a bar move for half a minute with no idea what it was doing. Fires
+  // on the TITLE changing, so the three phases of a first cut-out each get
+  // said once and a percentage ticking up does not re-trigger it.
+  const lastSaid = useRef<string>('')
+  useEffect(() => {
+    if (lastSaid.current === title) return   // StrictMode re-runs, and re-renders
+    lastSaid.current = title
+    speak(title, asrCode(lang))
+  }, [title, lang])
+
   return (
     <div className="fade relative overflow-hidden rounded-panel border border-line bg-surface shadow-card">
       {behind

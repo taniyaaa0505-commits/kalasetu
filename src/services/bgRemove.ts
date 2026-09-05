@@ -55,7 +55,19 @@ export type Progress =
 
 const MODEL_ID = 'briaai/RMBG-1.4'
 const WORK_MAX = 1400        // cap the photo before we touch it — phone photos are huge
-const OUT_SIZE = 1200        // final square
+/**
+ * The finished square, and what it costs to keep.
+ *
+ * Measured on a realistic 12 MP phone photo: 1200px at q0.92 came to 446 KB as
+ * a data URL, and the product document — which carries this AND the original
+ * thumbnail — reached 529 KB. Firestore refuses anything over 1 MB, warns us
+ * at 800 KB, and every one of those kilobytes is written over her mobile data
+ * while she waits to move to the next screen.
+ *
+ * 1000px at q0.85 is 140 KB and is still more than any phone or laptop shows.
+ */
+const OUT_SIZE = 1000        // final square
+const OUT_QUALITY = 0.85
 const FILL = 0.82            // product fills 82% of the frame — the e-commerce norm
 
 let loadPromise: Promise<{ model: any; processor: any; RawImage: any }> | null = null
@@ -153,10 +165,10 @@ export async function removeBackground(
 
 /* ------------------------------------------------------------------ */
 
-/** Shrink a photo before we store it. A phone camera JPEG is 2-4 MB and we
- *  only ever show the original as a small "before" thumbnail, so keeping the
- *  full thing costs storage and load time for nothing. */
-export async function shrink(dataUrl: string, max = 900, quality = 0.85): Promise<string> {
+/** Shrink a photo before we store it. A phone camera JPEG is 2-8 MB and the
+ *  original is only ever shown as a small "before" inset, so 420px is already
+ *  more than that inset can display — 83 KB down to 7 KB, measured. */
+export async function shrink(dataUrl: string, max = 420, quality = 0.8): Promise<string> {
   const { canvas } = await drawScaled(dataUrl, max)
   return canvas.toDataURL('image/jpeg', quality)
 }
@@ -229,7 +241,7 @@ function compositeOnWhite(
   ctx.restore()
 
   ctx.drawImage(src, box.x, box.y, box.w, box.h, x, y, w, h)
-  return out.toDataURL('image/jpeg', 0.92)
+  return out.toDataURL('image/jpeg', OUT_QUALITY)
 }
 
 /** Fallback: no cut-out, just square it on white. Still better than raw. */
@@ -249,5 +261,5 @@ export async function toSquareOnWhite(dataUrl: string, size = OUT_SIZE): Promise
   const w = img.width * scale, h = img.height * scale
   ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h)
 
-  return c.toDataURL('image/jpeg', 0.92)
+  return c.toDataURL('image/jpeg', OUT_QUALITY)
 }
