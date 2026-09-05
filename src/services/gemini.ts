@@ -121,20 +121,29 @@ export async function generateListing(
     ? ` The transcript below was produced by a ${LANGS.find(l => l.asr === meta.asr && l.code === meta.asr)?.english ?? 'Hindi'} speech recogniser listening to ${langName}, so words may be garbled or spelled oddly. Interpret the intent generously.`
     : ''
 
-  const img = splitDataUrl(photoDataUrl)
+  // No photo, no image part.
+  //
+  // This used to send `inlineData` with an empty `data` whenever the product
+  // had no picture yet, and Gemini rejects that with
+  // `400 Unable to process input image` — which reached her as a raw error
+  // string on the description screen. A listing written from her words alone
+  // is a perfectly good listing; an empty image is not an image.
+  const img = photoDataUrl ? splitDataUrl(photoDataUrl) : null
+  const hasPhoto = Boolean(img && img.data)
+
+  const parts: Array<Record<string, unknown>> = []
+  if (hasPhoto && img) parts.push({ inlineData: { mimeType: img.mimeType, data: img.data } })
+  parts.push({
+    text:
+      (hasPhoto ? '' : 'There is no photograph of this one. Write it from her words alone, ' +
+                       'and do not describe anything you have not been told.\n\n') +
+      `The artisan said, in ${langName}:\n"""${transcript}"""\n\nWrite the listing.` +
+      answersBlock(answers, langName),
+  })
 
   const body = {
     systemInstruction: { parts: [{ text: systemRules(langName, asrNote) }] },
-    contents: [{
-      role: 'user',
-      parts: [
-        { inlineData: { mimeType: img.mimeType, data: img.data } },
-        { text:
-            `The artisan said, in ${langName}:\n"""${transcript}"""\n\nWrite the listing.` +
-            answersBlock(answers, langName),
-        },
-      ],
-    }],
+    contents: [{ role: 'user', parts }],
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: SCHEMA,
@@ -149,7 +158,14 @@ export async function generateListing(
     body: JSON.stringify(body),
   })
 
-  if (!res.ok) throw new Error(`Gemini failed (${res.status}): ${await res.text()}`)
+  if (!res.ok) {
+    // The raw body is a page of JSON. Pull the one sentence out of it, so the
+    // detail we show under the friendly message is readable by a human.
+    const raw = await res.text()
+    let why = raw.slice(0, 160)
+    try { why = JSON.parse(raw)?.error?.message ?? why } catch { /* not JSON */ }
+    throw new Error(`Gemini ${res.status}: ${why}`)
+  }
 
   const text = textOf(await res.json())
   if (!text) throw new Error('Gemini returned nothing usable.')
