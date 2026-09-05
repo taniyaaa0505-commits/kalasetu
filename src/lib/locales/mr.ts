@@ -67,6 +67,7 @@ export const mr: Strings = {
   whatIsIt: 'काय आहे',
   descriptionLabel: 'माहिती',
   forTheBuyer: 'ग्राहकासाठी',
+  askedMore: 'ॲपला आणखी {n} गोष्टी जाणून घ्यायच्या आहेत',
   tellUsMore: 'हेही सांगा',
   answerThis: 'उत्तर द्या',
   answering: 'ऐकत आहोत…',

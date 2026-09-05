@@ -74,6 +74,7 @@ export const mai: Strings = {
   whatIsIt: 'की अछि',
   descriptionLabel: 'विवरण',
   forTheBuyer: 'खरीददारक लेल',
+  askedMore: 'ऐपके {n} बात आओर जनबाक अछि',
   tellUsMore: 'ई सेहो कहू',
   answerThis: 'जवाब दिअ',
   answering: 'सुनि रहल छी…',

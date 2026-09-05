@@ -63,6 +63,7 @@ export const hi = {
   whatIsIt: 'क्या है',
   descriptionLabel: 'विवरण',
   forTheBuyer: 'खरीदार के लिए',
+  askedMore: 'ऐप को {n} बातें और जाननी हैं',
   tellUsMore: 'हमें यह भी बताइए',
   answerThis: 'जवाब दीजिए',
   answering: 'सुन रहे हैं…',

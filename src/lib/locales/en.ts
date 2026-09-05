@@ -59,6 +59,7 @@ export const en: Strings = {
   whatIsIt: 'What it is',
   descriptionLabel: 'Description',
   forTheBuyer: 'For the buyer',
+  askedMore: 'The app wants to know {n} more things',
   tellUsMore: 'Tell us this too',
   answerThis: 'Answer this',
   answering: 'Listening…',

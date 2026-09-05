@@ -10,7 +10,7 @@ import { generateListing, geminiConfigured } from '../services/gemini'
 import { enqueue, isOnline, onConnectivityChange } from '../services/queue'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
-import { t, useLang, prefersEnglish } from '../lib/i18n'
+import { t, tf, useLang, prefersEnglish } from '../lib/i18n'
 import { asrCode, type Answer, type Listing } from '../types'
 
 /** `asking` holds the question being answered; '' is the free-form mic. */
@@ -28,6 +28,8 @@ export default function Review() {
   const [photo, setPhoto] = useState<string>()
   // Parked because there is no signal, rather than failed.
   const [parked, setParked] = useState(false)
+  const questionsRef = useRef<HTMLDivElement | null>(null)
+  const announced = useRef(false)
 
   // What she has told us since the first draft, and whether the draft on
   // screen already reflects it.
@@ -98,6 +100,23 @@ export default function Review() {
 
   // Never leave the microphone open or the phone talking to an empty screen.
   useEffect(() => () => { recRef.current?.stop(); stopSpeaking() }, [])
+
+  /**
+   * Tell her the app has asked something.
+   *
+   * The questions sit 695px down on a 360px phone — 139px below the fold —
+   * so on arrival they do not exist as far as she is concerned. A "scroll for
+   * more" hint would be text she cannot read or an arrow she may never have
+   * been taught. She is not a reader; she is a listener, and this app already
+   * talks. So it says how many, and then asks the first one.
+   */
+  useEffect(() => {
+    const qs = listing?.questions ?? []
+    const open = qs.filter(q => !answersRef.current.some(a => a.question === q && a.answer.trim()))
+    if (!open.length || announced.current) return
+    announced.current = true
+    speak(`${tf('askedMore', { n: open.length })}. ${open[0]}`, asrCode(lang))
+  }, [listing, lang])
 
   // If she is still standing here when the signal returns, write it now
   // rather than making her go back and forth.
@@ -191,6 +210,7 @@ export default function Review() {
   const answerFor = (q: string) => answers.find(a => a.question === q)?.answer
   // Free-form additions, plus answers to questions the model has since stopped
   // asking — she should still be able to hear back everything she added.
+  const openQuestions = (listing?.questions ?? []).filter(q => !answerFor(q)).length
   const asked = new Set(listing?.questions ?? [])
   const extras = answers.filter(a => !a.question || !asked.has(a.question))
 
@@ -244,6 +264,19 @@ export default function Review() {
         </div>
       )}
 
+      {listing && openQuestions > 0 && (
+        <button
+          onClick={() => questionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          className="press mb-4 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left"
+        >
+          <span aria-hidden className="text-xl">🔊</span>
+          <span className="flex-1 text-[15px] font-semibold leading-snug text-gold">
+            {tf('askedMore', { n: openQuestions })}
+          </span>
+          <span aria-hidden className="text-lg text-gold">↓</span>
+        </button>
+      )}
+
       {listing && (
         <div className={'flex flex-col gap-5 transition-opacity ' + (rewriting ? 'opacity-50' : '')}>
           {/* Her listing, laid out the way a marketplace lays one out — her
@@ -274,7 +307,7 @@ export default function Review() {
               sure about becomes a question, never a guess — and she can answer
               it out loud, which is the only half of this she can actually do. */}
           {listing.questions.length > 0 && (
-            <div className="rounded-panel border-2 border-gold bg-gold-wash p-4 shadow-rest">
+            <div ref={questionsRef} className="rounded-panel border-2 border-gold bg-gold-wash p-4 shadow-rest">
               <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gold">
                 {t('tellUsMore')}
               </p>

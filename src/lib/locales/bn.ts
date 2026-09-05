@@ -65,6 +65,7 @@ export const bn: Strings = {
   whatIsIt: 'কী জিনিস',
   descriptionLabel: 'বিবরণ',
   forTheBuyer: 'ক্রেতার জন্য',
+  askedMore: 'অ্যাপ আরও {n}টি কথা জানতে চায়',
   tellUsMore: 'এটাও বলুন',
   answerThis: 'উত্তর দিন',
   answering: 'শুনছি…',

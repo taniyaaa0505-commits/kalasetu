@@ -71,6 +71,7 @@ export const ta: Strings = {
   whatIsIt: 'என்ன பொருள்',
   descriptionLabel: 'விவரம்',
   forTheBuyer: 'வாங்குபவருக்கு',
+  askedMore: 'செயலி இன்னும் {n} விஷயங்களை அறிய விரும்புகிறது',
   tellUsMore: 'இதையும் சொல்லுங்கள்',
   answerThis: 'பதில் சொல்லுங்கள்',
   answering: 'கேட்கிறோம்…',
