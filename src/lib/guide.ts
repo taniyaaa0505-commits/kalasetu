@@ -56,9 +56,14 @@ export const GUIDE_STEPS = [
   'reviewListen',    // and hear it back before you accept it
   'reviewNext',
 
-  /* Before "next" on the price screen: the one field the whole project is
-     measured on, and the one everybody skips because it is optional and it
-     starts at zero. It gets its own ring and its own sentence. */
+  /* The price screen, one field at a time, in the order it reads.
+     Every one of these is a number she is being asked to supply, and the
+     floor — the only part of the price that is not a guess — is computed
+     from the first two. Ringing the whole screen would tell her nothing. */
+  'priceMaterial',
+  'priceHours',
+  /* And the one the whole project is measured on, which everybody skips
+     because it is optional and starts at zero. */
   'priceUsual',
   'priceNext',
   'publishSend',

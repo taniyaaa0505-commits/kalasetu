@@ -179,4 +179,6 @@ export const mai: Strings = {
   tapHere: 'ई दबाउ',
   stepDone: 'भऽ गेल। आब आगू दबाउ।',
   priceEstimated: 'ई सामानक बाजार भाव हमरा लग नहि अछि। ई अनुमान थिक।',
+  materialHint: 'माटि, रंग, धागा — जे किछु कीनय पड़ल',
+  hoursHint: 'एकरा बनाबय मे कुल कतेक घंटा लागल',
 }

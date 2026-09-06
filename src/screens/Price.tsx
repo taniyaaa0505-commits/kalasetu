@@ -4,8 +4,7 @@ import Screen from '../components/Screen'
 import Coach from '../components/Coach'
 import { useSay } from '../lib/arrival'
 import { useIdle } from '../lib/idle'
-import { getGuideStep } from '../lib/guide'
-import { advanceGuide } from '../lib/guide'
+import { advanceGuide, useGuideStep } from '../lib/guide'
 import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
@@ -60,7 +59,12 @@ export default function Price() {
   useSay(t('tellUsCost'))
 
   // The guide has its own ring; two at once is noise.
-  const nudge = useIdle() && getGuideStep() === 'done'
+  // Both hooks called unconditionally. `useIdle() && useGuideStep() === 'done'`
+  // reads fine and is a bug: && short-circuits, so the second hook runs only
+  // sometimes, and React counts them.
+  const idle = useIdle()
+  const guideStep = useGuideStep()
+  const nudge = idle && guideStep === 'done'
 
   async function next() {
     await patchProduct(id, { cost, price, usualPrice: usual || undefined })
@@ -73,9 +77,22 @@ export default function Price() {
       action={<BigButton icon={<Icon name="next" />} label={t('next')} beacon={nudge && usual > 0}
         onClick={() => { advanceGuide('priceNext'); next() }} />}
     >
-      {/* Read aloud, because she cannot read the label and because "what did
-          you used to get for one of these" is the only question in the app
-          whose answer becomes the number the Ministry is shown. */}
+      {/* One field at a time, each read aloud, because she cannot read the
+          labels and because every one of these is a number only she knows.
+          The first two are what the price FLOOR is computed from — the only
+          part of the price that is not a guess.
+
+          These two carry a "next", because their defaults may genuinely be
+          right and she must not be trapped confirming a number she already
+          agrees with. Changing the value moves the guide on as well. */}
+      <Coach step="priceMaterial" target="material"
+             title={t('materialCost')} body={t('materialHint')} />
+      <Coach step="priceHours" target="hours"
+             title={t('hoursTaken')} body={t('hoursHint')} />
+
+      {/* This one has no "next": it starts at zero, which is not an answer,
+          and it is the only question in the app whose reply becomes the
+          number the Ministry is shown. */}
       <Coach step="priceUsual" target="usual" mode="tap"
              title={t('usualPrice')} body={t('tellUsUsual')} />
       <Coach step="priceNext" target="action" mode="tap"
@@ -84,9 +101,11 @@ export default function Price() {
       {/* No typing. She taps + and - . */}
       <p className="mb-4 text-[0.9375rem] leading-snug text-ink-2">{t('tellUsCost')}</p>
       <Stepper label={t('materialCost')} unit="₹" value={cost.materialCost} step={50}
-        onChange={v => setCost({ ...cost, materialCost: v })} />
+        guide="material"
+        onChange={v => { setCost({ ...cost, materialCost: v }); advanceGuide('priceMaterial') }} />
       <Stepper label={t('hoursTaken')} unit={t('hours')} value={cost.hours} step={2}
-        onChange={v => setCost({ ...cost, hours: v })} />
+        guide="hours"
+        onChange={v => { setCost({ ...cost, hours: v }); advanceGuide('priceHours') }} />
 
       {/* The one number this project is actually judged on.
           Optional, and it starts at zero rather than at a guess: a default

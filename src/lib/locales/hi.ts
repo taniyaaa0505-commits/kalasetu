@@ -170,6 +170,8 @@ export const hi = {
   tapHere: 'यह दबाइए',
   stepDone: 'हो गया। अब आगे दबाइए।',
   priceEstimated: 'इस सामान का बाज़ार भाव हमारे पास नहीं है। यह अंदाज़ा है।',
+  materialHint: 'मिट्टी, रंग, धागा — जो कुछ खरीदना पड़ा',
+  hoursHint: 'इसे बनाने में कुल कितने घंटे लगे',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

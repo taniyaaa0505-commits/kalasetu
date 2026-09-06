@@ -166,4 +166,6 @@ export const en: Strings = {
   tapHere: 'Tap this',
   stepDone: 'Done. Now press next.',
   priceEstimated: 'We have no market prices for this craft — this is an estimate.',
+  materialHint: 'Clay, colour, thread — whatever you had to buy',
+  hoursHint: 'How many hours it took you to make, in total',
 }
