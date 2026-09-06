@@ -135,13 +135,26 @@ export default function Coach({
   }
   const underTop = box.top + box.height + 12
   const aboveTop = box.top - 12 - H
-  // Anchored by its BOTTOM when it goes above, so the gap to the ring is exact
-  // whatever the caption's real height turns out to be. Deriving a `top` from
-  // an estimated height let a taller-than-expected card grow down over the
-  // very control it was pointing at.
-  const cardStyle = buried(underTop, underTop + H) <= buried(aboveTop, box.top - 12)
-    ? { top: underTop }
-    : { bottom: window.innerHeight - box.top + 12 }
+  const under = buried(underTop, underTop + H)
+  const above = buried(aboveTop, box.top - 12)
+
+  /*
+   * Anchored by its BOTTOM when it goes above, so the gap to the ring is exact
+   * whatever the caption's real height turns out to be. Deriving a `top` from
+   * an estimated height let a taller-than-expected card grow down over the
+   * very control it was pointing at.
+   *
+   * When NEITHER side fits, the target is taller than the room around it — the
+   * questions block with two spoken questions in it is exactly that on a small
+   * phone. Pinning the card to the bottom edge is the honest answer: it
+   * overlaps the foot of the ring, but the thing she has to read and the thing
+   * she has to press are both on screen, which is what matters.
+   */
+  const cardStyle = under >= 999 && above >= 999
+    ? { bottom: 12 }
+    : under <= above
+      ? { top: underTop }
+      : { bottom: window.innerHeight - box.top + 12 }
 
   return (
     <div className="fixed inset-0 z-50" style={{ pointerEvents: 'none' }} aria-live="polite">

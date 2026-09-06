@@ -345,7 +345,6 @@ export default function Review() {
 
       {listing && openQuestions > 0 && (
         <button
-          data-guide="questions"
           onClick={() => questionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
           className={'press mb-4 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left '
             + (nudge ? 'beacon' : '')}
@@ -391,7 +390,14 @@ export default function Review() {
               sure about becomes a question, never a guess — and she can answer
               it out loud, which is the only half of this she can actually do. */}
           {listing.questions.length > 0 && (
-            <div ref={questionsRef} className="rounded-panel border-2 border-gold bg-gold-wash p-4 shadow-rest">
+            /* The guide rings THIS, not the chip above that scrolls to it.
+               The chip is at the top of a long screen; by the time she had
+               scrolled down to answer, the ring was somewhere off the top of
+               the viewport, so nothing was lit and the caption sat stranded
+               against the header. Ringing the questions themselves lifts them
+               out of the dim — which is the whole point of the dim. */
+            <div ref={questionsRef} data-guide="questions"
+              className="rounded-panel border-2 border-gold bg-gold-wash p-4 shadow-rest">
               <p className="mb-3 text-xs font-semibold label uppercase text-gold">
                 {t('tellUsMore')}
               </p>
