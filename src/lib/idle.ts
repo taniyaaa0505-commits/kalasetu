@@ -15,8 +15,16 @@
  * this forever and the beacon would never appear in a demo.
  */
 import { useEffect, useState } from 'react'
+import { chime } from './chime'
 
-export function useIdle(ms = 4500): boolean {
+/**
+ * Three seconds, not four and a half.
+ *
+ * Long enough that someone moving through the app never sees a ring, short
+ * enough that someone who has stopped because she does not know what to do
+ * is not left alone with the question.
+ */
+export function useIdle(ms = 3000): boolean {
   const [idle, setIdle] = useState(false)
 
   useEffect(() => {
@@ -24,7 +32,11 @@ export function useIdle(ms = 4500): boolean {
     const restart = () => {
       setIdle(false)
       clearTimeout(timer)
-      timer = setTimeout(() => setIdle(true), ms)
+      timer = setTimeout(() => {
+        setIdle(true)
+        // Once, as the ring appears — not on each of its pulses.
+        chime()
+      }, ms)
     }
     restart()
     const events = ['pointerdown', 'keydown'] as const

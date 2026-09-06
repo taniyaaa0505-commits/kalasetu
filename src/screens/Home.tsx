@@ -12,7 +12,7 @@ import { speak } from '../lib/speak'
 import Coach from '../components/Coach'
 import { useIdle } from '../lib/idle'
 import { getGuideStep } from '../lib/guide'
-import { advanceGuide, restartGuide, useGuideStep } from '../lib/guide'
+import { advanceGuide, guideEditOnce, restartGuide, useGuideStep } from '../lib/guide'
 import ConfirmRemove from '../components/ConfirmRemove'
 import Shopfront from '../components/Shopfront'
 import Speakable from '../components/Speakable'
@@ -172,13 +172,11 @@ export default function Home() {
             the bottom of the screen, so it stays under her thumb however long
             the shop below gets. */}
         <div className="rise rise-2 mt-4 grid grid-cols-2 gap-3">
-          <Tile icon={<Icon name="learn" />} label={t('learnHow')} onClick={restartGuide} />
-          <div data-guide="orders" className="contents">
-            <Tile
-              icon={<Icon name="box" />} label={t('orders')} onClick={() => nav('/orders')}
-              badge={waiting > 0 ? waiting : undefined}
-            />
-          </div>
+          <Tile guide="learn" icon={<Icon name="learn" />} label={t('learnHow')} onClick={restartGuide} />
+          <Tile
+            guide="orders" icon={<Icon name="box" />} label={t('orders')} onClick={() => nav('/orders')}
+            badge={waiting > 0 ? waiting : undefined}
+          />
         </div>
 
         {!empty && (
@@ -199,7 +197,12 @@ export default function Home() {
                      That screen already exists. A product still missing its
                      listing has nowhere else to go, so that one continues
                      where she left off. */
-                  onOpen={() => nav(`/p/${p.id}/${p.listing ? 'review' : 'capture'}`)}
+                  onOpen={() => {
+                    // Opening a finished listing is a job the guide never
+                    // covered. Once, the first time. See lib/guide.ts.
+                    if (p.listing) guideEditOnce()
+                    nav(`/p/${p.id}/${p.listing ? 'review' : 'capture'}`)
+                  }}
                   onChat={() => nav(`/p/${p.id}/chat`)}
                   onRemove={() => setRemoving(p)}
                 />
@@ -220,6 +223,11 @@ export default function Home() {
           button and the card already says "tap this"; the title is the whole
           instruction. */}
       <Coach step="homeAdd"    target="action" title={t('tourStart')} mode="tap" />
+
+      {/* The last thing the guide ever says, and the only one that is about
+          the guide itself. She has sold one thing; she will not remember six
+          screens from a single run, and this is a button she cannot read. */}
+      <Coach step="homeLearn"  target="learn"  title={t('learnHow')} body={t('learnAgainHint')} />
 
       {removing && (
           <ConfirmRemove
@@ -487,11 +495,19 @@ function SoFar({ products, orders, draft }: {
 /** Both tiles say their own label out loud, for the same reason BigButton
  *  does: an icon and a word are both unreadable to someone who reads neither. */
 function Tile({
-  icon, label, onClick, badge,
-}: { icon: ReactNode; label: string; onClick: () => void; badge?: number }) {
+  icon, label, onClick, badge, guide,
+}: {
+  icon: ReactNode; label: string; onClick: () => void; badge?: number
+  /** data-guide, on the button itself.
+   *  It used to be on a `display: contents` wrapper, which has no box at all —
+   *  getBoundingClientRect returns zeros, so the guide could never find it and
+   *  silently skipped the step. */
+  guide?: string
+}) {
   const lang = useLang()
   return (
     <button
+      data-guide={guide}
       onClick={() => { speak(label, asrCode(lang)); onClick() }}
       className="press relative flex min-h-[5.75rem] flex-col items-center justify-center gap-1.5 rounded-card
                  border border-line bg-surface px-3 py-3 text-center shadow-rest active:bg-surface-2"

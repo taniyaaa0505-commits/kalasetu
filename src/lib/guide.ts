@@ -68,6 +68,12 @@ export const GUIDE_STEPS = [
   'priceNext',
   'publishSend',
 
+  /* Back on the home screen, with one thing sold and the guide about to stop
+     talking forever. The last thing she is shown is how to get it back. She
+     will not remember six screens from one run, and "learn how to sell" is a
+     button she cannot read — so it is rung and explained before we go quiet. */
+  'homeLearn',
+
   'done',
 ] as const
 
@@ -165,3 +171,27 @@ export function endGuide() { write('done') }
 /** From the "learn how to sell" tile. Not back to the language screen — she
  *  has a language, and asking again would read as the app forgetting her. */
 export function restartGuide() { write('homeWhat') }
+
+/**
+ * The first time she opens a listing she already made.
+ *
+ * The guide runs once, forward, and stops — so it only ever covered making a
+ * NEW thing. Opening a finished listing to change it is a different job with
+ * no help at all: the questions further down, the button that rewrites the
+ * description, hearing it back. She has done all of that exactly once, weeks
+ * ago, on a screen she was being talked through.
+ *
+ * So it rejoins at the review steps, once. Not every time she opens a
+ * listing — a tutorial she cannot dismiss is worse than no tutorial — and
+ * never while the first run is still going, which already covers this ground.
+ */
+const EDIT_KEY = 'kalasetu.guide.edit'
+
+export function guideEditOnce() {
+  if (current !== 'done') return           // the first run has it covered
+  try {
+    if (localStorage.getItem(EDIT_KEY) === '1') return
+    localStorage.setItem(EDIT_KEY, '1')
+  } catch { return }                        // no storage, no second chance to track
+  write('reviewQuestions')
+}

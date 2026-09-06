@@ -172,6 +172,7 @@ export const hi = {
   priceEstimated: 'इस सामान का बाज़ार भाव हमारे पास नहीं है। यह अंदाज़ा है।',
   materialHint: 'मिट्टी, रंग, धागा — जो कुछ खरीदना पड़ा',
   hoursHint: 'इसे बनाने में कुल कितने घंटे लगे',
+  learnAgainHint: 'कभी भूल जाएँ तो यहाँ दबाइए। मैं फिर से पूरा तरीका दिखाऊँगी।',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

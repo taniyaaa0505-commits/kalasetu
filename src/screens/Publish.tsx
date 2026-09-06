@@ -7,7 +7,7 @@ import Coach from '../components/Coach'
 import { useSay } from '../lib/arrival'
 import { useIdle } from '../lib/idle'
 import { getGuideStep } from '../lib/guide'
-import { advanceGuide, endGuide } from '../lib/guide'
+import { advanceGuide } from '../lib/guide'
 import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
 import { speak } from '../lib/speak'
@@ -42,11 +42,11 @@ export default function Publish() {
   const nudge = useIdle() && getGuideStep() === 'done'
 
   async function publish() {
-    advanceGuide('publishSend')
     await patchProduct(id, { status: 'published' })
     setDone(true)
-    // The guide ends HERE, on a real published listing of her own.
-    endGuide()
+    // Not the end — one step left, and it is on the home screen: where to
+    // find all of this again. See 'homeLearn' in lib/guide.ts.
+    advanceGuide('publishSend')
     speak(t('published'), asrCode(lang))
   }
 

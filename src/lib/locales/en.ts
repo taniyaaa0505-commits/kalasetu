@@ -168,4 +168,5 @@ export const en: Strings = {
   priceEstimated: 'We have no market prices for this craft — this is an estimate.',
   materialHint: 'Clay, colour, thread — whatever you had to buy',
   hoursHint: 'How many hours it took you to make, in total',
+  learnAgainHint: 'Forgotten how? Press here and I will show you the whole thing again.',
 }
