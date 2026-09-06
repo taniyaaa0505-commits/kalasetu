@@ -16,8 +16,16 @@ const products = collection<Product>(STORE, p =>
   `${p.id}:${p.status}:${p.price?.suggested ?? 0}:${p.listing ? 1 : 0}:${p.cleanPhoto ? 1 : 0}`,
 )
 
+/** Every product, from everyone. Outward-facing screens only. */
 export async function listProducts(): Promise<Product[]> {
   return (await products.list()).sort((a, b) => b.createdAt - a.createdAt)
+}
+
+/** Hers. Filtered here rather than in Firestore because a one-shot read of a
+ *  small collection is not worth a composite index; the live subscription,
+ *  which is the one that moves photographs, IS filtered server-side. */
+export async function listMyProducts(artisan: string): Promise<Product[]> {
+  return (await listProducts()).filter(p => p.artisanId === artisan)
 }
 
 export async function getProduct(id: string): Promise<Product | undefined> {
@@ -41,14 +49,37 @@ export async function deleteProduct(id: string): Promise<void> {
   await products.remove(id)
 }
 
+const byNewest = (items: Product[]) => [...items].sort((a, b) => b.createdAt - a.createdAt)
+
 /**
- * Watch every product. Returns an unsubscribe.
+ * Watch EVERY product, from every artisan.
  *
- * Screens use this instead of running their own timer, so they get realtime
- * updates the moment Firebase is configured without changing a line.
+ * Only two screens may use this and both are outward-facing: the buyer
+ * marketplace, whose whole job is to show many makers' work, and the impact
+ * dashboard, which aggregates across all of them. Her own app must not — see
+ * below.
  */
 export function subscribeProducts(cb: (items: Product[]) => void): () => void {
-  return products.subscribe(items => cb([...items].sort((a, b) => b.createdAt - a.createdAt)))
+  return products.subscribe(items => cb(byNewest(items)))
+}
+
+/**
+ * Watch HER products.
+ *
+ * The artisan's app used this collection unfiltered, which meant every phone
+ * that installed the APK opened onto every other artisan's shop — someone
+ * else's work, presented as hers, with her own name on the header. It also
+ * meant downloading their photographs to do it, about half a megabyte each.
+ *
+ * Filtered on the server by `artisanId` (services/artisan.ts). Products made
+ * before that field existed match nobody and simply do not appear in anyone's
+ * shop; they are still counted on the impact dashboard, which reports them as
+ * unattributed rather than pretending they belong to whoever is looking.
+ */
+export function subscribeMyProducts(
+  artisan: string, cb: (items: Product[]) => void,
+): () => void {
+  return products.subscribe(items => cb(byNewest(items)), { field: 'artisanId', equals: artisan })
 }
 
 export function newId(): string {

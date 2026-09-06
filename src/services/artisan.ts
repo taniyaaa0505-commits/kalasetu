@@ -45,6 +45,28 @@ function localId(): string {
 let pending: Promise<string> | null = null
 
 /**
+ * How long identity may hold up the app: not long.
+ *
+ * Offline, `signInAnonymously` does not fail — it waits, for as long as the
+ * network might come back, which is forever. That is fine for a background
+ * concern and fatal for this one, because the id is needed at the exact moment
+ * she takes her first photograph. Reported from a real phone with the network
+ * off: the camera returns, and the app never reaches the cleaning screen.
+ *
+ * Nothing about a metric may ever stand between her and the next screen. Two
+ * seconds, then the device id, and if auth arrives later it simply does not
+ * matter — the product is already hers on this phone.
+ */
+const AUTH_TIMEOUT_MS = 2000
+
+function within<T>(work: Promise<T>, ms: number, fallback: () => T): Promise<T> {
+  return Promise.race([
+    work,
+    new Promise<T>(resolve => setTimeout(() => resolve(fallback()), ms)),
+  ])
+}
+
+/**
  * The current artisan's id. Cached, so the second call is free.
  *
  * Never throws and never blocks the golden path. If auth fails — offline on
@@ -55,7 +77,15 @@ export function artisanId(): Promise<string> {
   if (!pending) {
     pending = (async () => {
       if (!cloudEnabled()) return localId()
-      try {
+      return within(signIn(), AUTH_TIMEOUT_MS, localId)
+    })()
+  }
+  return pending
+}
+
+async function signIn(): Promise<string> {
+  {
+    try {
         const { initializeApp, getApps, getApp } = await import('firebase/app')
         const { getAuth, signInAnonymously, onAuthStateChanged } = await import('firebase/auth')
         const app = getApps().length ? getApp() : initializeApp({
@@ -76,11 +106,17 @@ export function artisanId(): Promise<string> {
 
         const cred = await signInAnonymously(auth)
         return cred.user.uid
-      } catch (err) {
-        console.warn('[artisan] anonymous sign-in unavailable; using a device id:', err)
-        return localId()
-      }
-    })()
+    } catch (err) {
+      console.warn('[artisan] anonymous sign-in unavailable; using a device id:', err)
+      return localId()
+    }
   }
-  return pending
 }
+
+/**
+ * Ask for the id early, so it is already cached when it is needed.
+ *
+ * Called once at startup. Nothing waits on it — the timeout above is what
+ * guarantees the golden path, and this only makes the common case instant.
+ */
+export function warmArtisanId() { void artisanId() }

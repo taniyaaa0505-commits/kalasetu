@@ -19,7 +19,7 @@ export function localCollection<T extends Stored>(
     put: async (item) => { await run('readwrite', s => s.put(item), storeName) },
     remove: async (id) => { await run('readwrite', s => s.delete(id), storeName) },
 
-    subscribe(cb) {
+    subscribe(cb, only) {
       let alive = true
       // Null, not '': an EMPTY collection has an empty signature, so starting
       // at '' meant the first callback never fired for an empty store and any
@@ -27,8 +27,11 @@ export function localCollection<T extends Stored>(
       let last: string | null = null
       const tick = async () => {
         try {
-          const items = await run<T[]>('readonly', s => s.getAll(), storeName)
+          const all = await run<T[]>('readonly', s => s.getAll(), storeName)
           if (!alive) return
+          const items = only
+            ? all.filter(x => (x as Record<string, unknown>)[only.field] === only.equals)
+            : all
           const now = items.map(sig).join('|')
           if (now !== last) { last = now; cb(items) }
         } catch { /* the storage banner already reports this */ }

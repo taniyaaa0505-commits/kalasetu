@@ -232,6 +232,21 @@ export default function Review() {
     } finally { setRewriting(false) }
   }
 
+  /*
+   * Above the early return, and it has to stay there.
+   *
+   * This lived below `if (busy) return` and cost the app its whole review
+   * screen: while the listing is being written the component takes one path
+   * and calls five hooks, and the moment the listing lands it takes the other
+   * and calls six. React counts them, finds the mismatch, and unmounts the
+   * tree — "Minified React error #310", a blank screen, at exactly the moment
+   * her title and description were supposed to appear.
+   *
+   * A hook may never sit after a conditional return. tools/hooks.test.mjs
+   * checks every screen for it now.
+   */
+  const nudge = useIdle() && getGuideStep() === 'done'
+
   if (busy) return (
     <Screen title={t('preparing')} step={4}>
       <div className="flex min-h-full flex-col justify-center">
@@ -239,8 +254,6 @@ export default function Review() {
       </div>
     </Screen>
   )
-
-  const nudge = useIdle() && getGuideStep() === 'done'
 
   const answerFor = (q: string) => answers.find(a => a.question === q)?.answer
   // Free-form additions, plus answers to questions the model has since stopped

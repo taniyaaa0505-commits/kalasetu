@@ -61,6 +61,34 @@ const ENDPOINT = (m: string, k: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${k}`
 
 /**
+ * Every key we have, in order.
+ *
+ * The free tier's daily allowance is per model PER PROJECT, so a second key
+ * from a second Google account is a second allowance — the cheapest headroom
+ * available, and it needs no code beyond this. Set VITE_GEMINI_API_KEY to a
+ * comma-separated list and the whole list is used.
+ *
+ * A key that is spent for the day is remembered for the session, so we do not
+ * pay a wasted round-trip on it for every subsequent listing. Combined with
+ * the model chain below: four keys x four models is sixteen daily buckets,
+ * which is the difference between a team that can rehearse and one that
+ * cannot.
+ */
+const KEYS: string[] = String(import.meta.env.VITE_GEMINI_API_KEY ?? '')
+  .split(',').map(k => k.trim()).filter(Boolean)
+
+const spent = new Set<string>()
+
+/** Keys worth trying right now — all of them again if every one is spent,
+ *  because a daily quota resets and a stale Set must never lock her out. */
+function liveKeys(): string[] {
+  const left = KEYS.filter(k => !spent.has(k))
+  if (left.length) return left
+  spent.clear()
+  return KEYS
+}
+
+/**
  * Statuses that mean "not now" rather than "not ever".
  *
  * 503 is the one we actually keep seeing: Gemini's free tier is shared and it
@@ -217,9 +245,45 @@ async function postToChain(
           return res
         } catch (again) { last = again }
       }
-      const done = last instanceof GeminiError && (last.exhausted || last.status === 404)
-      if (!done || i === models.length - 1) throw last
-      console.warn(`[gemini] ${id} spent for today; trying ${models[i + 1]}`)
+      // Move on when this model cannot serve us: out for the day, retired, or
+      // still shedding load after `post` has already been patient with it.
+      // A persistent 503 on the primary used to fail the whole request while
+      // three perfectly healthy models sat unused behind it.
+      const move = last instanceof GeminiError &&
+        (last.exhausted || last.status === 404 || last.status === 503)
+      if (!move || i === models.length - 1) throw last
+      const why = last instanceof GeminiError && last.status === 503 ? 'is overloaded' : 'is spent'
+      console.warn(`[gemini] ${id} ${why}; trying ${models[i + 1]}`)
+    }
+  }
+  throw last
+}
+
+/**
+ * Try the model chain on each key in turn.
+ *
+ * Keys first or models first? Models first, per key: a spent key is spent for
+ * every model in the same project, so walking its chain would burn four
+ * pointless requests to learn one fact. Walking keys at the outer level means
+ * one 429 retires a key and we move on.
+ */
+async function ask(
+  models: readonly string[], body: unknown, attempts = 3,
+): Promise<Response> {
+  const keys = liveKeys()
+  if (!keys.length) throw new GeminiError(0, 'No Gemini API key configured.')
+
+  let last: unknown
+  for (let k = 0; k < keys.length; k++) {
+    try {
+      const res = await postToChain(models, keys[k], body, attempts)
+      if (k > 0) console.warn(`[gemini] served by key ${k + 1} of ${keys.length}`)
+      return res
+    } catch (err) {
+      last = err
+      if (!(err instanceof GeminiError && err.exhausted) || k === keys.length - 1) throw err
+      spent.add(keys[k])
+      console.warn(`[gemini] key ${k + 1} is out for today; trying key ${k + 2}`)
     }
   }
   throw last
@@ -293,8 +357,11 @@ function splitDataUrl(dataUrl: string) {
 }
 
 export function geminiConfigured(): boolean {
-  return Boolean(import.meta.env.VITE_GEMINI_API_KEY)
+  return KEYS.length > 0
 }
+
+/** For the record, and for a judge who asks how many buckets we have. */
+export function keyCount(): number { return KEYS.length }
 
 export async function generateListing(
   photoDataUrl: string,
@@ -302,8 +369,7 @@ export async function generateListing(
   lang: LangCode = 'hi-IN',
   answers: Answer[] = [],
 ): Promise<Listing> {
-  const key = import.meta.env.VITE_GEMINI_API_KEY
-  if (!key) return mockListing(lang, answers)
+  if (!geminiConfigured()) return mockListing(lang, answers)
 
   const meta = LANGS.find(l => l.code === lang)
   const langName = meta?.english ?? 'Hindi'
@@ -346,7 +412,7 @@ export async function generateListing(
     },
   }
 
-  const res = await postToChain(LISTING_MODELS, key, body)
+  const res = await ask(LISTING_MODELS, body)
   const text = textOf(await res.json())
   if (!text) throw new Error('Gemini returned nothing usable.')
   return JSON.parse(text) as Listing
@@ -393,8 +459,7 @@ function mockListing(lang: LangCode = 'hi-IN', answers: Answer[] = []): Listing 
  * must come out as that question and nothing else.
  */
 export async function translate(text: string, from: string, to: string): Promise<string> {
-  const key = import.meta.env.VITE_GEMINI_API_KEY
-  if (!key) return mockTranslate(text, to)
+  if (!geminiConfigured()) return mockTranslate(text, to)
 
   const body = {
     systemInstruction: {
@@ -414,7 +479,7 @@ export async function translate(text: string, from: string, to: string): Promise
   // Two attempts, not three: a chat message she is waiting on should not sit
   // there for six seconds, and an untranslated message is already handled —
   // the UI marks it and retries later rather than pretending.
-  const res = await postToChain(TRANSLATE_MODELS, key, body, 2)
+  const res = await ask(TRANSLATE_MODELS, body, 2)
   const out = textOf(await res.json())
   if (!out) throw new Error('Translate returned nothing')
   return out

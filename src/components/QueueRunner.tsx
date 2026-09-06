@@ -14,6 +14,7 @@ import { getProduct, patchProduct } from '../services/db'
 import { generateListing } from '../services/gemini'
 import { getLang } from '../lib/i18n'
 import { cloudEnabled, firestore } from '../services/firebase'
+import { warmArtisanId } from '../services/artisan'
 
 async function perform(job: Job): Promise<void> {
   if (job.kind !== 'generate-listing') return
@@ -37,6 +38,10 @@ export default function QueueRunner() {
   // screens that wait on one hang. Fetching it once, early, while online puts
   // it in the runtime cache so the offline path has something to load.
   useEffect(() => {
+    // Ask for the identity now, so it is cached long before she takes a
+    // photograph and nothing has to wait on it there.
+    warmArtisanId()
+
     if (!cloudEnabled() || !isOnline()) return
     let alive = true
 

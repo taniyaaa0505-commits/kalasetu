@@ -12,7 +12,8 @@ import BigButton from '../components/BigButton'
 import PriceInNotes from '../components/PriceInNotes'
 import Thread, { type Bead } from '../components/Thread'
 import { listOrders, setStatus, subscribeOrders } from '../services/orders'
-import { listProducts } from '../services/db'
+import { listMyProducts } from '../services/db'
+import { artisanId } from '../services/artisan'
 import { speak } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
 import { asrCode, type Order, type Product, type OrderStatus } from '../types'
@@ -27,15 +28,22 @@ export default function Orders() {
   const announced = useRef<Set<string>>(new Set())
 
   async function refresh() {
-    const [os, ps] = await Promise.all([listOrders(), listProducts()])
+    const ps = await listMyProducts(await artisanId())
+    const mine = new Set(ps.map(p => p.id))
+    const os = (await listOrders()).filter(o => mine.has(o.productId))
     setOrders(os)
     setProducts(Object.fromEntries(ps.map(p => [p.id, p])))
     return os
   }
 
-  useEffect(() => subscribeOrders(async os => {
+  useEffect(() => subscribeOrders(async all => {
+    // Her products only. An order on somebody else's work is not hers to
+    // accept — and before this, every phone could accept every order in the
+    // database.
+    const ps = await listMyProducts(await artisanId())
+    const mine = new Set(ps.map(p => p.id))
+    const os = all.filter(o => mine.has(o.productId))
     setOrders(os)
-    const ps = await listProducts()
     setProducts(Object.fromEntries(ps.map(p => [p.id, p])))
 
     // Say a new order out loud, once. She will not read a badge.

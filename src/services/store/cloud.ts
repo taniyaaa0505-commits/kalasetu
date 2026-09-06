@@ -58,8 +58,17 @@ export function cloudCollection<T extends Stored>(name: string): Collection<T> {
     async get(id) {
       const { db } = await coll()
       const { doc, getDoc } = await import('firebase/firestore')
-      const snap = await getDoc(doc(db, name, id))
-      return snap.exists() ? (snap.data() as T) : undefined
+      try {
+        const snap = await getDoc(doc(db, name, id))
+        return snap.exists() ? (snap.data() as T) : undefined
+      } catch (err) {
+        // Offline, and this document is not in the local cache. Firestore
+        // treats that as an error; for us it is an answer — we do not have it.
+        // Throwing here stopped her taking a photograph with no signal,
+        // because the camera screen asks whether the product exists yet.
+        console.warn(`[store] ${name}/${id} is not available offline`, err)
+        return undefined
+      }
     },
 
     async put(item) {
@@ -74,26 +83,50 @@ export function cloudCollection<T extends Stored>(name: string): Collection<T> {
       }
       const { db } = await coll()
       const { doc, setDoc } = await import('firebase/firestore')
-      await setDoc(doc(db, name, clean.id), clean as Record<string, unknown>)
+
+      /*
+       * Deliberately NOT awaited, and this is the whole offline story.
+       *
+       * `setDoc` applies the write to the local cache immediately and returns
+       * a promise that settles only when the SERVER acknowledges it. With no
+       * signal that promise never settles at all — so `await` here meant
+       * `saveProduct` hung forever, and she could photograph her pot and never
+       * reach the cleaning screen. Reported from a real phone with the network
+       * off, and it is the single worst bug this app has had: the offline
+       * claim is the demo.
+       *
+       * The data is durable the moment this call returns — Firestore's own
+       * persistence owns the retry, across reloads, for as long as it takes.
+       * Waiting for the server buys us nothing she can see and costs her the
+       * app.
+       */
+      void setDoc(doc(db, name, clean.id), clean as Record<string, unknown>)
+        .catch(err => console.error(`[store] ${name}/${clean.id} failed to sync`, err))
     },
 
     async remove(id) {
       const { db } = await coll()
       const { doc, deleteDoc } = await import('firebase/firestore')
-      await deleteDoc(doc(db, name, id))
+      // Same rule as put: local first, server when it can. Deleting a product
+      // with no signal must not hang on a confirmation from Delhi.
+      void deleteDoc(doc(db, name, id))
+        .catch(err => console.error(`[store] could not delete ${name}/${id}`, err))
     },
 
-    subscribe(cb) {
+    subscribe(cb, only) {
       let stop: (() => void) | null = null
       let cancelled = false
 
       ;(async () => {
         try {
           const { ref } = await coll()
-          const { onSnapshot } = await import('firebase/firestore')
+          const { onSnapshot, query, where } = await import('firebase/firestore')
           if (cancelled) return
+          // Filtered in Firestore, not in the browser: the point is to not
+          // send another artisan's half-megabyte photographs down the wire.
+          const target = only ? query(ref, where(only.field, '==', only.equals)) : ref
           stop = onSnapshot(
-            ref,
+            target,
             snap => cb(snap.docs.map(d => d.data() as T)),
             err => console.error(`[store] ${name} listener failed`, err),
           )

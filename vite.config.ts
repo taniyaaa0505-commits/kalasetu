@@ -35,11 +35,29 @@ export default defineConfig({
         // The app shell — small, and precached so it opens with no signal.
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2}'],   // jpg = the tour's demo photos
 
-        // Everything heavy is fetched on demand and then kept forever, rather
-        // than making the install a punishing download on a metered
-        // connection. Firestore in particular is 647 KB that a device with no
-        // cloud configured would never load at all.
-        globIgnores: ['**/*.wasm', '**/firebase-*.js', '**/transformers-*.js'],
+        /*
+         * Only the 23 MB ONNX runtime is left out.
+         *
+         * Firebase and transformers used to be excluded too, on the reasoning
+         * that they are heavy and should be fetched on demand and kept by the
+         * runtime cache. That reasoning was wrong, and it broke the one claim
+         * this app is built on.
+         *
+         * A runtime cache can only keep what passes THROUGH the service
+         * worker, and both chunks are dynamically imported early — before the
+         * worker has taken control of the page. So they were never cached at
+         * all, and with no signal every import of them failed outright:
+         * `Failed to fetch dynamically imported module`. Reported from a real
+         * phone with the network off — she photographs her pot and never
+         * reaches the cleaning screen, because creating the product needs
+         * Firestore and Firestore needs a chunk that is not there.
+         *
+         * About 1.2 MB more on install, once, against an app whose entire
+         * pitch is that it works with no signal. The wasm stays out because 23
+         * MB genuinely is punishing on a metered connection, and
+         * transformers.js keeps its own copy in Cache Storage after one run.
+         */
+        globIgnores: ['**/*.wasm'],
 
         runtimeCaching: [
           {

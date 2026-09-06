@@ -13,14 +13,23 @@ export interface Collection<T extends Stored> {
   put(item: T): Promise<void>
   remove(id: string): Promise<void>
   /**
-   * Watch the whole collection. Returns an unsubscribe.
+   * Watch the collection. Returns an unsubscribe.
    *
    * On-device this polls; in the cloud it is a live listener. Screens no
    * longer run their own `setInterval`, which means they get realtime for
    * free the moment Firebase is configured, with no change to the screen.
+   *
+   * `only` narrows it to documents whose field equals a value, and it is a
+   * SERVER-side filter in the cloud — not a convenience. Without it every
+   * phone downloaded every artisan's products, which was wrong twice over:
+   * she saw a stranger's shop as her own, and she paid to download their
+   * photographs to do it.
    */
-  subscribe(cb: (items: T[]) => void): () => void
+  subscribe(cb: (items: T[]) => void, only?: Where): () => void
 }
+
+/** A single equality filter. Enough for "whose is this?" and nothing more. */
+export interface Where { field: string; equals: string }
 
 /**
  * A cheap fingerprint used to decide whether anything actually changed.

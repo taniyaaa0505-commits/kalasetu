@@ -4,7 +4,8 @@ import Screen from '../components/Screen'
 import Icon from '../components/Icon'
 import { Gota, Corner } from '../components/Ornament'
 import BigButton from '../components/BigButton'
-import { listProducts, newId, subscribeProducts } from '../services/db'
+import { listProducts, newId, subscribeMyProducts } from '../services/db'
+import { artisanId } from '../services/artisan'
 import { listMessages } from '../services/messages'
 import { subscribeOrders } from '../services/orders'
 import { speak } from '../lib/speak'
@@ -36,16 +37,29 @@ export default function Home() {
     if (guide === 'language') nav('/start', { replace: true })
   }, [guide, nav])
 
-  useEffect(() => subscribeProducts(async list => {
-    setProducts(list)
-    const counts: Record<string, number> = {}
-    for (const p of list) counts[p.id] = (await listMessages(p.id)).length
-    setMsgCounts(counts)
-  }), [])
+  // Hers, not everyone's. Every phone that installed the app used to open onto
+  // the whole world's products with her name on the header.
+  useEffect(() => {
+    let off: (() => void) | undefined
+    let gone = false
+    void artisanId().then(me => {
+      if (gone) return
+      off = subscribeMyProducts(me, async list => {
+        setProducts(list)
+        const counts: Record<string, number> = {}
+        for (const p of list) counts[p.id] = (await listMessages(p.id)).length
+        setMsgCounts(counts)
+      })
+    })
+    return () => { gone = true; off?.() }
+  }, [])
 
   // An order waiting for her answer is the most important thing in the app.
   // Say it out loud once — she will not read a badge.
-  useEffect(() => subscribeOrders(items => {
+  useEffect(() => subscribeOrders(all => {
+    // Orders carry a productId, not an owner, so they are narrowed here
+    // against the products we have already been given — which are hers.
+    const items = all.filter(o => products.some(p => p.id === o.productId))
     setOrders(items)
     const waiting = items.filter(o => o.status === 'placed').length
     if (waiting > 0 && !announced.current) {
@@ -53,7 +67,7 @@ export default function Home() {
       speak(t('newOrderCame'), asrCode(getLang()))
     }
     if (waiting === 0) announced.current = false
-  }), [])
+  }), [products])
 
   function startNew() {
     advanceGuide('homeAdd')     // she pressed the real button, not a picture of it
