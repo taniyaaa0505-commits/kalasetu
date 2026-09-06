@@ -187,7 +187,15 @@ export default function Home() {
                   product={p}
                   title={(mine ? p.listing?.titleEn : p.listing?.titleHi) ?? t('untitled')}
                   messages={msgCounts[p.id] ?? 0}
-                  onOpen={() => nav(`/p/${p.id}/capture`)}
+                  /* Her listing, not the camera.
+                     Tapping a finished product used to drop her back at step
+                     one of the six — photograph this again — as though she
+                     had never made it. She is opening it to LOOK at it: the
+                     photo, the words, anything she wants to add, the price.
+                     That screen already exists. A product still missing its
+                     listing has nowhere else to go, so that one continues
+                     where she left off. */
+                  onOpen={() => nav(`/p/${p.id}/${p.listing ? 'review' : 'capture'}`)}
                   onChat={() => nav(`/p/${p.id}/chat`)}
                   onRemove={() => setRemoving(p)}
                 />
@@ -220,11 +228,12 @@ export default function Home() {
           />
         )}
 
-        <button onClick={() => nav('/buyer')}
-          className="press mt-auto flex w-full items-center justify-center gap-2 pt-6 pb-1 text-sm font-medium text-indigo">
-          <Icon name="market" className="text-base" />
-          <span className="underline">{t('ourMarketplace')}</span>
-        </button>
+        {/* The buyer marketplace is NOT linked from here any more.
+            It is a different audience on a different device — a gifting
+            company on a laptop, not the artisan on her phone — and a door out
+            of her app into a shop full of other people's work is a door she
+            has no reason to open. It lives at /#/buyer and is shared as its
+            own link. */}
       </div>
     </Screen>
   )

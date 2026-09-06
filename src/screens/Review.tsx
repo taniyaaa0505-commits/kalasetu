@@ -34,6 +34,7 @@ export default function Review() {
   // 'offline' vs 'busy' — the reason changes what we tell her.
   const [parked, setParked] = useState<null | 'offline' | 'busy'>(null)
   const questionsRef = useRef<HTMLDivElement | null>(null)
+  const listingRef = useRef<HTMLDivElement | null>(null)
   const announced = useRef(false)
 
   // What she has told us since the first draft, and whether the draft on
@@ -225,6 +226,20 @@ export default function Review() {
       setDirty(false)
       setParked(null)
       await patchProduct(id, { listing: l })
+
+      /*
+       * Take her back to the words.
+       *
+       * She presses "write it again" from down among the questions, waits,
+       * and the new description lands off the top of the screen where she is
+       * not looking — leaving her staring at questions she has already
+       * answered, with no sign anything happened. The point of the button is
+       * the new description, so show it to her and read it out.
+       */
+      requestAnimationFrame(() => {
+        listingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+      speak(mine ? l.descriptionEn : l.descriptionHi, asrCode(lang))
     } catch (e) {
       // The old listing stays on screen. A failed rewrite must never cost her
       // the description she already had.
@@ -271,6 +286,7 @@ export default function Review() {
               <div data-guide="rewrite">
                 <BigButton
                   icon={<Icon name="rewrite" />} label={rewriting ? t('rewriting') : t('writeAgain')}
+                  beacon={nudge && dirty && openQuestions === 0}
                   onClick={rewrite} disabled={rewriting || asking !== null}
                 />
               </div>
@@ -280,7 +296,7 @@ export default function Review() {
               />
             </div>
           : <BigButton
-              icon={<Icon name="next" />} label={t('next')} beacon={nudge}
+              icon={<Icon name="next" />} label={t('next')} beacon={nudge && openQuestions === 0}
               onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }} disabled={rewriting}
             />
       }
@@ -331,7 +347,8 @@ export default function Review() {
         <button
           data-guide="questions"
           onClick={() => questionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-          className="press mb-4 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left"
+          className={'press mb-4 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left '
+            + (nudge ? 'beacon' : '')}
         >
           <Icon name="speak" className="text-xl" />
           <span className="flex-1 text-[15px] font-semibold leading-snug text-gold">
@@ -346,7 +363,8 @@ export default function Review() {
           {/* Her listing, laid out the way a marketplace lays one out — her
               photograph first and largest, the words under it. She should be
               looking at her own work, not at a form the app filled in. */}
-          <article className="arch overflow-hidden rounded-b-panel border border-line-2/70 bg-surface shadow-card ring-1 ring-gold-leaf/30">
+          <article ref={listingRef}
+            className="arch overflow-hidden rounded-b-panel border border-line-2/70 bg-surface shadow-card ring-1 ring-gold-leaf/30">
             {photo && <img src={photo} alt="" className="arch block aspect-square w-full object-cover" />}
             <div className="flex flex-col gap-3 p-4">
               <span className="flex w-fit items-center gap-1.5 rounded-full bg-wash px-2.5 py-1 text-[11px] font-semibold label uppercase text-indigo">

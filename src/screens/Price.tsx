@@ -73,6 +73,11 @@ export default function Price() {
       action={<BigButton icon={<Icon name="next" />} label={t('next')} beacon={nudge && usual > 0}
         onClick={() => { advanceGuide('priceNext'); next() }} />}
     >
+      {/* Read aloud, because she cannot read the label and because "what did
+          you used to get for one of these" is the only question in the app
+          whose answer becomes the number the Ministry is shown. */}
+      <Coach step="priceUsual" target="usual" mode="tap"
+             title={t('usualPrice')} body={t('tellUsUsual')} />
       <Coach step="priceNext" target="action" mode="tap"
              title={t('tourPublishStep')} body={t('tourPublishSub')} />
 
@@ -89,7 +94,8 @@ export default function Price() {
       <Stepper label={t('usualPrice')} unit="₹" value={usual} step={50}
         hint={usual ? undefined : t('usualHint')}
         beacon={nudge && usual === 0}
-        onChange={setUsual} />
+        guide="usual"
+        onChange={v => { setUsual(v); if (v > 0) advanceGuide('priceUsual') }} />
 
       {price && (
         <div className="rise mt-7 flex flex-col gap-3">
@@ -175,13 +181,15 @@ export default function Price() {
   )
 }
 
-function Stepper({ label, unit, value, step, hint, onChange, beacon }: {
+function Stepper({ label, unit, value, step, hint, onChange, beacon, guide }: {
   label: string; unit: string; value: number; step: number; hint?: string
   onChange: (v: number) => void
   beacon?: boolean
+  /** data-guide target, so the guide can ring this one field. */
+  guide?: string
 }) {
   return (
-    <div className={'mb-4 rounded-panel ' + (beacon ? 'beacon' : '')}>
+    <div data-guide={guide} className={'mb-4 rounded-panel ' + (beacon ? 'beacon' : '')}>
       <p className="mb-2 text-[0.9375rem] font-medium">{label}</p>
       <div className="flex items-center gap-3">
         <button onClick={() => onChange(Math.max(0, value - step))}

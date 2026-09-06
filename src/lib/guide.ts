@@ -56,6 +56,10 @@ export const GUIDE_STEPS = [
   'reviewListen',    // and hear it back before you accept it
   'reviewNext',
 
+  /* Before "next" on the price screen: the one field the whole project is
+     measured on, and the one everybody skips because it is optional and it
+     starts at zero. It gets its own ring and its own sentence. */
+  'priceUsual',
   'priceNext',
   'publishSend',
 
