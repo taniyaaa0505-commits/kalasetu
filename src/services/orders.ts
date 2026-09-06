@@ -10,6 +10,7 @@ import { collection, ORDER_STORE } from './store'
 import { translate } from './gemini'
 import { isOnline } from './queue'
 import type { Order, OrderStatus, LangCode } from '../types'
+import { getProduct } from './db'
 
 /** Status is the only field a screen redraws for. */
 const orders = collection<Order>(ORDER_STORE, o => `${o.id}:${o.status}`)
@@ -59,13 +60,31 @@ export async function placeOrder(opts: {
     try { noteLocal = await translate(note, 'English', languageName(localLang)) } catch { /* keep it undefined */ }
   }
 
+  // Carry the maker's id onto the order. Without it, routing an order to the
+  // right phone means fetching every product first just to look up an owner —
+  // and it means an order can be orphaned by a product being deleted.
+  const owner = (await getProduct(productId))?.artisanId
+
   const now = Date.now()
   return put({
     id: `o_${now.toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
-    productId, createdAt: now, updatedAt: now, status: 'placed',
+    productId, artisanId: owner, createdAt: now, updatedAt: now, status: 'placed',
     quantity, unitPrice, total: quantity * unitPrice,
     buyerName, buyerOrg, note, noteLocal, needBy,
   })
+}
+
+/**
+ * Watch HER orders — the ones on work she made.
+ *
+ * Filtered server-side on `artisanId`. Orders placed before that field
+ * existed match nobody, which is the truth about them: there is no phone they
+ * could have been delivered to.
+ */
+export function subscribeMyOrders(
+  artisan: string, cb: (items: Order[]) => void,
+): () => void {
+  return orders.subscribe(cb, { field: 'artisanId', equals: artisan })
 }
 
 /** Move an order along. Only the transitions we actually allow. */

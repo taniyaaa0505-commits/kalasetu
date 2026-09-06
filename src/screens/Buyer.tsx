@@ -18,8 +18,17 @@ export default function Buyer() {
   const nav = useNavigate()
   const [items, setItems] = useState<Product[]>([])
 
-  // A live subscription, so a listing appears here the instant she publishes.
-  useEffect(() => subscribeProducts(all => setItems(all.filter(p => p.status === 'published'))), [])
+  /*
+   * Published AND owned by somebody.
+   *
+   * `artisanId` is what routes an order back to the person who has to make
+   * the thing. A product created before that field existed belongs to nobody,
+   * so an order placed on it reaches no phone, ever — the buyer sees "order
+   * placed", waits, and no artisan is even told. Listing something that
+   * cannot be fulfilled is worse than not listing it.
+   */
+  useEffect(() => subscribeProducts(all =>
+    setItems(all.filter(p => p.status === 'published' && p.artisanId))), [])
 
   return (
     <div className="min-h-full bg-paper">

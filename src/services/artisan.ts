@@ -53,11 +53,17 @@ let pending: Promise<string> | null = null
  * she takes her first photograph. Reported from a real phone with the network
  * off: the camera returns, and the app never reaches the cleaning screen.
  *
- * Nothing about a metric may ever stand between her and the next screen. Two
- * seconds, then the device id, and if auth arrives later it simply does not
- * matter — the product is already hers on this phone.
+ * Nothing about a metric may ever stand between her and the next screen. So
+ * there is a ceiling, and then the device id.
+ *
+ * Six seconds, not two. A cold sign-in has to load the auth module and make a
+ * round trip, and two seconds cut it off on a perfectly good connection —
+ * every product came out owned by `local_…` instead of a real uid. The wait
+ * costs her nothing because `warmArtisanId()` runs at startup: by the time she
+ * has framed a photograph it is long since cached, and offline the six seconds
+ * elapse in the background with nobody waiting on them.
  */
-const AUTH_TIMEOUT_MS = 2000
+const AUTH_TIMEOUT_MS = 6000
 
 function within<T>(work: Promise<T>, ms: number, fallback: () => T): Promise<T> {
   return Promise.race([

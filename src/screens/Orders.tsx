@@ -11,7 +11,7 @@ import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import PriceInNotes from '../components/PriceInNotes'
 import Thread, { type Bead } from '../components/Thread'
-import { listOrders, setStatus, subscribeOrders } from '../services/orders'
+import { listOrders, setStatus, subscribeMyOrders } from '../services/orders'
 import { listMyProducts } from '../services/db'
 import { artisanId } from '../services/artisan'
 import { speak } from '../lib/speak'
@@ -36,13 +36,17 @@ export default function Orders() {
     return os
   }
 
-  useEffect(() => subscribeOrders(async all => {
-    // Her products only. An order on somebody else's work is not hers to
-    // accept — and before this, every phone could accept every order in the
-    // database.
+  useEffect(() => {
+    let off: (() => void) | undefined
+    let gone = false
+    void artisanId().then(me => { if (!gone) off = subscribeMyOrders(me, onOrders) })
+    return () => { gone = true; off?.() }
+  }, [])
+
+  // Hers only, filtered in Firestore. Before this, every phone could see and
+  // accept every order in the database.
+  async function onOrders(os: Order[]) {
     const ps = await listMyProducts(await artisanId())
-    const mine = new Set(ps.map(p => p.id))
-    const os = all.filter(o => mine.has(o.productId))
     setOrders(os)
     setProducts(Object.fromEntries(ps.map(p => [p.id, p])))
 
@@ -52,7 +56,7 @@ export default function Orders() {
       announced.current.add(fresh.id)
       speak(sentence(fresh), asrCode(lang))
     }
-  }), [lang])
+  }
 
   async function answer(id: string, status: OrderStatus) {
     await setStatus(id, status)

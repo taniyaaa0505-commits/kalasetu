@@ -7,7 +7,7 @@ import BigButton from '../components/BigButton'
 import { listProducts, newId, subscribeMyProducts } from '../services/db'
 import { artisanId } from '../services/artisan'
 import { listMessages } from '../services/messages'
-import { subscribeOrders } from '../services/orders'
+import { subscribeMyOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import Coach from '../components/Coach'
 import { useIdle } from '../lib/idle'
@@ -56,10 +56,14 @@ export default function Home() {
 
   // An order waiting for her answer is the most important thing in the app.
   // Say it out loud once — she will not read a badge.
-  useEffect(() => subscribeOrders(all => {
-    // Orders carry a productId, not an owner, so they are narrowed here
-    // against the products we have already been given — which are hers.
-    const items = all.filter(o => products.some(p => p.id === o.productId))
+  useEffect(() => {
+    let off: (() => void) | undefined
+    let gone = false
+    void artisanId().then(me => { if (!gone) off = subscribeMyOrders(me, onOrders) })
+    return () => { gone = true; off?.() }
+  }, [])
+
+  function onOrders(items: Order[]) {
     setOrders(items)
     const waiting = items.filter(o => o.status === 'placed').length
     if (waiting > 0 && !announced.current) {
@@ -67,7 +71,7 @@ export default function Home() {
       speak(t('newOrderCame'), asrCode(getLang()))
     }
     if (waiting === 0) announced.current = false
-  }), [products])
+  }
 
   function startNew() {
     advanceGuide('homeAdd')     // she pressed the real button, not a picture of it

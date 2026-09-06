@@ -152,6 +152,10 @@ export interface Order {
   unitPrice: number
   total: number
 
+  /** Whose work this is, copied from the product when the order is placed.
+   *  An order that does not know its artisan cannot be routed to her. */
+  artisanId?: string
+
   buyerName: string
   buyerOrg?: string
   /** The buyer's note, kept in both languages like a chat message. */
