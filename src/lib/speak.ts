@@ -53,6 +53,29 @@ function setTalking(v: boolean) {
 
 export function isSpeaking() { return talking }
 
+/**
+ * Has this phone ever actually made a sound?
+ *
+ * Not "did we call speak()" — whether an utterance really began. Chrome will
+ * accept the call, queue nothing and fire no error, so the only honest signal
+ * is `onstart`. The opening screen needs to know, because until the answer is
+ * yes it has to show her something to press.
+ */
+export function hasSpoken() { return everSpoke }
+
+function markSpoke() {
+  if (everSpoke) return
+  everSpoke = true
+  listeners.forEach(fn => fn())      // the start screen is watching this
+}
+
+export function useHasSpoken(): boolean {
+  return useSyncExternalStore(
+    cb => { listeners.add(cb); return () => { listeners.delete(cb) } },
+    () => everSpoke, () => everSpoke,
+  )
+}
+
 export function useSpeaking(): boolean {
   return useSyncExternalStore(
     cb => { listeners.add(cb); return () => { listeners.delete(cb) } },
@@ -127,6 +150,7 @@ export function speak(text: string, lang?: string, onDone?: () => void) {
     // The plugin resolves when the utterance actually finishes, which is what
     // the microphone handoff in Review.tsx waits on. A rejection still calls
     // back — a caller must never be left waiting on a voice that failed.
+    markSpoke()          // Android TTS has no gesture requirement
     let done = false
     const finish = () => { if (!done) { done = true; setTalking(false); onDone?.() } }
     TextToSpeech.stop()
@@ -147,7 +171,7 @@ export function speak(text: string, lang?: string, onDone?: () => void) {
   u.lang = voice
   u.rate = 0.88          // slower than default — clarity beats speed here
   u.pitch = 1
-  u.onstart = () => { everSpoke = true }
+  u.onstart = markSpoke
   u.onend = finish
   u.onerror = finish
   whenVoicesReady(() => window.speechSynthesis.speak(u))

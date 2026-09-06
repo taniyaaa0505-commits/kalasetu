@@ -19,19 +19,35 @@ import BigButton from '../components/BigButton'
 import Icon from '../components/Icon'
 import { Scallop, Gota } from '../components/Ornament'
 import { advanceGuide } from '../lib/guide'
-import { speak } from '../lib/speak'
+import { speak, useHasSpoken } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
 import { asrCode } from '../types'
 
 export default function Start() {
   const lang = useLang()
-
-  // Only the current language, not all six in a row: six greetings back to
-  // back is forty seconds of talking at someone who has just opened an app.
-  // Tapping any language speaks that one, which is the real discovery path.
-  useEffect(() => { speak(`${t('tourWelcome')}. ${t('chooseLanguage')}`, asrCode(lang)) }, [])   // eslint-disable-line react-hooks/exhaustive-deps
-
   const nav = useNavigate()
+
+  /*
+   * Whether this phone has actually made a sound yet.
+   *
+   * The app tries to greet her the moment this screen opens, and on a phone
+   * that attempt is silently thrown away: Chrome will not let a page speak
+   * until it has had a real touch, and no script can ask it to. Verified on
+   * the deployed build — `speak()` is called at 793ms with the right words and
+   * `onstart` never fires. She is left looking at six words in six scripts,
+   * in silence, with no idea what is being asked of her.
+   *
+   * We cannot make it talk first. We can make it obvious what to touch, in a
+   * way that needs no reading — so until a sound has come out, the question
+   * is a single enormous speaker button. Her first touch anywhere unlocks the
+   * voice (see lib/speak.ts), and this is the thing her thumb lands on.
+   */
+  const heard = useHasSpoken()
+  const greet = () => speak(`${t('tourWelcome')}. ${t('chooseLanguage')}`, asrCode(lang))
+
+  // Still worth trying: on a laptop it just works, and inside the APK Android's
+  // own TTS has no gesture requirement at all.
+  useEffect(greet, [])   // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="mx-auto flex h-full max-w-[480px] flex-col bg-paper">
@@ -49,13 +65,23 @@ export default function Start() {
 
       <main className="flex-1 overflow-y-auto px-4 py-6">
         <Gota className="mb-4" />
-        <button
-          onClick={() => speak(t('chooseLanguage'), asrCode(lang))}
-          className="press mb-4 flex w-full min-h-0 items-center gap-2 py-1 text-left"
-        >
-          <Icon name="speak" className="text-indigo" />
-          <span className="font-display text-xl font-bold leading-tight">{t('chooseLanguage')}</span>
-        </button>
+
+        {heard ? (
+          /* It has spoken. A quiet replay control is enough. */
+          <button onClick={greet}
+            className="press mb-4 flex w-full min-h-0 items-center gap-2 py-1 text-left">
+            <Icon name="speak" className="text-indigo" />
+            <span className="font-display text-xl font-bold leading-tight">{t('chooseLanguage')}</span>
+          </button>
+        ) : (
+          /* It has not. This is the whole screen's job now. */
+          <button onClick={greet}
+            className="beacon press mb-5 flex w-full flex-col items-center gap-3 rounded-panel
+                       bg-indigo px-5 py-7 text-white shadow-card">
+            <Icon name="speak" className="text-6xl" />
+            <span className="font-display text-xl font-bold leading-tight">{t('chooseLanguage')}</span>
+          </button>
+        )}
 
         <LanguagePicker />
       </main>
