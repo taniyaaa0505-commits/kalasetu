@@ -86,7 +86,18 @@ export default function Capture() {
   }
 
   const busy = progress !== undefined
-  const nudge = useIdle() && getGuideStep() === 'done'
+  /*
+   * The guide stops ringing this screen the moment she takes the photograph:
+   * `capturePhoto` advances on the shutter and the next step, `speakMic`, is
+   * on the screen after this one. So through the whole cut-out and the
+   * before/after nothing pointed at the way forward — during the first run,
+   * which is the one time she has never seen this screen before.
+   *
+   * `speakMic` is therefore the guide waiting on a screen she has not reached
+   * yet, and the ring here is free.
+   */
+  const step = getGuideStep()
+  const nudge = useIdle() && (step === 'done' || step === 'speakMic')
 
   // Arriving: what this screen is for. Working narrates the wait itself.
   useSay(t('photoPrompt'), !photo)

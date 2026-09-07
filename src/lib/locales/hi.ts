@@ -90,7 +90,7 @@ export const hi = {
   onSale: 'बिक्री पर',
   incomplete: 'अधूरा',
   firstTimeSetup: 'पहली बार तैयार हो रहा है…',
-  composingPhoto: 'सफ़ेद पर लगाया जा रहा है…',
+  composingPhoto: 'सफ़ेद परदा लगा दिया है',
   photoTip: 'सादे रंग की जगह पर रखिए तो और अच्छा आएगा',
   photoPrompt: 'अपने सामान की फोटो लीजिए',
   buyerViewLink: 'खरीदार क्या देखता है',

@@ -86,7 +86,7 @@ export const en: Strings = {
   onSale: 'On sale',
   incomplete: 'Not finished',
   firstTimeSetup: 'Getting ready, first time only…',
-  composingPhoto: 'Placing it on white…',
+  composingPhoto: 'White background done',
   photoTip: 'A plain background works best',
   photoPrompt: 'Take a photo of your product',
   buyerViewLink: 'What the buyer sees',

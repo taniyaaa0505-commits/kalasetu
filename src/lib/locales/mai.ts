@@ -101,7 +101,7 @@ export const mai: Strings = {
   onSale: 'बिक्री पर',
   incomplete: 'अधूरा',
   firstTimeSetup: 'पहिल बेर तैयार भऽ रहल अछि…',
-  composingPhoto: 'उज्जर पर राखल जा रहल अछि…',
+  composingPhoto: 'उज्जर परदा लगा देल गेल',
   photoTip: 'सादा रंगक जगह पर राखी तँ आओर नीक आओत',
   photoPrompt: 'अपन सामानक फोटो लिअ',
   buyerViewLink: 'खरीददार की देखैत अछि',

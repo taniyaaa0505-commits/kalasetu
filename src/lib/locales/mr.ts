@@ -94,7 +94,7 @@ export const mr: Strings = {
   onSale: 'विक्रीवर',
   incomplete: 'अपूर्ण',
   firstTimeSetup: 'पहिल्यांदा तयार होत आहे…',
-  composingPhoto: 'पांढऱ्यावर ठेवले जात आहे…',
+  composingPhoto: 'पांढरा पडदा लावला आहे',
   photoTip: 'साध्या रंगाच्या जागेवर ठेवले तर आणखी चांगले येईल',
   photoPrompt: 'तुमच्या वस्तूचा फोटो काढा',
   buyerViewLink: 'ग्राहकाला काय दिसते',

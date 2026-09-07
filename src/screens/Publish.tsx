@@ -12,7 +12,8 @@ import BigButton from '../components/BigButton'
 import { getProduct, patchProduct } from '../services/db'
 import { speak } from '../lib/speak'
 import PriceInNotes from '../components/PriceInNotes'
-import { t, useLang, prefersEnglish } from '../lib/i18n'
+import BuyerCard from '../components/BuyerCard'
+import { t, useLang } from '../lib/i18n'
 import { asrCode } from '../types'
 import type { Product } from '../types'
 
@@ -30,7 +31,6 @@ export default function Publish() {
   const { id = '' } = useParams()
   const nav = useNavigate()
   const lang = useLang()
-  const mine = prefersEnglish(lang)
   const [p, setP] = useState<Product>()
   const [done, setDone] = useState(false)
 
@@ -80,13 +80,17 @@ export default function Publish() {
       <Coach step="publishSend" target="action" mode="tap"
              title={t('tourPublishStep')} body={t('tourPublishSub')} />
 
-      {p?.cleanPhoto && (
-        <img src={p.cleanPhoto} alt=""
-          className="arch mb-4 w-full rounded-b-panel border border-line-2/70 bg-surface shadow-card ring-1 ring-gold-leaf/30" />
-      )}
-      <p className="text-lg font-semibold">{mine ? p?.listing?.titleEn : p?.listing?.titleHi}</p>
-      <p className="mt-1 font-display text-3xl font-bold tabular-nums text-indigo">₹{p?.price?.suggested}</p>
-      {p?.price && <div className="mt-3"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
+      {/* Not her listing in her language — the buyer's card, exactly as it
+          will appear in the marketplace, from the same component that draws
+          it there. This screen is the last thing before "send it", so what she
+          approves has to be the thing that actually goes out. */}
+      <p className="mb-2 text-xs font-semibold label uppercase text-ink-3">
+        {t('buyerViewLink')}
+      </p>
+      {p && <BuyerCard product={p} />}
+
+      {/* Her side of the same listing: what this actually puts in her hand. */}
+      {p?.price && <div className="mt-4"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
 
       {/* What actually happens: it appears on our buyer marketplace. */}
       <p className="mt-6 mb-2 text-xs font-semibold label uppercase text-ink-3">

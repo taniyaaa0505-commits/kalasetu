@@ -56,7 +56,11 @@ export default function Price() {
   // Arrival only. The number changes on every tap of a stepper, and a voice
   // reading it out each time would make the screen unusable — the price has
   // its own speaker for when she wants to hear it.
-  useSay(t('tellUsCost'))
+  /* "You will see three prices" belongs here, not on the screen before.
+     It used to be the caption on the review screen's next button, so it was
+     spoken while she was still looking at her description — describing a
+     screen she had not reached. Said on arrival it is what she is looking at. */
+  useSay(`${t('tourPriceStep')}. ${t('tellUsCost')}`)
 
   // The guide has its own ring; two at once is noise.
   // Both hooks called unconditionally. `useIdle() && useGuideStep() === 'done'`

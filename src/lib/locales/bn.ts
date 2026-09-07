@@ -92,7 +92,7 @@ export const bn: Strings = {
   onSale: 'বিক্রিতে',
   incomplete: 'অসম্পূর্ণ',
   firstTimeSetup: 'প্রথমবার তৈরি হচ্ছে…',
-  composingPhoto: 'সাদার উপর বসানো হচ্ছে…',
+  composingPhoto: 'সাদা পর্দা লাগিয়ে দেওয়া হয়েছে',
   photoTip: 'সাদামাটা জায়গায় রাখলে আরও ভালো আসবে',
   photoPrompt: 'আপনার জিনিসের ছবি তুলুন',
   buyerViewLink: 'ক্রেতা কী দেখে',

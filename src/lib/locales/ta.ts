@@ -98,7 +98,7 @@ export const ta: Strings = {
   onSale: 'விற்பனையில்',
   incomplete: 'முடியவில்லை',
   firstTimeSetup: 'முதல் முறை தயாராகிறது…',
-  composingPhoto: 'வெள்ளையின் மேல் வைக்கப்படுகிறது…',
+  composingPhoto: 'வெள்ளைத் திரை போடப்பட்டது',
   photoTip: 'சாதாரண நிற இடத்தில் வைத்தால் இன்னும் நன்றாக வரும்',
   photoPrompt: 'உங்கள் பொருளின் படம் எடுங்கள்',
   buyerViewLink: 'வாங்குபவர் என்ன பார்க்கிறார்',

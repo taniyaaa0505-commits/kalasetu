@@ -43,6 +43,22 @@ export default function Review() {
   const [answers, setAnswers] = useState<Answer[]>([])
   const [dirty, setDirty] = useState(false)
   const [rewriting, setRewriting] = useState(false)
+  /**
+   * She has had it written again at least once.
+   *
+   * This is what stops the "answer everything first" rule turning into a trap.
+   * A rewrite sends her answers back to the model and the model may come back
+   * with NEW questions — different strings, so none of her existing answers
+   * match them, so `openQuestions` climbs off zero again and the way forward
+   * locks a second time. Do that twice and she can never leave this screen.
+   *
+   * One full pass is the rule. After that the questions are still there, still
+   * answerable, and no longer a wall.
+   */
+  const [rewrote, setRewrote] = useState(false)
+  /** The rewritten listing has finished being read to her — so the next thing
+   *  to do is leave, and that is the moment to point at the way out. */
+  const [readBack, setReadBack] = useState(false)
   // The listen callbacks fire long after the render that created them, so they
   // read the answers from here rather than from a captured, stale `answers`.
   const answersRef = useRef<Answer[]>([])
@@ -127,26 +143,32 @@ export default function Review() {
     announced.current = true
 
     /*
-     * Order matters, and it was wrong.
+     * On arrival she hears the QUESTIONS, and nothing else.
      *
-     * This used to open with "the app wants to know three more things" the
-     * instant the listing landed — before she had heard a single word of what
-     * the app had actually written for her. She was being asked to answer
-     * follow-up questions about a description she had not yet heard.
+     * This used to read the whole title and description out first and then ask
+     * them. It was the wrong way round twice over. The draft she is being read
+     * is not the one she will keep — it is missing exactly the facts these
+     * questions are about — so it is a long thing to sit through that is about
+     * to be replaced. And by the time it finished, the questions arrived as an
+     * afterthought behind thirty seconds of prose.
      *
-     * So: her listing first, in her own language, then the questions. One
-     * utterance, not two, because two `speak` calls in a row cancel each other
-     * — the second one arrives while the first is still going and cuts it off
-     * mid-sentence. Chaining through `onDone` is what makes them queue.
+     * The listing gets read to her properly the moment it is worth reading:
+     * after the rewrite, when it contains her answers. See `rewrite()`.
+     *
+     * One utterance, not two — two `speak` calls in a row cancel each other,
+     * so the count and the first question are chained through `onDone`.
      */
+    const voice = asrCode(lang)
+
+    if (open.length) {
+      speak(`${tf('askedMore', { n: open.length })}. ${open[0]}`, voice)
+      return
+    }
+
+    // Nothing to ask, so there is nothing standing between her and the words.
     const heading = mine ? listing.titleEn : listing.titleHi
     const body    = mine ? listing.descriptionEn : listing.descriptionHi
-    const voice   = asrCode(lang)
-
-    speak(`${heading}. ${body}`, voice, () => {
-      if (!open.length) return
-      speak(`${tf('askedMore', { n: open.length })}. ${open[0]}`, voice)
-    })
+    speak(`${heading}. ${body}`, voice)
   }, [listing, lang, mine])
 
   // If she is still standing here when the signal returns, write it now
@@ -203,6 +225,9 @@ export default function Review() {
     answersRef.current = next
     setAnswers(next)
     setDirty(true)
+    // She has told us something new, so what she was read is out of date and
+    // the ring belongs on "write it again" rather than on the way out.
+    setReadBack(false)
     void patchProduct(id, { answers: next })
   }
 
@@ -218,6 +243,7 @@ export default function Review() {
     recRef.current?.stop()
     stopSpeaking()
     setRewriting(true)
+    setReadBack(false)      // the ring goes back to this button until it lands
     setError(undefined)
     try {
       const l = await generateListing(
@@ -240,7 +266,15 @@ export default function Review() {
       requestAnimationFrame(() => {
         listingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       })
-      speak(mine ? l.descriptionEn : l.descriptionHi, asrCode(lang))
+      setRewrote(true)
+      // Read it, and only when the reading is actually over point at the way
+      // out. Ringing "next" while the phone is still talking asks her to
+      // interrupt the one thing she came to this screen to hear.
+      speak(
+        `${mine ? l.titleEn : l.titleHi}. ${mine ? l.descriptionEn : l.descriptionHi}`,
+        asrCode(lang),
+        () => setReadBack(true),
+      )
     } catch (e) {
       // The old listing stays on screen. A failed rewrite must never cost her
       // the description she already had.
@@ -277,7 +311,7 @@ export default function Review() {
    * it out loud when tapped, and scrolls her to them.
    */
   const openQuestions = (listing?.questions ?? []).filter(q => !answerFor(q)).length
-  const blocked = openQuestions > 0
+  const blocked = openQuestions > 0 && !rewrote
 
   /* Computed up here, above the early return, because it feeds a hook and a
      hook may never sit after a conditional return — see the note above. While
@@ -307,12 +341,20 @@ export default function Review() {
               <div data-guide="rewrite">
                 <BigButton
                   icon={<Icon name="rewrite" />} label={rewriting ? t('rewriting') : t('writeAgain')}
-                  beacon={nudge && dirty && !blocked}
+                  /* Not gated on her having stalled. Every question is
+                     answered and the app has stopped talking — having it
+                     written again is now the only thing left to do on this
+                     screen, and she has no way to know that unless it is
+                     pointed at. It goes out the moment she presses it. */
+                  beacon={dirty && !blocked && asking === null && !rewriting && !readBack}
                   onClick={rewrite} disabled={rewriting || asking !== null || blocked}
                 />
               </div>
               <BigButton
                 icon={<Icon name="next" />} label={t('next')} variant="quiet"
+                /* She has heard the rewritten description. Leaving is the
+                   only thing left, so this is where the ring goes now. */
+                beacon={readBack && !rewriting}
                 onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }}
                 disabled={!listing || rewriting || blocked}
               />
@@ -330,8 +372,13 @@ export default function Review() {
              title={t('writeAgain')} body={t('youAlsoSaid')} />
       <Coach step="reviewListen"    target="listen"    mode="tap"
              title={t('hearItBack')} body={t('forTheBuyer')} />
+      {/* This used to say "you will see three prices" — a description of the
+          NEXT screen, spoken on this one, over the top of the description
+          being read back to her, about something not in front of her. The
+          price screen introduces itself on arrival now, where the three
+          prices actually are. Here we say only what is true here. */}
       <Coach step="reviewNext"      target="action"    mode="tap"
-             title={t('tourPriceStep')} body={t('tourPriceSub')} />
+             title={t('stepDone')} />
 
       {!geminiConfigured() && (
         <p className="mb-4 rounded-lg bg-gold-wash p-3 text-sm text-gold">

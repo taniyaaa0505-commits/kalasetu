@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Scallop } from '../components/Ornament'
 import { subscribeProducts } from '../services/db'
+import BuyerCard from '../components/BuyerCard'
 import type { Product } from '../types'
 import Empty from '../components/Empty'
 
@@ -60,17 +61,11 @@ export default function Buyer() {
           <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
             {items.map((p, i) => (
               <li key={p.id} className={'rise ' + ['', 'rise-1', 'rise-2', 'rise-3', 'rise-4'][Math.min(i, 4)]}>
+                {/* The card itself is BuyerCard, shared with the preview she
+                    approves on the publish screen, so the two cannot drift. */}
                 <button onClick={() => nav(`/buyer/${p.id}`)}
-                  className="press block w-full min-h-0 overflow-hidden rounded-b-panel border border-line-2/70 bg-surface text-left shadow-card ring-1 ring-gold-leaf/25">
-                {p.cleanPhoto && <img src={p.cleanPhoto} alt="" className="arch aspect-square w-full bg-surface-2 object-cover" />}
-                <div className="p-4">
-                  <p className="font-semibold leading-snug">{p.listing?.titleEn}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-ink-3">{p.listing?.descriptionEn}</p>
-                  <p className="mt-3 font-display text-xl font-bold tabular-nums text-indigo">₹{p.price?.suggested}</p>
-                  <p className="mt-2 flex items-center gap-1 text-sm font-medium text-clay">
-                    Message the artisan <span aria-hidden>→</span>
-                  </p>
-                </div>
+                  className="press block w-full min-h-0 text-left">
+                  <BuyerCard product={p} />
                 </button>
               </li>
             ))}
