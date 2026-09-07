@@ -7,6 +7,7 @@ import Speakable from '../components/Speakable'
 import Working from '../components/Working'
 import Coach from '../components/Coach'
 import { useIdle } from '../lib/idle'
+import { useBeaconChime } from '../lib/chime'
 import { getGuideStep } from '../lib/guide'
 import { advanceGuide } from '../lib/guide'
 import { getProduct, patchProduct } from '../services/db'
@@ -262,6 +263,28 @@ export default function Review() {
    */
   const nudge = useIdle() && getGuideStep() === 'done'
 
+  const answerFor = (q: string) => answers.find(a => a.question === q)?.answer
+  /**
+   * Every question must be answered before she can move on.
+   *
+   * The model only asks when it genuinely could not tell — a size, a material,
+   * a dye — and each unanswered question is a fact that will be missing from
+   * the listing a buyer reads. Answering one used to be enough: the footer
+   * flipped to "write it again" the moment anything was said, so the obvious
+   * thing to do next was leave the rest blank.
+   *
+   * She is never left guessing why: the gold chip says how many are left, says
+   * it out loud when tapped, and scrolls her to them.
+   */
+  const openQuestions = (listing?.questions ?? []).filter(q => !answerFor(q)).length
+  const blocked = openQuestions > 0
+
+  /* Computed up here, above the early return, because it feeds a hook and a
+     hook may never sit after a conditional return — see the note above. While
+     she is blocked the footer button is disabled and therefore silent, so the
+     chip is the only thing lit and the only thing that may ring. */
+  useBeaconChime(nudge && blocked && !busy)
+
   if (busy) return (
     <Screen title={t('preparing')} step={4}>
       <div className="flex min-h-full flex-col justify-center">
@@ -270,10 +293,8 @@ export default function Review() {
     </Screen>
   )
 
-  const answerFor = (q: string) => answers.find(a => a.question === q)?.answer
   // Free-form additions, plus answers to questions the model has since stopped
   // asking — she should still be able to hear back everything she added.
-  const openQuestions = (listing?.questions ?? []).filter(q => !answerFor(q)).length
   const asked = new Set(listing?.questions ?? [])
   const extras = answers.filter(a => !a.question || !asked.has(a.question))
 
@@ -286,18 +307,20 @@ export default function Review() {
               <div data-guide="rewrite">
                 <BigButton
                   icon={<Icon name="rewrite" />} label={rewriting ? t('rewriting') : t('writeAgain')}
-                  beacon={nudge && dirty && openQuestions === 0}
-                  onClick={rewrite} disabled={rewriting || asking !== null}
+                  beacon={nudge && dirty && !blocked}
+                  onClick={rewrite} disabled={rewriting || asking !== null || blocked}
                 />
               </div>
               <BigButton
                 icon={<Icon name="next" />} label={t('next')} variant="quiet"
-                onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }} disabled={!listing || rewriting}
+                onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }}
+                disabled={!listing || rewriting || blocked}
               />
             </div>
           : <BigButton
-              icon={<Icon name="next" />} label={t('next')} beacon={nudge && openQuestions === 0}
-              onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }} disabled={rewriting}
+              icon={<Icon name="next" />} label={t('next')} beacon={nudge && !blocked}
+              onClick={() => { advanceGuide('reviewNext'); nav(`/p/${id}/price`) }}
+              disabled={rewriting || blocked}
             />
       }
     >
@@ -345,7 +368,19 @@ export default function Review() {
 
       {listing && openQuestions > 0 && (
         <button
-          onClick={() => questionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          /* Says it as well as scrolling. While questions are open the way on
+             is disabled, and a button that does nothing is the cruellest thing
+             this app could show someone who cannot read the reason beside it.
+             So the count is spoken, then the first unanswered question is read
+             out, which is also the answer to "what am I supposed to do now". */
+          onClick={() => {
+            const first = (listing?.questions ?? []).find(q => !answerFor(q))
+            speak(
+              `${tf('askedMore', { n: openQuestions })}${first ? `. ${first}` : ''}`,
+              asrCode(lang),
+            )
+            questionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
           className={'press mb-4 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left '
             + (nudge ? 'beacon' : '')}
         >

@@ -15,7 +15,6 @@
  * this forever and the beacon would never appear in a demo.
  */
 import { useEffect, useState } from 'react'
-import { chime } from './chime'
 
 /**
  * Three seconds, not four and a half.
@@ -32,11 +31,11 @@ export function useIdle(ms = 3000): boolean {
     const restart = () => {
       setIdle(false)
       clearTimeout(timer)
-      timer = setTimeout(() => {
-        setIdle(true)
-        // Once, as the ring appears — not on each of its pulses.
-        chime()
-      }, ms)
+      // Being still is NOT the same as there being something to point at, so
+      // nothing is heard here. The bell belongs to the beacon and rings from
+      // `useBeaconChime` in lib/chime.ts, gated on the same condition that
+      // draws the ring.
+      timer = setTimeout(() => setIdle(true), ms)
     }
     restart()
     const events = ['pointerdown', 'keydown'] as const

@@ -8,6 +8,7 @@
  */
 import type { ReactNode } from 'react'
 import { speak } from '../lib/speak'
+import { useBeaconChime } from '../lib/chime'
 import { useLang } from '../lib/i18n'
 import { asrCode } from '../types'
 
@@ -45,6 +46,11 @@ export default function BigButton({
   beacon?: boolean
 }) {
   const current = useLang()
+  // Exactly what the ring is drawn from, so the bell can never point at a
+  // button that is not lit — or ring on a screen that lights nothing.
+  const lit = Boolean(beacon) && !disabled
+  useBeaconChime(lit)
+
   return (
     <button
       disabled={disabled}
@@ -54,7 +60,7 @@ export default function BigButton({
         'disabled:opacity-40 disabled:shadow-none ' +
         (size === 'lg' ? 'min-h-[5.375rem] gap-4 text-2xl ' : 'min-h-[4rem] gap-3 text-xl ') +
         // Never on a button she cannot press.
-        (beacon && !disabled ? 'beacon ' : '') +
+        (lit ? 'beacon ' : '') +
         STYLES[variant]
       }
     >

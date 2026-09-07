@@ -14,15 +14,27 @@
  * appears, never on the pulses that follow, and never over the app's own
  * voice — two sounds at once is how an app starts to feel like an alarm.
  */
+import { useEffect, useRef } from 'react'
 import { isSpeaking, isSpeechEnabled } from './speak'
 
 let ctx: AudioContext | null = null
+
+/** When we last rang, so two beacons appearing together are one bell. */
+let lastRang = 0
+const DEDUPE_MS = 1200
 
 export function chime() {
   // The same gesture rule that governs speech governs sound: before the page
   // has been touched the context stays suspended and nothing is heard. That
   // is fine — she has to have touched something to have stalled.
   if (!isSpeechEnabled() || isSpeaking()) return
+
+  // A screen can light two things at once — the price screen rings one of two
+  // buttons, and Review rings both a chip and a footer button. That is one
+  // event to her ear, so it is one bell.
+  const now = Date.now()
+  if (now - lastRang < DEDUPE_MS) return
+  lastRang = now
 
   try {
     const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
@@ -48,4 +60,26 @@ export function chime() {
     // No audio on this device, or the context was refused. The ring is still
     // there; the sound was only ever the thing that draws the eye to it.
   }
+}
+
+/**
+ * Ring once, at the moment a beacon actually appears.
+ *
+ * This used to live in `useIdle`, which was wrong and audibly so: the timer
+ * fires after three still seconds on EVERY screen, but each screen gates the
+ * visible ring on more than that — the Speak screen only rings once there is a
+ * transcript, Review only once every question is answered, Price only once she
+ * has given her usual price, and none of them ring during the guided tour. So
+ * the bell rang on its own, pointing at nothing, and the one thing a sound is
+ * for — bringing her eyes back to a ring — was exactly what it did not do.
+ *
+ * The sound belongs to the beacon, not to the clock. Pass the same condition
+ * that decides whether the ring is drawn, and the two can never disagree.
+ */
+export function useBeaconChime(on: boolean) {
+  const was = useRef(false)
+  useEffect(() => {
+    if (on && !was.current) chime()
+    was.current = on
+  }, [on])
 }
