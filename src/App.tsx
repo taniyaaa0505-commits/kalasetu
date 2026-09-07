@@ -9,6 +9,7 @@ import Buyer from './screens/Buyer'
 import BuyerProduct from './screens/BuyerProduct'
 import Chat from './screens/Chat'
 import Orders from './screens/Orders'
+import Messages from './screens/Messages'
 import Start from './screens/Start'
 import Impact from './screens/Impact'
 import StorageError from './components/StorageError'
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/p/:id/publish" element={<Publish />} />
         <Route path="/p/:id/chat"    element={<Chat />} />
         <Route path="/orders"        element={<Orders />} />
+        <Route path="/messages"      element={<Messages />} />
         <Route path="/buyer"         element={<Buyer />} />
         <Route path="/impact"        element={<Impact />} />
         <Route path="/buyer/:id"     element={<BuyerProduct />} />

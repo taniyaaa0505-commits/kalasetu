@@ -156,14 +156,13 @@ export default function Home() {
           </button>
         )}
 
-        {/* A buyer has written. Same shape as the order banner above it, so
-            she learns one thing and not two — but in the app's second colour,
-            because an order needs an answer and a message is a conversation.
-            It opens the conversation it is about, not a list of them: there is
-            only ever one worth opening, and it is the newest. */}
+        {/* A buyer has written. Same shape as the order banner above it and it
+            goes the same place — the list — so the two behave identically. In
+            the app's second colour, because an order needs an answer and a
+            message is a conversation. */}
         {unread.length > 0 && (
           <button
-            onClick={() => nav(`/p/${unread[unread.length - 1].productId}/chat`)}
+            onClick={() => nav('/messages')}
             className="press rise mb-5 flex w-full items-center gap-3 rounded-panel border-2 border-clay
                        bg-clay-wash px-4 py-4 text-left shadow-card active:opacity-90"
           >
@@ -237,11 +236,21 @@ export default function Home() {
         {/* The two side errands. Adding a product is NOT here — it is pinned to
             the bottom of the screen, so it stays under her thumb however long
             the shop below gets. */}
-        <div className="rise rise-2 mt-4 grid grid-cols-2 gap-3">
+        {/* Three, not two. An order and a message are the only two ways a
+            buyer reaches her, so they sit side by side and work the same way:
+            a tile with a count on it, and a list behind it. Messages used to
+            be reachable only from a badge on one product card, which meant
+            she had to already know which product a stranger had written
+            about. */}
+        <div className="rise rise-2 mt-4 grid grid-cols-3 gap-3">
           <Tile guide="learn" icon={<Icon name="learn" />} label={t('learnHow')} onClick={restartGuide} />
           <Tile
             guide="orders" icon={<Icon name="box" />} label={t('orders')} onClick={() => nav('/orders')}
             badge={waiting > 0 ? waiting : undefined}
+          />
+          <Tile
+            guide="messages" icon={<Icon name="chat" />} label={t('messages')} onClick={() => nav('/messages')}
+            badge={unread.length > 0 ? unread.length : undefined}
           />
         </div>
 
