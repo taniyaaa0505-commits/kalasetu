@@ -11,6 +11,7 @@ import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import { getProduct } from '../services/db'
 import { listMessages, sendMessage, translatePending, subscribeMessages } from '../services/messages'
+import { markSeen } from '../lib/seen'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
 import { t, useLang } from '../lib/i18n'
@@ -44,6 +45,9 @@ export default function Chat() {
         spokenRef.current.add(latest.id)
         if (!latest.untranslated) speak(latest.local, asrCode(productLang))
       }
+      // She is looking at this conversation right now, so it is no longer
+      // waiting for her — this is what clears the banner on the home screen.
+      if (latest) markSeen(id, latest.createdAt)
       if (list.some(m => m.untranslated)) translatePending(id)
     })
     return () => { off(); recRef.current?.stop(); stopSpeaking() }

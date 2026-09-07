@@ -95,6 +95,8 @@ export const en: Strings = {
   after: 'After',
   messages: 'Talk to the buyer',
   noMessages: 'No messages yet',
+  newMessageCame: 'A buyer has written to you',
+  messagesWaiting: 'new messages',
   replyByVoice: 'Reply by speaking',
   buyerSaid: 'The buyer said',
   youSaid: 'You said',

@@ -6,7 +6,8 @@ import { Gota, Corner } from '../components/Ornament'
 import BigButton from '../components/BigButton'
 import { listProducts, newId, subscribeMyProducts } from '../services/db'
 import { artisanId } from '../services/artisan'
-import { listMessages } from '../services/messages'
+import { subscribeMyMessages } from '../services/messages'
+import { lastSeen } from '../lib/seen'
 import { subscribeMyOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import Coach from '../components/Coach'
@@ -18,7 +19,7 @@ import Shopfront from '../components/Shopfront'
 import Speakable from '../components/Speakable'
 import { asrCode } from '../types'
 import { t, tf, getLang, useLang, prefersEnglish } from '../lib/i18n'
-import type { Order, Product } from '../types'
+import type { Message, Order, Product } from '../types'
 
 export default function Home() {
   const nav = useNavigate()
@@ -26,8 +27,12 @@ export default function Home() {
   const mine = prefersEnglish(lang)
   const [products, setProducts] = useState<Product[]>([])
   const [msgCounts, setMsgCounts] = useState<Record<string, number>>({})
+  const [unread, setUnread] = useState<Message[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const announced = useRef(false)
+  /** The newest buyer message we have already spoken. `null` means we have not
+   *  loaded yet, which is different from "there were none". */
+  const saidMsg = useRef<string | null>(null)
   const [removing, setRemoving] = useState<Product | null>(null)
 
   // Nothing at all until she has a language. Everything below this line is
@@ -44,15 +49,54 @@ export default function Home() {
     let gone = false
     void artisanId().then(me => {
       if (gone) return
-      off = subscribeMyProducts(me, async list => {
-        setProducts(list)
-        const counts: Record<string, number> = {}
-        for (const p of list) counts[p.id] = (await listMessages(p.id)).length
-        setMsgCounts(counts)
-      })
+      off = subscribeMyProducts(me, setProducts)
     })
     return () => { gone = true; off?.() }
   }, [])
+
+  /**
+   * A buyer writing to her is an event, and it had no subscription.
+   *
+   * The counts used to be computed inside the products subscription above, so
+   * they only refreshed when the PRODUCTS collection changed — which a new
+   * message does not do. She was told nothing until something else redrew the
+   * screen, and the thing that usually did it was the same buyer giving up and
+   * placing an order. Orders have been live all along; this is the match.
+   */
+  useEffect(() => {
+    let off: (() => void) | undefined
+    let gone = false
+    void artisanId().then(me => { if (!gone) off = subscribeMyMessages(me, onMessages) })
+    return () => { gone = true; off?.() }
+  }, [])
+
+  function onMessages(items: Message[]) {
+    const counts: Record<string, number> = {}
+    for (const m of items) counts[m.productId] = (counts[m.productId] ?? 0) + 1
+    setMsgCounts(counts)
+
+    // Only what she has not already opened. A banner that never clears is one
+    // she stops seeing, and then the message that mattered arrives under it.
+    const fromBuyer = items.filter(m => m.from === 'buyer' && m.createdAt > lastSeen(m.productId))
+    setUnread(fromBuyer)
+
+    /*
+     * Said out loud once, the same way an order is, and for the same reason:
+     * she will not read a badge. Keyed on the newest message's id rather than
+     * a count, so it speaks again for a genuinely new message and stays quiet
+     * when the list merely redraws — a translation landing rewrites a message
+     * she has already been told about.
+     */
+    const latest = fromBuyer.at(-1)
+    if (latest && saidMsg.current !== latest.id) {
+      const first = saidMsg.current === null
+      saidMsg.current = latest.id
+      // Not on the very first load. Everything already in the shop when she
+      // opens the app is old news, and announcing all of it is the app
+      // shouting a backlog at someone who just picked up her phone.
+      if (!first) speak(t('newMessageCame'), asrCode(getLang()))
+    }
+  }
 
   // An order waiting for her answer is the most important thing in the app.
   // Say it out loud once — she will not read a badge.
@@ -109,6 +153,28 @@ export default function Home() {
               <span className="block text-sm text-white/80">{waiting} {t('ordersWaiting')}</span>
             </span>
             <span aria-hidden className="text-2xl">›</span>
+          </button>
+        )}
+
+        {/* A buyer has written. Same shape as the order banner above it, so
+            she learns one thing and not two — but in the app's second colour,
+            because an order needs an answer and a message is a conversation.
+            It opens the conversation it is about, not a list of them: there is
+            only ever one worth opening, and it is the newest. */}
+        {unread.length > 0 && (
+          <button
+            onClick={() => nav(`/p/${unread[unread.length - 1].productId}/chat`)}
+            className="press rise mb-5 flex w-full items-center gap-3 rounded-panel border-2 border-clay
+                       bg-clay-wash px-4 py-4 text-left shadow-card active:opacity-90"
+          >
+            <span aria-hidden className="text-3xl">💬</span>
+            <span className="flex-1">
+              <span className="block text-lg font-bold text-clay">{t('newMessageCame')}</span>
+              <span className="block text-sm text-ink-2">
+                {unread.length} {t('messagesWaiting')}
+              </span>
+            </span>
+            <span aria-hidden className="text-2xl text-clay">›</span>
           </button>
         )}
 

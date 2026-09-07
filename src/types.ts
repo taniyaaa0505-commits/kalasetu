@@ -119,6 +119,15 @@ export interface Product {
 export interface Message {
   id: string
   productId: string
+  /**
+   * Who has to read this — the maker of the product it is about.
+   *
+   * Carried for the same reason an order carries it: without it, telling her a
+   * buyer has written means reading every message in the shop and looking up
+   * each product to find out whose it was. Stamped from the product when the
+   * message is sent, so it is right on both sides of the conversation.
+   */
+  artisanId?: string
   from: 'artisan' | 'buyer'
   createdAt: number
   /** Exactly what they said or typed, untouched. */

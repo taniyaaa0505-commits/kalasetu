@@ -110,6 +110,8 @@ export const mai: Strings = {
   after: 'बाद मे',
   messages: 'खरीददारसँ गप',
   noMessages: 'अखन धरि कोनो गप नहि भेल',
+  newMessageCame: 'खरीददार अहाँके लिखने छथि',
+  messagesWaiting: 'नव संदेश',
   replyByVoice: 'बाजि कऽ जवाब दिअ',
   buyerSaid: 'खरीददार कहलक',
   youSaid: 'अहाँ कहलहुँ',

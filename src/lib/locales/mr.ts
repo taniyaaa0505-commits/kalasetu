@@ -103,6 +103,8 @@ export const mr: Strings = {
   after: 'नंतर',
   messages: 'ग्राहकाशी बोला',
   noMessages: 'अजून काही बोलणे झाले नाही',
+  newMessageCame: 'खरेदीदाराने तुम्हाला लिहिले आहे',
+  messagesWaiting: 'नवे संदेश',
   replyByVoice: 'बोलून उत्तर द्या',
   buyerSaid: 'ग्राहक म्हणाला',
   youSaid: 'तुम्ही म्हणालात',

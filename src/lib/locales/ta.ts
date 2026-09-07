@@ -107,6 +107,8 @@ export const ta: Strings = {
   after: 'பிறகு',
   messages: 'வாங்குபவருடன் பேச',
   noMessages: 'இன்னும் எதுவும் பேசவில்லை',
+  newMessageCame: 'வாங்குபவர் உங்களுக்கு எழுதியுள்ளார்',
+  messagesWaiting: 'புதிய செய்திகள்',
   replyByVoice: 'பேசி பதில் சொல்லுங்கள்',
   buyerSaid: 'வாங்குபவர் சொன்னார்',
   youSaid: 'நீங்கள் சொன்னீர்கள்',

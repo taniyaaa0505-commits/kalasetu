@@ -101,6 +101,8 @@ export const bn: Strings = {
   after: 'পরে',
   messages: 'ক্রেতার সঙ্গে কথা',
   noMessages: 'এখনও কোনও কথা হয়নি',
+  newMessageCame: 'ক্রেতা আপনাকে লিখেছেন',
+  messagesWaiting: 'নতুন বার্তা',
   replyByVoice: 'বলে উত্তর দিন',
   buyerSaid: 'ক্রেতা বলেছেন',
   youSaid: 'আপনি বলেছেন',

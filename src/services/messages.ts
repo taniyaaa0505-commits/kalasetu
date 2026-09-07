@@ -9,6 +9,7 @@
 import { collection, MSG_STORE } from './store'
 import { translate } from './gemini'
 import { isOnline } from './queue'
+import { getProduct } from './db'
 import type { Message, LangCode } from '../types'
 
 /** A message redraws when it arrives, or when its translation lands. */
@@ -35,6 +36,26 @@ export function subscribeMessages(productId: string, cb: (items: Message[]) => v
   return messages.subscribe(all => cb(
     all.filter(m => m.productId === productId).sort((a, b) => a.createdAt - b.createdAt),
   ))
+}
+
+/**
+ * Watch every message on work SHE made, across all her products.
+ *
+ * The home screen had no subscription to messages at all. It counted them once,
+ * inside the products subscription, so a count only ever refreshed when the
+ * PRODUCTS collection changed — which a new message does not do. A buyer could
+ * write and she would be told nothing until something else redrew the screen,
+ * and the thing that usually did was the same buyer giving up and placing an
+ * order. Orders have had their own live subscription all along; this is the
+ * matching one.
+ */
+export function subscribeMyMessages(
+  artisan: string, cb: (items: Message[]) => void,
+): () => void {
+  return messages.subscribe(
+    all => cb([...all].sort((a, b) => a.createdAt - b.createdAt)),
+    { field: 'artisanId', equals: artisan },
+  )
 }
 
 /** Every message on a product. Used when the product itself is removed —
@@ -65,8 +86,14 @@ export async function sendMessage(opts: {
   const { productId, from, text, localLang } = opts
   const sourceLang = from === 'buyer' ? 'en-IN' : localLang
 
+  // Whose work this is about. Stamped from the product exactly as an order
+  // stamps it, so the message can be routed to her phone without reading the
+  // whole shop. Undefined on products made before sign-in existed; the store
+  // drops the key rather than writing an undefined Firestore refuses.
+  const artisan = (await getProduct(productId))?.artisanId
+
   const base: Message = {
-    id: newId(), productId, from, createdAt: Date.now(),
+    id: newId(), productId, artisanId: artisan, from, createdAt: Date.now(),
     source: text, sourceLang,
     english: from === 'buyer' ? text : '',
     local:   from === 'buyer' ? '' : text,

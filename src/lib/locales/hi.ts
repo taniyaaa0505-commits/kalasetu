@@ -99,6 +99,8 @@ export const hi = {
   after: 'बाद में',
   messages: 'खरीदार से बात',
   noMessages: 'अभी कोई बात नहीं हुई',
+  newMessageCame: 'खरीदार ने बात की है',
+  messagesWaiting: 'नए संदेश',
   replyByVoice: 'बोलकर जवाब दें',
   buyerSaid: 'खरीदार ने कहा',
   youSaid: 'आपने कहा',
