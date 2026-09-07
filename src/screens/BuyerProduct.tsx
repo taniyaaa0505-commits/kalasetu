@@ -22,7 +22,7 @@ export default function BuyerProduct() {
   const [sending, setSending] = useState(false)
   const [orders, setOrders] = useState<Order[]>([])
   const [qty, setQty] = useState(10)
-  const [buyerName, setBuyerName] = useState('Anand Gupta')
+  const [buyerName, setBuyerName] = useState('Name')
   const [buyerOrg, setBuyerOrg] = useState('Meridian Corporate Gifting')
   const [orderNote, setOrderNote] = useState('')
   const [placing, setPlacing] = useState(false)
