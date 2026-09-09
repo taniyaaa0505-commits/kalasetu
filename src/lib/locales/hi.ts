@@ -175,6 +175,20 @@ export const hi = {
   materialHint: 'मिट्टी, रंग, धागा — जो कुछ खरीदना पड़ा',
   hoursHint: 'इसे बनाने में कुल कितने घंटे लगे',
   learnAgainHint: 'कभी भूल जाएँ तो यहाँ दबाइए। मैं फिर से पूरा तरीका दिखाऊँगी।',
+
+  // Two phones, one shop — see services/pairing.ts.
+  pairOpen: 'दूसरा फ़ोन',
+  pairTitle: 'एक ही दुकान, दो फ़ोन',
+  pairWhy: 'अपनी दुकान दूसरे फ़ोन पर भी खोलिए। वही सामान, वही ऑर्डर, वही संदेश।',
+  pairShow: 'इस फ़ोन का नंबर दिखाइए',
+  pairCodeIs: 'यह छह अंक दूसरे फ़ोन पर भरिए',
+  pairExpires: 'यह नंबर आधे घंटे तक चलेगा',
+  pairEnter: 'दूसरे फ़ोन का नंबर यहाँ भरिए',
+  pairJoin: 'जुड़िए',
+  pairOk: 'हो गया। अब दोनों फ़ोन पर एक ही दुकान है।',
+  pairBad: 'यह नंबर नहीं चला। दूसरे फ़ोन से नया नंबर लीजिए।',
+  pairNeedNet: 'इसके लिए इंटरनेट चाहिए',
+  pairAlready: 'यह फ़ोन आपकी दुकान से जुड़ा हुआ है',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

@@ -27,6 +27,41 @@ import { cloudEnabled } from './firebase'
 
 const KEY = 'kalasetu.artisan'
 
+/**
+ * An identity this phone was TOLD to use, rather than the one it was issued.
+ *
+ * Set by services/pairing.ts when she joins her own shop from a second device.
+ * It outranks the anonymous uid below, and it survives a reinstall of the web
+ * app because it is hers now, not the install's.
+ */
+const ADOPTED = 'kalasetu.artisan.adopted'
+
+function adopted(): string | null {
+  try { return localStorage.getItem(ADOPTED) } catch { return null }
+}
+
+/**
+ * Use somebody else's id from now on — hers, from her other phone.
+ *
+ * The reload is deliberate and it is not laziness. Three separate effects on
+ * the home screen open live subscriptions keyed on the id, each on mount, and
+ * every list and count in the app hangs off them. Re-plumbing all of that to
+ * an observable identity, for an action taken once in the life of a phone
+ * with a person standing next to her, would be a large change to the busiest
+ * screen in the app to save a second she is expecting anyway.
+ */
+export function adoptArtisanId(id: string) {
+  try { localStorage.setItem(ADOPTED, id) } catch { /* nothing we can do */ }
+  pending = Promise.resolve(id)
+  try { location.reload() } catch { /* not a browser; the cache above is enough */ }
+}
+
+/** Undo a pairing: go back to whatever this install was issued. */
+export function forgetAdoptedId() {
+  try { localStorage.removeItem(ADOPTED) } catch { /* nothing we can do */ }
+  pending = null
+}
+
 /** Same shape as an auth uid, for the no-cloud path. */
 function localId(): string {
   try {
@@ -82,11 +117,20 @@ function within<T>(work: Promise<T>, ms: number, fallback: () => T): Promise<T> 
 export function artisanId(): Promise<string> {
   if (!pending) {
     pending = (async () => {
+      // An id she paired to wins over the one this install was handed. It is
+      // the only way the same woman on two devices is one artisan.
+      const chosen = adopted()
+      if (chosen) return chosen
       if (!cloudEnabled()) return localId()
       return within(signIn(), AUTH_TIMEOUT_MS, localId)
     })()
   }
   return pending
+}
+
+/** True when this phone is running somebody else's — her own — identity. */
+export function isPaired(): boolean {
+  return adopted() !== null
 }
 
 async function signIn(): Promise<string> {

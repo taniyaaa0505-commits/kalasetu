@@ -184,4 +184,18 @@ export const mai: Strings = {
   materialHint: 'माटि, रंग, धागा — जे किछु कीनय पड़ल',
   hoursHint: 'एकरा बनाबय मे कुल कतेक घंटा लागल',
   learnAgainHint: 'कहियो बिसरि जाइ तँ एतय दबाउ। हम फेर सँ पूरा तरीका देखाएब।',
+
+  // Two phones, one shop — see services/pairing.ts.
+  pairOpen: 'दोसर फोन',
+  pairTitle: 'एकहि दोकान, दू फोन',
+  pairWhy: 'अपन दोकान दोसर फोन पर सेहो खोलू। ओएह सामान, ओएह ऑर्डर, ओएह संदेश।',
+  pairShow: 'एहि फोनक नंबर देखाउ',
+  pairCodeIs: 'ई छह अंक दोसर फोन पर भरू',
+  pairExpires: 'ई नंबर आधा घंटा धरि चलत',
+  pairEnter: 'दोसर फोनक नंबर एतय भरू',
+  pairJoin: 'जुड़ू',
+  pairOk: 'भऽ गेल। आब दूनू फोन पर एकहि दोकान अछि।',
+  pairBad: 'ई नंबर नहि चलल। दोसर फोन सँ नव नंबर लिअ।',
+  pairNeedNet: 'एहि लेल इंटरनेट चाही',
+  pairAlready: 'ई फोन अहाँक दोकान सँ जुड़ल अछि',
 }

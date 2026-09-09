@@ -254,6 +254,21 @@ export default function Home() {
           />
         </div>
 
+        {/* Setting up a second phone, kept deliberately quiet.
+            It is not a fourth errand — she does it once, with someone beside
+            her, and never again — so it does not get a tile next to the two
+            things a buyer does. It sits directly under them rather than at the
+            foot of the page, because a setting that gets harder to reach the
+            more she sells is the mistake the language button already made. */}
+        <button
+          onClick={() => nav('/pair')}
+          className="press mt-3 flex w-full min-h-0 items-center justify-center gap-2 rounded-card
+                     border border-line-2/70 bg-surface/60 px-3 py-2.5 text-sm text-ink-2 active:bg-surface-2"
+        >
+          <Icon name="phones" className="text-indigo" />
+          {t('pairOpen')}
+        </button>
+
         {!empty && (
           <section className="rise rise-3 mt-8">
             <SectionTitle>{t('yourShop')}</SectionTitle>

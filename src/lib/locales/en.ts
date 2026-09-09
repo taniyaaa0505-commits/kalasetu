@@ -171,4 +171,18 @@ export const en: Strings = {
   materialHint: 'Clay, colour, thread — whatever you had to buy',
   hoursHint: 'How many hours it took you to make, in total',
   learnAgainHint: 'Forgotten how? Press here and I will show you the whole thing again.',
+
+  // Two phones, one shop — see services/pairing.ts.
+  pairOpen: 'Other phone',
+  pairTitle: 'One shop, two phones',
+  pairWhy: 'Open your shop on another phone as well. The same work, the same orders, the same messages.',
+  pairShow: "Show this phone's number",
+  pairCodeIs: 'Type these six digits on the other phone',
+  pairExpires: 'This number works for half an hour',
+  pairEnter: 'Type the number from your other phone',
+  pairJoin: 'Join',
+  pairOk: 'Done. Both phones now show the same shop.',
+  pairBad: 'That number did not work. Get a new one from the other phone.',
+  pairNeedNet: 'This needs an internet connection',
+  pairAlready: 'This phone is joined to your shop',
 }

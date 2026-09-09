@@ -43,6 +43,7 @@ export type IconName =
   | 'rising'      // was 📈
   | 'language'    // was 🗣
   | 'chat'        // was 💬
+  | 'phones'      // two handsets: one shop, two devices
 
 const PATHS: Record<IconName, React.ReactNode> = {
   /* A four-pointed spark. Used ONLY where the app is doing work on her
@@ -168,6 +169,18 @@ const PATHS: Record<IconName, React.ReactNode> = {
 
   chat: (
     <path d="M3.4 4.2h17.2a1.3 1.3 0 0 1 1.3 1.3v9.3a1.3 1.3 0 0 1-1.3 1.3H10.3l-5 4.2v-4.2H3.4a1.3 1.3 0 0 1-1.3-1.3V5.5a1.3 1.3 0 0 1 1.3-1.3z" />
+  ),
+
+  /* Two handsets, the near one overlapping the far one. Not a link or a
+     chain: what she is being offered is her OTHER PHONE, and the thing she
+     recognises is the shape of a phone. */
+  phones: (
+    <>
+      <rect x="2.6" y="4.6" width="8.4" height="14.8" rx="2" />
+      <path d="M6 17.2h1.6" />
+      <rect x="13" y="7.4" width="8.4" height="14.8" rx="2" fill="var(--color-surface, #fff)" />
+      <path d="M16.4 20h1.6" />
+    </>
   ),
 
   language: (

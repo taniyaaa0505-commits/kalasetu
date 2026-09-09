@@ -11,6 +11,7 @@ import Chat from './screens/Chat'
 import Orders from './screens/Orders'
 import Messages from './screens/Messages'
 import Start from './screens/Start'
+import Pair from './screens/Pair'
 import Impact from './screens/Impact'
 import StorageError from './components/StorageError'
 import QueueRunner from './components/QueueRunner'
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/orders"        element={<Orders />} />
         <Route path="/messages"      element={<Messages />} />
         <Route path="/buyer"         element={<Buyer />} />
+        <Route path="/pair"          element={<Pair />} />
         <Route path="/impact"        element={<Impact />} />
         <Route path="/buyer/:id"     element={<BuyerProduct />} />
         <Route path="*" element={<Navigate to="/" replace />} />
