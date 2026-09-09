@@ -107,6 +107,7 @@ export const bn: Strings = {
   buyerSaid: 'ক্রেতা বলেছেন',
   youSaid: 'আপনি বলেছেন',
   notTranslated: 'অনুবাদ হয়নি',
+  translating: 'অনুবাদ হচ্ছে…',
   sending: 'পাঠানো হচ্ছে…',
   orders: 'অর্ডার',
   newOrderCame: 'আপনার অর্ডার এসেছে',

@@ -105,6 +105,7 @@ export const hi = {
   buyerSaid: 'खरीदार ने कहा',
   youSaid: 'आपने कहा',
   notTranslated: 'अनुवाद नहीं हो पाया',
+  translating: 'अनुवाद हो रहा है…',
   sending: 'भेजा जा रहा है…',
   orders: 'ऑर्डर',
   newOrderCame: 'आपका ऑर्डर आया है',

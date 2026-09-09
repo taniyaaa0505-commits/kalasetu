@@ -105,21 +105,83 @@ export async function sendMessage(opts: {
     localLang,
   }
 
-  if (!isOnline()) {
-    return put({ ...base, untranslated: true,
-      english: base.english || text, local: base.local || text })
-  }
+  /*
+   * Stored FIRST, in one language, marked — and the translation happens after.
+   *
+   * This used to await Gemini and only then write the message, so pressing
+   * Send did nothing visible until a round trip came back. Measured against
+   * our own key: 4 seconds warm, 23 seconds cold. Twenty-three seconds of a
+   * disabled button and an empty thread, for a message the app already had in
+   * its hand — which is indistinguishable from a chat that does not work, and
+   * is exactly what was reported.
+   *
+   * It is the same mistake orders.ts made with the buyer's note and fixed for
+   * the same reason: the translation is the part that can be slow, and it is
+   * the part nobody is waiting on. She reads the message when she opens her
+   * phone; he has just typed his and knows what it says. Both of them get the
+   * message on screen now, and the other language lands underneath it a few
+   * seconds later, live, through the subscription that is already open.
+   */
+  const saved = await put({ ...base, untranslated: true,
+    english: base.english || text, local: base.local || text })
 
+  if (isOnline()) void translateOne(saved)
+  return saved
+}
+
+/** How long a translation gets before the message stays in one language. */
+const TRANSLATE_MS = 10000
+
+/**
+ * How long an untranslated message is still fairly described as "translating".
+ *
+ * The screens draw a message the moment it is sent, before its other language
+ * exists, so for a few seconds "could not translate" would be a lie about work
+ * that is still in the air. Past this, it is the truth.
+ */
+export const TRANSLATING_WINDOW_MS = TRANSLATE_MS + 2000
+
+/** How long to leave a message alone after a translation attempt failed. */
+const RETRY_AFTER_MS = 30000
+
+/** Translations running right now, and ones that just failed. Both exist to
+ *  stop the screens — which call translatePending on every redraw that
+ *  contains an untranslated message — from stacking requests on the same
+ *  message or hammering a key that is already refusing. */
+const inFlight = new Set<string>()
+const failedAt = new Map<string, number>()
+
+/**
+ * Fill in the other language for one message. Never throws: a message with a
+ * translation missing is a state the UI already draws, not an error.
+ */
+async function translateOne(m: Message): Promise<boolean> {
+  if (inFlight.has(m.id)) return false
+  const failed = failedAt.get(m.id)
+  if (failed && Date.now() - failed < RETRY_AFTER_MS) return false
+
+  inFlight.add(m.id)
   try {
-    const other = from === 'buyer'
-      ? await translate(text, 'English', languageName(localLang))
-      : await translate(text, languageName(localLang), 'English')
-    return put(from === 'buyer' ? { ...base, local: other } : { ...base, english: other })
-  } catch {
-    // A failed translation must never swallow the message.
-    return put({ ...base, untranslated: true,
-      english: base.english || text, local: base.local || text })
-  }
+    const other = await Promise.race([
+      m.from === 'buyer'
+        ? translate(m.source, 'English', languageName(m.localLang))
+        : translate(m.source, languageName(m.localLang), 'English'),
+      new Promise<never>((_, no) =>
+        setTimeout(() => no(new Error('translate timed out')), TRANSLATE_MS)),
+    ])
+    // Re-read rather than writing the object we captured: the same message may
+    // have been rewritten while this was in the air.
+    const latest = (await messages.get(m.id)) ?? m
+    await put(latest.from === 'buyer'
+      ? { ...latest, local: other, untranslated: false }
+      : { ...latest, english: other, untranslated: false })
+    failedAt.delete(m.id)
+    return true
+  } catch (err) {
+    console.warn('[messages] left untranslated:', err)
+    failedAt.set(m.id, Date.now())
+    return false
+  } finally { inFlight.delete(m.id) }
 }
 
 /** Retry anything that was stored without a translation. */
@@ -127,17 +189,7 @@ export async function translatePending(productId: string): Promise<number> {
   if (!isOnline()) return 0
   const pending = (await listMessages(productId)).filter(m => m.untranslated)
   let done = 0
-  for (const m of pending) {
-    try {
-      const other = m.from === 'buyer'
-        ? await translate(m.source, 'English', languageName(m.localLang))
-        : await translate(m.source, languageName(m.localLang), 'English')
-      await put(m.from === 'buyer'
-        ? { ...m, local: other, untranslated: false }
-        : { ...m, english: other, untranslated: false })
-      done++
-    } catch { /* leave it pending, try again later */ }
-  }
+  for (const m of pending) if (await translateOne(m)) done++
   return done
 }
 

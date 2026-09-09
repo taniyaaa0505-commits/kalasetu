@@ -116,6 +116,7 @@ export const mai: Strings = {
   buyerSaid: 'खरीददार कहलक',
   youSaid: 'अहाँ कहलहुँ',
   notTranslated: 'अनुवाद नहि भऽ सकल',
+  translating: 'अनुवाद भऽ रहल अछि…',
   sending: 'पठाओल जा रहल अछि…',
   orders: 'ऑर्डर',
   newOrderCame: 'अहाँक ऑर्डर आएल अछि',

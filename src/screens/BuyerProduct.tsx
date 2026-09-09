@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../services/db'
-import { sendMessage, translatePending, subscribeMessages } from '../services/messages'
+import { sendMessage, translatePending, subscribeMessages, TRANSLATING_WINDOW_MS } from '../services/messages'
 import { placeOrder, setStatus, subscribeOrders } from '../services/orders'
 import PriceInNotes from '../components/PriceInNotes'
 import { Scallop } from '../components/Ornament'
@@ -46,6 +46,19 @@ export default function BuyerProduct() {
   }, [id])
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])
+
+  // One redraw at the moment the "translating…" window closes. Nothing else
+  // would trigger it: a translation that fails writes nothing, so the label
+  // would sit there claiming to be busy until the next message arrived.
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const waiting = msgs.filter(m => m.untranslated)
+    if (!waiting.length) return
+    const soonest = Math.min(...waiting.map(m => m.createdAt + TRANSLATING_WINDOW_MS - Date.now()))
+    if (soonest <= 0) return
+    const timer = setTimeout(() => tick(n => n + 1), soonest + 100)
+    return () => clearTimeout(timer)
+  }, [msgs])
 
   /**
    * A ceiling on how long a button may say it is busy.
@@ -287,9 +300,14 @@ export default function BuyerProduct() {
                       translated from {m.sourceLang.split('-')[0]} · “{m.source}”
                     </p>
                   )}
+                  {/* Still working, or genuinely failed — not the same thing.
+                      A message is drawn the instant it is sent, seconds before
+                      its other language exists, and calling that "not
+                      translated" reads as a broken chat rather than a busy
+                      one. */}
                   {m.untranslated && (
                     <p className={'mt-1.5 text-xs ' + (m.from === 'buyer' ? 'text-white/70' : 'text-gold')}>
-                      ⚠ not translated
+                      {Date.now() - m.createdAt < TRANSLATING_WINDOW_MS ? 'translating…' : '⚠ not translated'}
                     </p>
                   )}
                 </div>

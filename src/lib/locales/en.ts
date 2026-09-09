@@ -101,6 +101,7 @@ export const en: Strings = {
   buyerSaid: 'The buyer said',
   youSaid: 'You said',
   notTranslated: 'Could not translate',
+  translating: 'translating…',
   sending: 'Sending…',
   orders: 'Orders',
   newOrderCame: 'You have a new order',

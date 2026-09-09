@@ -10,7 +10,7 @@ import { useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
 import BigButton from '../components/BigButton'
 import { getProduct } from '../services/db'
-import { listMessages, sendMessage, translatePending, subscribeMessages } from '../services/messages'
+import { sendMessage, translatePending, subscribeMessages, TRANSLATING_WINDOW_MS } from '../services/messages'
 import { markSeen } from '../lib/seen'
 import { listen, listenSupported, type Recogniser } from '../lib/listen'
 import { speak, stopSpeaking } from '../lib/speak'
@@ -39,11 +39,19 @@ export default function Chat() {
     const off = subscribeMessages(id, list => {
       setMsgs(list)
 
-      // Read any new buyer message aloud, once. She cannot read it.
+      /* Read any new buyer message aloud, once. She cannot read it.
+       *
+       * Marked as spoken only when it is actually SPOKEN. It used to be marked
+       * on arrival and then skipped if it had no translation yet — so a
+       * message that arrived untranslated was silently retired and never read
+       * to her at all, not even when its Hindi landed a second later. That was
+       * a latent bug while the buyer's send waited for the translation before
+       * storing anything. Now that it does not, every message arrives
+       * untranslated first, and this would have silenced the whole screen. */
       const latest = list.filter(m => m.from === 'buyer').at(-1)
-      if (latest && !spokenRef.current.has(latest.id)) {
+      if (latest && !latest.untranslated && !spokenRef.current.has(latest.id)) {
         spokenRef.current.add(latest.id)
-        if (!latest.untranslated) speak(latest.local, asrCode(productLang))
+        speak(latest.local, asrCode(productLang))
       }
       // She is looking at this conversation right now, so it is no longer
       // waiting for her — this is what clears the banner on the home screen.
@@ -54,6 +62,18 @@ export default function Chat() {
   }, [id, productLang])
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])
+
+  // One redraw when the "translating…" window closes, so a translation that
+  // failed stops claiming to still be working. Nothing else would trigger it.
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const waiting = msgs.filter(m => m.untranslated)
+    if (!waiting.length) return
+    const soonest = Math.min(...waiting.map(m => m.createdAt + TRANSLATING_WINDOW_MS - Date.now()))
+    if (soonest <= 0) return
+    const timer = setTimeout(() => tick(n => n + 1), soonest + 100)
+    return () => clearTimeout(timer)
+  }, [msgs])
 
   function startTalking() {
     stopSpeaking(); setDraft(''); setRecording(true)
@@ -67,9 +87,17 @@ export default function Chat() {
 
   async function send(text: string) {
     setSending(true)
-    await sendMessage({ productId: id, from: 'artisan', text, localLang: productLang })
-    setDraft(''); setSending(false)
-    setMsgs(await listMessages(id))
+    try {
+      // No re-read afterwards: subscribeMessages above is live and hands the
+      // message straight back. And no waiting on the translation — see
+      // services/messages.ts. She spoke; the words go up now.
+      await sendMessage({ productId: id, from: 'artisan', text, localLang: productLang })
+      setDraft('')
+    } catch (err) {
+      // It had no catch at all, so a store that refused the write left her
+      // looking at "sending…" with no way out and nothing said.
+      console.error('[chat] could not send', err)
+    } finally { setSending(false) }
   }
 
   return (
@@ -130,7 +158,9 @@ function Bubble({ m, lang }: { m: Message; lang: string }) {
         )}
         {m.untranslated && (
           <p className={'mt-2 text-xs ' + (mine ? 'text-white/70' : 'text-gold')}>
-            ⚠ {t('notTranslated')}
+            {Date.now() - m.createdAt < TRANSLATING_WINDOW_MS
+              ? t('translating')
+              : `⚠ ${t('notTranslated')}`}
           </p>
         )}
       </div>

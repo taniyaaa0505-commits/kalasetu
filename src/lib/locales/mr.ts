@@ -109,6 +109,7 @@ export const mr: Strings = {
   buyerSaid: 'ग्राहक म्हणाला',
   youSaid: 'तुम्ही म्हणालात',
   notTranslated: 'भाषांतर होऊ शकले नाही',
+  translating: 'भाषांतर होत आहे…',
   sending: 'पाठवले जात आहे…',
   orders: 'ऑर्डर',
   newOrderCame: 'तुमची ऑर्डर आली आहे',

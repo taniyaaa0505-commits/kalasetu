@@ -113,6 +113,7 @@ export const ta: Strings = {
   buyerSaid: 'வாங்குபவர் சொன்னார்',
   youSaid: 'நீங்கள் சொன்னீர்கள்',
   notTranslated: 'மொழிபெயர்க்க முடியவில்லை',
+  translating: 'மொழிபெயர்க்கிறது…',
   sending: 'அனுப்பப்படுகிறது…',
   orders: 'ஆர்டர்',
   newOrderCame: 'உங்கள் ஆர்டர் வந்திருக்கிறது',
