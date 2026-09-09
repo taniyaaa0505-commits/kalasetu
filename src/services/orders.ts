@@ -50,13 +50,24 @@ export async function placeOrder(opts: {
   note?: string
   needBy?: number
   localLang: LangCode
+  /** Whose work it is. Pass it if the caller already has the product. */
+  artisanId?: string
 }): Promise<Order> {
   const { productId, quantity, unitPrice, buyerName, buyerOrg, note, needBy, localLang } = opts
 
-  // Carry the maker's id onto the order. Without it, routing an order to the
-  // right phone means fetching every product first just to look up an owner —
-  // and it means an order can be orphaned by a product being deleted.
-  const owner = (await getProduct(productId))?.artisanId
+  /*
+   * Carry the maker's id onto the order. Without it, routing an order to the
+   * right phone means fetching every product first just to look up an owner —
+   * and it means an order can be orphaned by a product being deleted.
+   *
+   * But we do not FETCH it if we were handed it. The buyer page is looking at
+   * the product; it has had `artisanId` in memory since the page rendered.
+   * Re-reading the document to learn one string means another round trip for
+   * roughly a megabyte of base64 photographs — on the phone of a buyer who has
+   * just pressed the most important button on the page and is now watching it
+   * say "Placing…" while nothing appears to happen.
+   */
+  const owner = opts.artisanId ?? (await getProduct(productId))?.artisanId
 
   const now = Date.now()
   const order = await put({
@@ -129,15 +140,18 @@ const NEXT: Record<OrderStatus, OrderStatus[]> = {
 export async function setStatus(
   id: string,
   status: OrderStatus,
-  extra?: { leadTimeDays?: number },
+  extra?: { leadTimeDays?: number; known?: Order },
 ): Promise<Order | undefined> {
-  const o = await getOrder(id)
+  // `known` is the order the screen is already displaying. Same reasoning as
+  // placeOrder: a screen holding the row should not re-read it over the
+  // network before it is allowed to change it.
+  const o = extra?.known ?? await getOrder(id)
   if (!o) return undefined
   if (!NEXT[o.status].includes(status)) {
     console.warn(`[orders] refusing ${o.status} -> ${status}`)
     return o
   }
-  return put({ ...o, ...extra, status, updatedAt: Date.now() })
+  return put({ ...o, leadTimeDays: extra?.leadTimeDays ?? o.leadTimeDays, status, updatedAt: Date.now() })
 }
 
 export function canGo(from: OrderStatus, to: OrderStatus): boolean {

@@ -49,16 +49,32 @@ export function cloudCollection<T extends Stored>(name: string): Collection<T> {
   }
 
   return {
+    /*
+     * Both reads swallow their failures and answer "nothing", and both put the
+     * `await coll()` INSIDE the try.
+     *
+     * It used to sit outside, which quietly undid the catch below: if the
+     * Firestore handle itself could not be built — a browser with no IndexedDB,
+     * a chunk that failed to load on a dying connection — the read rejected
+     * anyway, and that rejection travelled all the way up to the buyer's
+     * "Place order" button. A read that cannot answer is not an error worth
+     * stopping a sale for; it is an empty answer.
+     */
     async list() {
-      const { ref } = await coll()
-      const { getDocs } = await import('firebase/firestore')
-      return (await getDocs(ref)).docs.map(d => d.data() as T)
+      try {
+        const { ref } = await coll()
+        const { getDocs } = await import('firebase/firestore')
+        return (await getDocs(ref)).docs.map(d => d.data() as T)
+      } catch (err) {
+        console.warn(`[store] could not read ${name}`, err)
+        return []
+      }
     },
 
     async get(id) {
-      const { db } = await coll()
-      const { doc, getDoc } = await import('firebase/firestore')
       try {
+        const { db } = await coll()
+        const { doc, getDoc } = await import('firebase/firestore')
         const snap = await getDoc(doc(db, name, id))
         return snap.exists() ? (snap.data() as T) : undefined
       } catch (err) {

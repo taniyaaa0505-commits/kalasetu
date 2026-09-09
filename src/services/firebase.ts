@@ -46,9 +46,27 @@ export function firestore(): Promise<Firestore> {
       // writes land locally first and sync when the signal returns, which is
       // the whole offline story. The multi-tab manager matters because the
       // demo runs her app and the buyer page side by side.
-      return initializeFirestore(app, {
-        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-      })
+      try {
+        return initializeFirestore(app, {
+          localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+        })
+      } catch (err) {
+        /*
+         * `initializeFirestore` throws if Firestore has ALREADY been started on
+         * this app — a second caller, a hot reload, anything that reached for a
+         * handle first. The throw travelled up through every store call, so one
+         * ordering accident anywhere took out reads and writes everywhere.
+         *
+         * The already-started instance is perfectly good; ask for it instead.
+         *
+         * (Not the missing-IndexedDB case: the SDK handles that itself and
+         * falls back to a memory cache with a warning, verified in a browser
+         * with IndexedDB blocked. It does not reach here.)
+         */
+        console.warn('[firebase] already started; reusing the existing handle', err)
+        const { getFirestore } = await import('firebase/firestore')
+        return getFirestore(app)
+      }
     })().catch(err => { dbPromise = null; throw err })
   }
   return dbPromise

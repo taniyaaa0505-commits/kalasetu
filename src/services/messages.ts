@@ -82,6 +82,8 @@ export async function sendMessage(opts: {
   from: 'artisan' | 'buyer'
   text: string
   localLang: LangCode          // the artisan's language for this conversation
+  /** Whose work it is. Pass it if the caller already has the product. */
+  artisanId?: string
 }): Promise<Message> {
   const { productId, from, text, localLang } = opts
   const sourceLang = from === 'buyer' ? 'en-IN' : localLang
@@ -90,7 +92,10 @@ export async function sendMessage(opts: {
   // stamps it, so the message can be routed to her phone without reading the
   // whole shop. Undefined on products made before sign-in existed; the store
   // drops the key rather than writing an undefined Firestore refuses.
-  const artisan = (await getProduct(productId))?.artisanId
+  //
+  // Not re-read when the caller already has it — see placeOrder for why a
+  // one-string lookup is worth avoiding when the document carries photographs.
+  const artisan = opts.artisanId ?? (await getProduct(productId))?.artisanId
 
   const base: Message = {
     id: newId(), productId, artisanId: artisan, from, createdAt: Date.now(),

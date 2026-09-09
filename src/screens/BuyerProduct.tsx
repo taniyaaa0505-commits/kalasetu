@@ -7,11 +7,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../services/db'
-import { listMessages, sendMessage, translatePending, subscribeMessages } from '../services/messages'
-import { listOrders, placeOrder, setStatus, subscribeOrders } from '../services/orders'
+import { sendMessage, translatePending, subscribeMessages } from '../services/messages'
+import { placeOrder, setStatus, subscribeOrders } from '../services/orders'
 import PriceInNotes from '../components/PriceInNotes'
 import { Scallop } from '../components/Ornament'
 import type { Message, Order, Product } from '../types'
+
+/** How long a button may claim to be working before we call it stuck. */
+const WATCHDOG_MS = 12000
 
 export default function BuyerProduct() {
   const { id = '' } = useParams()
@@ -29,6 +32,7 @@ export default function BuyerProduct() {
   const [placed, setPlaced] = useState(false)
   const [trouble, setTrouble] = useState<string>()
   const endRef = useRef<HTMLDivElement>(null)
+  const placedRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { getProduct(id).then(setP) }, [id])
 
@@ -44,6 +48,31 @@ export default function BuyerProduct() {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])
 
   /**
+   * A ceiling on how long a button may say it is busy.
+   *
+   * Everything below this line is now local-first and returns in milliseconds,
+   * so this should never fire. It exists because the failure it guards against
+   * is not an exception — it is a promise that never settles, which no
+   * try/finally can catch — and because the cost of being wrong about that is
+   * a buyer staring at "Placing…" with no way forward and no idea why. If it
+   * ever does fire, he gets his button back and a sentence he can act on.
+   */
+  useEffect(() => {
+    if (!placing && !sending) return
+    const timer = setTimeout(() => {
+      setPlacing(false); setSending(false)
+      setTrouble('that took too long — check your connection and try again')
+    }, WATCHDOG_MS)
+    return () => clearTimeout(timer)
+  }, [placing, sending])
+
+  // Put the confirmation where he is looking. On a phone the order form fills
+  // the screen, so a banner rendered under it is a banner nobody sees.
+  useEffect(() => {
+    if (placed) placedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [placed])
+
+  /**
    * Both of these clear their busy flag in a `finally`.
    *
    * They did not, and that was the bug: "Placing…" with nothing happening,
@@ -51,6 +80,11 @@ export default function BuyerProduct() {
    * — Firestore refusing the write, the signal dropping mid-request — skipped
    * the reset, so the button stayed disabled and mid-sentence and the buyer
    * had no way to try again and no idea why.
+   *
+   * `finally` fixed the throwing case. It does nothing for the case that
+   * actually shows up on a phone, which is a promise that never settles at
+   * all — so neither of these awaits a network read it does not need any
+   * more, and the button has a clock on it besides. See WATCHDOG_MS.
    */
   async function send(e: React.FormEvent) {
     e.preventDefault()
@@ -58,8 +92,13 @@ export default function BuyerProduct() {
     if (!body || !p) return
     setText(''); setSending(true); setTrouble(undefined)
     try {
-      await sendMessage({ productId: id, from: 'buyer', text: body, localLang: p.lang })
-      setMsgs(await listMessages(id))
+      // No re-read afterwards: subscribeMessages is live and hands us the
+      // message back the moment it lands, which is sooner than a fresh
+      // listMessages() would have returned it.
+      await sendMessage({
+        productId: id, from: 'buyer', text: body,
+        localLang: p.lang, artisanId: p.artisanId,
+      })
     } catch (err) {
       setText(body)                       // give him his words back
       setTrouble(err instanceof Error ? err.message : String(err))
@@ -71,12 +110,26 @@ export default function BuyerProduct() {
     if (!p?.price) return
     setPlacing(true); setTrouble(undefined)
     try {
-      await placeOrder({
+      /*
+       * Two network reads used to sit between this buyer and his confirmation,
+       * and neither of them was needed to place the order.
+       *
+       * placeOrder re-read the PRODUCT — a document carrying two base64
+       * photographs — to learn one string this component has had in `p` since
+       * it rendered. Then we re-read the whole ORDERS collection, to build a
+       * list that subscribeOrders was already keeping up to date. The write
+       * itself is local-first and returns in a millisecond; it was the two
+       * reads wrapped around it that left the button sitting on "Placing…".
+       */
+      const fresh = await placeOrder({
         productId: id, quantity: qty, unitPrice: p.price.suggested,
-        buyerName, buyerOrg, note: orderNote.trim() || undefined, localLang: p.lang,
+        buyerName, buyerOrg, note: orderNote.trim() || undefined,
+        localLang: p.lang, artisanId: p.artisanId,
       })
       setOrderNote('')
-      setOrders(await listOrders(id))
+      // Show it immediately; the live listener will send the same order along
+      // shortly, so key on id rather than appending twice.
+      setOrders(prev => prev.some(o => o.id === fresh.id) ? prev : [fresh, ...prev])
       setPlaced(true)
     } catch (err) {
       setTrouble(err instanceof Error ? err.message : String(err))
@@ -122,7 +175,19 @@ export default function BuyerProduct() {
 
           {/* Bulk order form. The problem statement asks for B2B buyers, so
               quantity is the first thing on screen, not an afterthought. */}
-          <form onSubmit={order} className="mt-6 rounded-panel border border-line-2/70 bg-surface p-5 shadow-card">
+          {/*
+            * noValidate, deliberately.
+            *
+            * The quantity box is <input type="number" min={1}>, and the browser
+            * refuses to submit a form containing a field that fails its own
+            * constraints — silently, with a tooltip that a mobile keyboard
+            * covers. Clear the box, or leave it mid-edit as "1e", and pressing
+            * "Place order" does nothing at all, with no error and no clue.
+            * The quantity is already clamped in JS on every keystroke, so the
+            * native check was buying us nothing and could cost us the sale.
+            */}
+          <form onSubmit={order} noValidate
+                className="mt-6 rounded-panel border border-line-2/70 bg-surface p-5 shadow-card">
             <h2 className="mb-4 text-lg font-bold tracking-tight">Place a bulk order</h2>
 
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-ink-3">Quantity</label>
@@ -177,7 +242,7 @@ export default function BuyerProduct() {
               order is a REQUEST until she accepts it, and a buyer who thinks
               he has bought something will chase the wrong person. */}
           {placed && (
-            <div role="status"
+            <div role="status" ref={placedRef}
               className="fade mt-4 flex items-start gap-3 rounded-card border-2 border-good bg-sage-wash px-4 py-3.5">
               <span aria-hidden className="mt-0.5 text-lg">✅</span>
               <div className="flex-1">
@@ -194,7 +259,7 @@ export default function BuyerProduct() {
 
           {orders.length > 0 && (
             <ul className="mt-4 flex flex-col gap-2">
-              {orders.map(o => <BuyerOrderRow key={o.id} o={o} onRefresh={async () => setOrders(await listOrders(id))} />)}
+              {orders.map(o => <BuyerOrderRow key={o.id} o={o} />)}
             </ul>
           )}
         </div>
@@ -270,15 +335,19 @@ const STATUS_TEXT: Record<Order['status'], string> = {
  * connection was indistinguishable from a dead control, and a failed one was
  * indistinguishable from both. Same shape as the "Placing…" bug on this page.
  */
-function BuyerOrderRow({ o, onRefresh }: { o: Order; onRefresh: () => void }) {
+function BuyerOrderRow({ o }: { o: Order }) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState<string>()
 
   async function receive() {
     setBusy(true); setFailed(undefined)
     try {
-      await setStatus(o.id, 'delivered')
-      onRefresh()
+      // `known: o` — this row IS the order, so there is nothing to go and
+      // fetch first. And no refresh afterwards: subscribeOrders on the parent
+      // is live and redraws this row itself. Both reads were the same mistake
+      // as the one on the Place order button, on the very last step of the
+      // system.
+      await setStatus(o.id, 'delivered', { known: o })
     } catch (err) {
       setFailed(err instanceof Error ? err.message : String(err))
     } finally { setBusy(false) }
