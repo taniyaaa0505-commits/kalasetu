@@ -1,0 +1,143 @@
+rules_version = '2';
+
+/*
+ * Who may touch what.
+ *
+ * Until this file existed the database was open: anyone who read the API key
+ * out of the bundle could rewrite every artisan's prices, accept her orders or
+ * empty her shop. That was a deliberate trade while there was no identity to
+ * check against — and services/account.ts has now given us one, so the trade
+ * has expired. A sign-in that is not backed by rules is decoration.
+ *
+ * HARD DEPENDENCY: anonymous sign-in must be ON in the Firebase console
+ * (Authentication -> Sign-in method -> Anonymous). Every rule below needs a
+ * `request.auth`, and the buyer marketplace on a stranger's laptop gets one the
+ * same way her phone does. With it switched off the app falls back to a
+ * `local_` device id, has no auth at all, and these rules lock everyone out of
+ * everything. Turn it on BEFORE deploying this file.
+ *
+ * Deploy:  firebase deploy --only firestore:rules
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null }
+
+    /*
+     * A document created before auth had resolved.
+     *
+     * services/artisan.ts gives identity a six-second ceiling and then falls
+     * back to a device id, because offline `signInAnonymously` does not fail —
+     * it waits forever, and nothing about a metric may ever stand between her
+     * and the next screen. So her FIRST product, made on a phone with no
+     * signal, can genuinely carry `local_…` instead of a uid.
+     *
+     * Rejecting those would mean her first listing syncs, is denied, and
+     * disappears — the exact failure the timeout exists to prevent. So they
+     * stay writable by anyone signed in.
+     *
+     * This is the one hole in this file and it is deliberate. It cannot touch
+     * a product that belongs to a real account, which is everything that has
+     * been listed by a phone that had a signal. Closing it needs an offline
+     * identity that is stable before the first write — a real sign-in at the
+     * door — and that is the thing this app has decided not to ask for.
+     */
+    function unowned(owner) {
+      return !(owner is string) || owner.matches('^local_.*')
+    }
+
+    function ownedByMe(owner) {
+      return signedIn() && (owner == request.auth.uid || unowned(owner))
+    }
+
+    /*
+     * Her work. Readable by everyone, because the buyer marketplace at /#/buyer
+     * is the whole point and a gifting company on a laptop is not going to sign
+     * in to look at a pot.
+     */
+    match /products/{id} {
+      allow read: if true;
+      allow create: if ownedByMe(request.resource.data.artisanId);
+      allow update, delete: if ownedByMe(resource.data.artisanId);
+    }
+
+    /*
+     * A conversation has two sides and only one of them is the owner, so a
+     * buyer must be able to write a message about somebody else's product.
+     * Editing one after the fact is nobody's business: create, never update.
+     */
+    match /messages/{id} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+
+    /*
+     * The buyer places it; the artisan answers it. Only she may move an order
+     * along — accepting, declining, shipping — and nobody may delete one. An
+     * order that can vanish is a sales record that cannot back a loan
+     * application, which is half of what this project claims to be for.
+     */
+    match /orders/{id} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update: if ownedByMe(resource.data.artisanId);
+      allow delete: if false;
+    }
+
+    /*
+     * Six digits, half an hour, and services/pairing.ts is candid that this is
+     * not security. Rules cannot make it so — the whole mechanism is a secret
+     * short enough to say across a room. What they can do is stop it being a
+     * way to WRITE someone else's identity into the database: a code may only
+     * ever carry the uid of whoever made it.
+     */
+    match /pairs/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.artisanId == request.auth.uid;
+      allow update: if false;
+      allow delete: if signedIn();   // spent by whoever redeems it
+    }
+
+    /*
+     * The public half of an artisan, and the one place a badge may come from.
+     *
+     * She writes her own document — and she may not simply declare herself
+     * verified. `vouched()` makes the rule fetch the coordinator's voucher and
+     * refuse any cluster name that does not match a real one, which is the most
+     * server-side checking available to a project with no billing card: Cloud
+     * Functions need Blaze, so rules are all there is.
+     *
+     * Honest limit, same as the pairing code above: whoever LEARNS a voucher
+     * can claim its cluster. The code belongs to a named field worker who
+     * answers for it, which is the accountability — not the six characters.
+     */
+    match /artisans/{uid} {
+      allow read: if true;
+      allow write: if signedIn() && request.auth.uid == uid && vouched();
+    }
+
+    function vouched() {
+      return !('verifiedBy' in request.resource.data) || (
+        'voucher' in request.resource.data
+        && exists(/databases/$(database)/documents/vouchers/$(request.resource.data.voucher))
+        && get(/databases/$(database)/documents/vouchers/$(request.resource.data.voucher)).data.cluster
+           == request.resource.data.verifiedBy
+      );
+    }
+
+    /*
+     * Minted by hand in the console, or by tools/vouchers.mjs. Never from the
+     * app — a voucher the client could create is not a voucher.
+     */
+    match /vouchers/{code} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // Anything we have not thought about yet is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

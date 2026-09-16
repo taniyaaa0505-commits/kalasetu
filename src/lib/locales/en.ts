@@ -186,4 +186,33 @@ export const en: Strings = {
   pairBad: 'That number did not work. Get a new one from the other phone.',
   pairNeedNet: 'This needs an internet connection',
   pairAlready: 'This phone is joined to your shop',
+
+  // Getting her shop back — see services/account.ts.
+  keepOpen: 'Keep my shop safe',
+  keepTitle: 'Your shop, kept safe',
+  keepWhy: 'If your phone is lost, breaks, or you install the app again, your shop still comes back to you. Give your phone number once. That is all.',
+  keepOfferTitle: 'Keep your shop safe',
+  keepOfferSub: 'So everything comes back if you ever change your phone',
+  keepPhone: 'Your phone number',
+  keepPhoneHint: 'We will send you a number to type back here',
+  keepSend: 'Send me the number',
+  keepCode: 'Type the number we sent',
+  keepConfirm: 'Confirm',
+  keepGoogle: 'Use your Google account',
+  keepKept: 'Done. Your shop is safe now.',
+  keepRestored: 'Your shop is back. Everything is here.',
+  keepBadNumber: 'That does not look like a phone number. Type ten digits.',
+  keepBadCode: 'That number was not right. Please type it again.',
+  keepNeedNet: 'This needs an internet connection',
+  keepSignedIn: 'Your shop is saved to {label}',
+  keepLeave: 'Use a different shop on this phone',
+
+  // Proving she is an artisan — see services/verify.ts.
+  vouchTitle: 'Show that you are an artisan',
+  vouchWhy: 'Ask your field worker, self-help group or CSC for a code. Type it once and your shop carries a mark of trust — a buyer can see the work is from a real artisan.',
+  vouchEnter: 'Type the code your field worker gave you',
+  vouchGo: 'Add the mark',
+  vouchBad: 'That code was not recognised. Ask your field worker again.',
+  vouchDone: 'Verified by {cluster}',
+  verifiedBadge: 'Verified artisan',
 }
