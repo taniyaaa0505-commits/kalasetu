@@ -6,6 +6,7 @@ import { Gota, Corner } from '../components/Ornament'
 import BigButton from '../components/BigButton'
 import { listProducts, newId, subscribeMyProducts } from '../services/db'
 import { artisanId } from '../services/artisan'
+import { accountAvailable, currentAccount } from '../services/account'
 import { subscribeMyMessages } from '../services/messages'
 import { lastSeen } from '../lib/seen'
 import { subscribeMyOrders } from '../services/orders'
@@ -134,6 +135,18 @@ export default function Home() {
   const waiting = orders.filter(o => o.status === 'placed').length
   const draft = products.find(p => p.status !== 'published')
 
+  /*
+   * When to ask her for a phone number: after, never before.
+   *
+   * services/account.ts argues the case at length. The short version is that
+   * this offer is worth nothing to her until something in the app is worth
+   * keeping, and asking at the door costs us the woman who has never typed on
+   * a phone — so it waits for her first PUBLISHED product, not her first tap.
+   * A draft is not a shop.
+   */
+  const offerKeep = accountAvailable() && !currentAccount()
+    && products.some(p => p.status === 'published')
+
   return (
     <Screen
       title={t('appName')} brand
@@ -233,6 +246,26 @@ export default function Home() {
             the screen after what the app is. */}
         {!empty && <SoFar products={products} orders={orders} draft={draft} />}
 
+        {/* Her shop is real now, so offer to keep it. Gold, like the other
+            "one next thing" nudges, and never red or urgent: nothing breaks
+            today if she ignores it. It disappears the moment she is signed in
+            rather than nagging, because the only thing worse than asking her
+            to type is asking twice. */}
+        {offerKeep && (
+          <button
+            onClick={() => nav('/account')}
+            className="press rise rise-2 mt-3 flex w-full items-center gap-3 rounded-card border-2
+                       border-gold bg-gold-wash px-4 py-3 text-left"
+          >
+            <Icon name="phones" className="text-xl text-gold" />
+            <span className="flex-1">
+              <span className="block text-[0.9375rem] font-bold leading-snug text-gold">{t('keepOfferTitle')}</span>
+              <span className="block text-sm leading-snug text-ink-2">{t('keepOfferSub')}</span>
+            </span>
+            <span aria-hidden className="text-lg text-gold">›</span>
+          </button>
+        )}
+
         {/* The two side errands. Adding a product is NOT here — it is pinned to
             the bottom of the screen, so it stays under her thumb however long
             the shop below gets. */}
@@ -267,6 +300,18 @@ export default function Home() {
         >
           <Icon name="phones" className="text-indigo" />
           {t('pairOpen')}
+        </button>
+
+        {/* Always reachable, even once the offer above has gone — this is
+            where she comes back to on a NEW phone, when there is no shop on
+            the screen to nudge her and nothing else on it to press. */}
+        <button
+          onClick={() => nav('/account')}
+          className="press mt-2 flex w-full min-h-0 items-center justify-center gap-2 rounded-card
+                     border border-line-2/70 bg-surface/60 px-3 py-2.5 text-sm text-ink-2 active:bg-surface-2"
+        >
+          <Icon name="gotIt" className="text-indigo" />
+          {t('keepOpen')}
         </button>
 
         {!empty && (

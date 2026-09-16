@@ -71,3 +71,25 @@ export function firestore(): Promise<Firestore> {
   }
   return dbPromise
 }
+
+let authPromise: Promise<import('firebase/auth').Auth> | null = null
+
+/**
+ * The one Auth handle, lazily.
+ *
+ * `getApps()` dedupes the app itself, so this cannot fight with the inline
+ * sign-in inside services/artisan.ts — they end up on the same instance. It
+ * lives here so that services/account.ts never has to repeat CONFIG, which is
+ * how the two copies of it drifted the first time.
+ */
+export function firebaseAuth() {
+  if (!cloudEnabled()) return Promise.reject(new Error('Firebase is not configured'))
+  if (!authPromise) {
+    authPromise = (async () => {
+      const { initializeApp, getApps, getApp } = await import('firebase/app')
+      const { getAuth } = await import('firebase/auth')
+      return getAuth(getApps().length ? getApp() : initializeApp(CONFIG))
+    })().catch(err => { authPromise = null; throw err })
+  }
+  return authPromise
+}

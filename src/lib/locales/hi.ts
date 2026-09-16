@@ -190,6 +190,35 @@ export const hi = {
   pairBad: 'यह नंबर नहीं चला। दूसरे फ़ोन से नया नंबर लीजिए।',
   pairNeedNet: 'इसके लिए इंटरनेट चाहिए',
   pairAlready: 'यह फ़ोन आपकी दुकान से जुड़ा हुआ है',
+
+  // Getting her shop back — see services/account.ts.
+  keepOpen: 'दुकान सुरक्षित रखिए',
+  keepTitle: 'आपकी दुकान, सुरक्षित',
+  keepWhy: 'फ़ोन खो जाए, टूट जाए या ऐप फिर से डालना पड़े — तब भी आपकी दुकान आपके पास वापस आ जाएगी। एक बार अपना फ़ोन नंबर दे दीजिए, बस इतना ही।',
+  keepOfferTitle: 'अपनी दुकान सुरक्षित कर लीजिए',
+  keepOfferSub: 'नया फ़ोन लेने पर भी आपका सारा सामान वापस मिल जाएगा',
+  keepPhone: 'आपका फ़ोन नंबर',
+  keepPhoneHint: 'हम आपको एक नंबर भेजेंगे, वही यहाँ भरना है',
+  keepSend: 'नंबर भेजिए',
+  keepCode: 'भेजा हुआ नंबर यहाँ भरिए',
+  keepConfirm: 'पक्का कीजिए',
+  keepGoogle: 'गूगल खाते से कीजिए',
+  keepKept: 'हो गया। अब आपकी दुकान सुरक्षित है।',
+  keepRestored: 'आपकी दुकान वापस आ गई। सारा सामान यहीं है।',
+  keepBadNumber: 'यह फ़ोन नंबर ठीक नहीं लगा। दस अंक भरिए।',
+  keepBadCode: 'यह नंबर सही नहीं था। फिर से भरिए।',
+  keepNeedNet: 'इसके लिए इंटरनेट चाहिए',
+  keepSignedIn: 'आपकी दुकान {label} पर सुरक्षित है',
+  keepLeave: 'इस फ़ोन पर दूसरी दुकान खोलिए',
+
+  // Proving she is an artisan — see services/verify.ts.
+  vouchTitle: 'अपनी पहचान दिखाइए',
+  vouchWhy: 'अपने क्षेत्र के कार्यकर्ता, स्वयं सहायता समूह या सीएससी से एक कोड लीजिए। एक बार भरिए, और आपकी दुकान पर पहचान का निशान लग जाएगा — खरीदार को दिखेगा कि यह असली कारीगर का काम है।',
+  vouchEnter: 'कार्यकर्ता का दिया कोड भरिए',
+  vouchGo: 'पहचान जोड़िए',
+  vouchBad: 'यह कोड नहीं चला। कार्यकर्ता से दोबारा पूछिए।',
+  vouchDone: '{cluster} ने पहचान की',
+  verifiedBadge: 'पहचाने हुए कारीगर',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

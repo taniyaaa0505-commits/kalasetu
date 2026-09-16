@@ -67,6 +67,8 @@ src/
     queue.ts      offline job queue       ✅ real — IndexedDB, survives a close
     messages.ts   artisan <-> buyer chat  ✅ works (translation needs the key)
     orders.ts     bulk orders             ✅ works (no payments)
+    account.ts    getting her shop back   ✅ phone or Google, offered AFTER her first sale
+    verify.ts     "she is a real artisan" ✅ a coordinator's vouch, enforced in rules
   components/   shared UI
   screens/      one file per step of the golden path
                 Start.tsx is the language screen, shown before anything else
@@ -113,6 +115,8 @@ Without a key the app uses mock listing text, so the flow still works.
 | 8 | Ministry dashboard | Buyer/pitch | Artisans onboarded, GMV, income delta. The data model already supports it |
 | 9 | Rotate several Gemini keys | AI | The daily quota is per PROJECT, so one key per teammate multiplies it. See the quota note below |
 | 10 | Native-speaker pass on 4 locales | Voice | Bengali, Marathi, Tamil, Maithili are machine-translated. Coverage is complete; wording is provisional |
+| 11 | **Turn on Phone + Google sign-in, deploy the rules** | Data | `services/account.ts` and `firestore.rules` are written and building, and neither does anything until the console is switched on. Ten minutes, and it is the difference between a demo and a deleted shop — see "Keeping her shop" below |
+| 12 | Live craft capture at first listing | Camera | The provenance half of verification: one forced-camera shot of work in progress, which a reseller cannot produce. Designed, not built — see the same section |
 
 ---
 
@@ -332,8 +336,111 @@ opens.
 
 **It counts devices, not people**, and the dashboard prints that rather than
 hiding behind the word "users": reinstalling makes a new artisan, and two women
-sharing a handset are one. A phone-number sign-in fixes both and costs her a
-keyboard — a trade for a supervised pilot, not for a product she opens alone.
+sharing a handset are one. The first of those is now fixed — see the next
+section, which does it without putting a keyboard at the door. The second is
+not.
+
+## Keeping her shop — the sign-in that is not a door
+
+`services/account.ts`, `screens/Account.tsx`, `firestore.rules`.
+
+The section above is still right that a login must not be the first thing she
+meets. It was wrong about the consequence being acceptable: a reinstall, a
+cracked screen or a new handset used to orphan every listing she had made, and
+`pairing.ts` only rescues her while the OLD phone is still working and still in
+her hand. The shop she spends three months filling is also the collateral
+behind the credit-history claim, and collateral a factory reset destroys is not
+collateral.
+
+So there is a sign-in, and **the entire design is about when it is offered.**
+
+- She photographs, speaks, prices and publishes exactly as before, anonymously.
+  Nothing on the golden path has changed, and `tools/account.test.mjs` asserts
+  that `Capture.tsx` has never heard of this feature.
+- Only once she has a **published** product does the home screen offer, in gold
+  and once, to keep it. A draft is not a shop. Asking a woman who has never
+  typed on a phone for ten digits before she has seen the app do anything is
+  how you lose her on the first screen; asking after her first listing is live
+  is asking someone who now has a reason to say yes.
+- Two doors: a phone number, and Google. Google is the insurance — it costs
+  nothing per use, and on a handset that was set up with an account it is one
+  tap and no keyboard at all, which for this user beats any number of digits.
+
+**The one piece of logic that matters** is `settle()`. Linking the number to
+the anonymous account keeps her uid, so every product already stamped with it
+stays hers and nothing migrates. But on a reinstall the anonymous uid is new
+and the number is already spoken for, and Firebase answers
+`auth/credential-already-in-use` — which is **not an error, it is the recovery
+case**, and getting that branch wrong makes the feature silently do the
+opposite of its job. It falls through to `signInWithCredential` and adopts the
+uid it gets back.
+
+> **Two switches in the Firebase console before any of this does anything**:
+> Authentication -> Sign-in method -> **Phone** and **Google**. And anonymous
+> must stay on — every rule below needs a `request.auth`, and the buyer on a
+> laptop gets one the same way her phone does.
+
+### Why not Aadhaar, since someone will ask
+
+Because it answers a question nobody asked. Aadhaar authentication needs an
+AUA/KUA licence — approval, contracts, money this project does not have — and
+a **VID is revocable by design**, so using one as a login means the day she
+regenerates it her shop is unrecoverable. Retrieving a VID needs her registered
+mobile anyway, which makes the phone number upstream of the whole exercise.
+And even a perfect Aadhaar check proves *who she is* and says nothing about
+*what she made*. A reseller has an Aadhaar too.
+
+The honest scale-up path is Aadhaar's **offline secure QR** (signature verified
+on-device, free, no licence, nothing sensitive stored) or DigiLocker via
+APISetu. Both are roadmap slides, not code.
+
+## Proving she is an artisan — a vouch, not a document
+
+`services/verify.ts`, `tools/vouchers.mjs`, and a rule.
+
+The question a judge asks about any marketplace is what stops a reseller
+listing factory goods as handmade. What the scheme itself trusts is a *person*:
+an SHG leader, a cluster coordinator, a CSC operator, the DRDA field staff who
+already know every artisan in the block by name. So a coordinator holds a code,
+she types it once, and her shop carries **"verified by <cluster>"** — shown to
+the buyer on the listing, which is the only place a badge earns anything.
+
+It is enforced, not trusted. `firestore.rules` does a `get()` on the voucher and
+refuses any cluster name that does not match a real one. That matters because
+Cloud Functions need a billing card: **rules are the only server-side check
+this project gets**, and this is the most that can be done with them.
+
+Honest limit, written down the same way `pairing.ts` writes down its own:
+whoever *learns* a voucher can claim its cluster. The accountability is the
+named field worker who answers for it, not the six characters.
+
+**Not built, deliberately** — the provenance half. One forced-camera shot of
+work in progress or of her hands and tools at first listing, which a reseller
+cannot produce and which feeds the listing the AI already writes. It touches
+`Capture.tsx`, which is the golden path, so it is a separate change made with a
+real phone in hand. Item 12 in the table above.
+
+## The database is no longer open
+
+`firestore.rules`, deployed with `firebase deploy --only firestore:rules`.
+
+Until it existed, anyone who read the API key out of the bundle could rewrite
+every artisan's prices, accept her orders or empty her shop. That was a
+deliberate trade while there was no identity to check against, and the sign-in
+above ends it — **a login that is not backed by rules is decoration.** Only the
+maker may change or delete her own product; only she may move an order along;
+nobody may delete an order at all, because a sales record that can vanish is
+not something a lender can believe.
+
+**The one hole, and it is deliberate.** `artisan.ts` gives identity a
+six-second ceiling and then falls back to a `local_` device id, because offline
+`signInAnonymously` waits forever and nothing may stand between her and the
+next screen. So her first product, made on a phone with no signal, can genuinely
+carry `local_…`. Rejecting those would mean her first listing syncs, is denied,
+and disappears — the exact failure the timeout exists to prevent. They stay
+writable by anyone signed in. It cannot touch a product that belongs to a real
+account, and closing it needs a stable identity before the first write, which
+is the thing this app has decided not to ask for.
 
 > **Anonymous sign-in must be switched on in the Firebase console** —
 > Authentication -> Sign-in method -> Anonymous. Until it is, the API answers

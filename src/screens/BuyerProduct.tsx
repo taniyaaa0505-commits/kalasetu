@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../services/db'
+import { getVerification } from '../services/verify'
 import { sendMessage, translatePending, subscribeMessages, TRANSLATING_WINDOW_MS } from '../services/messages'
 import { placeOrder, setStatus, subscribeOrders } from '../services/orders'
 import PriceInNotes from '../components/PriceInNotes'
@@ -35,6 +36,26 @@ export default function BuyerProduct() {
   const placedRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { getProduct(id).then(setP) }, [id])
+
+  /*
+   * Who says she is an artisan.
+   *
+   * This is the only place the vouch in services/verify.ts actually earns its
+   * keep. The buyer is the person asking "is this really handmade, or is it a
+   * reseller in a warehouse", and a badge she can see on her own screen is
+   * worth more than any amount of the same claim in our pitch deck.
+   *
+   * Loaded separately from the product and allowed to fail: the listing must
+   * render whether or not this resolves, and an unverified maker is the
+   * ordinary case, not an error.
+   */
+  const [vouchedBy, setVouchedBy] = useState<string>()
+  useEffect(() => {
+    if (!p?.artisanId) return
+    let gone = false
+    void getVerification(p.artisanId).then(v => { if (!gone) setVouchedBy(v?.verifiedBy) })
+    return () => { gone = true }
+  }, [p?.artisanId])
 
   useEffect(() => {
     const offMsgs = subscribeMessages(id, list => {
@@ -184,6 +205,17 @@ export default function BuyerProduct() {
             <p className="text-[34px] font-bold leading-none tabular-nums text-indigo">₹{p.price?.suggested}</p>
             <p className="text-sm text-ink-3">per piece · direct from the maker</p>
           </div>
+
+          {/* Named, not a tick.
+              "Verified" on its own is a word any marketplace prints about
+              itself. The cluster's name is a claim someone can be held to —
+              which is the whole argument for vouching over a document scan. */}
+          {vouchedBy && (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full border-2 border-good
+                          bg-sage-wash px-3 py-1.5 text-sm font-semibold text-good">
+              <span aria-hidden>✓</span> Verified artisan · vouched by {vouchedBy}
+            </p>
+          )}
           {p.price && <div className="mt-3 max-w-xs"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
 
           {/* Bulk order form. The problem statement asks for B2B buyers, so
