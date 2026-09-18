@@ -26,10 +26,10 @@ const rs = (n: number) => '₹' + n.toLocaleString('en-IN')
 
 export default function Impact() {
   const nav = useNavigate()
-  const [products, setProducts] = useState<Product[]>([])
+  const [all, setAll] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
 
-  useEffect(() => subscribeProducts(setProducts), [])
+  useEffect(() => subscribeProducts(setAll), [])
   useEffect(() => subscribeOrders(setOrders), [])
 
   /**
@@ -40,6 +40,16 @@ export default function Impact() {
    * separately rather than folded into somebody, because a metric that
    * silently absorbs its own unknowns is not a metric.
    */
+  /*
+   * Practice pieces are not products, and this is the screen where that
+   * matters most. Everything made during a guided first run is somebody
+   * learning which button is the camera; counting them here would inflate
+   * every number on a page whose entire claim is that its numbers are honest.
+   * They are excluded and then SAID, like every other exclusion here.
+   */
+  const practice = all.filter(p => p.demo).length
+  const products = all.filter(p => !p.demo)
+
   const ids = new Set(products.map(p => p.artisanId).filter(Boolean) as string[])
   const unattributed = products.filter(p => !p.artisanId).length
 
@@ -173,9 +183,14 @@ export default function Impact() {
               page she never opens. The cost is that reinstalling produces a new artisan and
               two women sharing one handset count as one. A phone-number sign-in fixes both
               and costs her a keyboard: a trade for a supervised pilot, not for a product she
-              opens alone.
+              opens alone. She can now save her shop to a phone number or a Google
+              account — offered after her first listing is live, never at the door — which
+              closes the reinstall half. Two women on one handset still count as one.
               {unattributed > 0 && <> {unattributed} product{unattributed === 1 ? '' : 's'} predate
               this and are excluded from the count rather than assigned to anyone.</>}
+              {practice > 0 && <> {practice} practice {practice === 1 ? 'piece' : 'pieces'} from
+              guided first runs {practice === 1 ? 'is' : 'are'} excluded from every figure on
+              this page and {practice === 1 ? 'is' : 'are'} never shown to a buyer.</>}
             </li>
             <li>
               <b>Measurement coverage is {coverage}%</b> — {measurable.length} of {delivered.length}{' '}

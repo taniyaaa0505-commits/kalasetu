@@ -181,6 +181,25 @@ export default function BuyerProduct() {
     </div>
   )
 
+  /*
+   * Not for sale, even by direct link.
+   *
+   * screens/Buyer.tsx keeps practice pieces and drafts off the marketplace,
+   * but this page is reachable by URL on its own — a link copied during the
+   * guided first run, or typed off a projector — and it used to render a
+   * working "Place order" for them. An order on a practice pot is a request
+   * nobody will ever make. See `demo` in types.ts.
+   */
+  if (p.demo || p.status !== 'published' || p.listing?.handmade === false) return (
+    <div className="flex min-h-full flex-col items-center justify-center gap-4 bg-paper p-10 text-center">
+      <p className="font-display text-xl font-bold">This piece is not for sale</p>
+      <p className="max-w-sm text-sm text-ink-2">It was made while learning the app, it is not finished yet, or it is being checked.</p>
+      <button onClick={() => nav('/buyer')} className="press min-h-0 rounded-card bg-indigo px-5 py-3 font-semibold text-white">
+        See all products
+      </button>
+    </div>
+  )
+
   const field = 'w-full rounded-card border border-line-2/70 bg-surface px-3.5 py-3 text-[15px] ' +
                 'outline-none transition-colors placeholder:text-ink-3 focus-visible:border-indigo'
 

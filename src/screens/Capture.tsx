@@ -8,7 +8,7 @@ import Working from '../components/Working'
 import Coach from '../components/Coach'
 import { useSay } from '../lib/arrival'
 import { useIdle } from '../lib/idle'
-import { getGuideStep } from '../lib/guide'
+import { getGuideStep, firstRun } from '../lib/guide'
 import { advanceGuide } from '../lib/guide'
 import BeforeAfter from '../components/BeforeAfter'
 import { getProduct, saveProduct, patchProduct } from '../services/db'
@@ -61,6 +61,11 @@ export default function Capture() {
         // Stamped once, here, where the product starts existing. Never asked
         // for and never shown — see services/artisan.ts.
         artisanId: await artisanId(),
+        // Stamped here, where the product starts existing, for the same
+        // reason artisanId is: it is the only moment we know how she got
+        // here. `|| undefined` so ordinary products carry no such key at all
+        // — store/cloud.ts strips undefined before the write.
+        demo: firstRun() || undefined,
       })
     }
 

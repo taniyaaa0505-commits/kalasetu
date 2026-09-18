@@ -287,27 +287,13 @@ export default function Home() {
           />
         </div>
 
-        {/* Setting up a second phone, kept deliberately quiet.
-            It is not a fourth errand — she does it once, with someone beside
-            her, and never again — so it does not get a tile next to the two
-            things a buyer does. It sits directly under them rather than at the
-            foot of the page, because a setting that gets harder to reach the
-            more she sells is the mistake the language button already made. */}
-        <button
-          onClick={() => nav('/pair')}
-          className="press mt-3 flex w-full min-h-0 items-center justify-center gap-2 rounded-card
-                     border border-line-2/70 bg-surface/60 px-3 py-2.5 text-sm text-ink-2 active:bg-surface-2"
-        >
-          <Icon name="phones" className="text-indigo" />
-          {t('pairOpen')}
-        </button>
-
         {/* Always reachable, even once the offer above has gone — this is
             where she comes back to on a NEW phone, when there is no shop on
             the screen to nudge her and nothing else on it to press. */}
         <button
+          data-guide="keep"
           onClick={() => nav('/account')}
-          className="press mt-2 flex w-full min-h-0 items-center justify-center gap-2 rounded-card
+          className="press mt-3 flex w-full min-h-0 items-center justify-center gap-2 rounded-card
                      border border-line-2/70 bg-surface/60 px-3 py-2.5 text-sm text-ink-2 active:bg-surface-2"
         >
           <Icon name="gotIt" className="text-indigo" />
@@ -363,6 +349,8 @@ export default function Home() {
           the guide itself. She has sold one thing; she will not remember six
           screens from a single run, and this is a button she cannot read. */}
       <Coach step="homeLearn"  target="learn"  title={t('learnHow')} body={t('learnAgainHint')} />
+      <Coach step="homeMessages" target="messages" title={t('messages')} body={t('tourMessagesSub')} />
+      <Coach step="homeKeep"   target="keep"   title={t('keepOpen')} body={t('tourKeepSub')} />
 
       {removing && (
           <ConfirmRemove
@@ -480,11 +468,14 @@ function ProductCard({
           {/* At the TOP of the card it sat in the arch's shoulder, half on the
               dome and half off it, and read as a mistake. The bottom edge of
               the window is straight. */}
+          {/* A practice piece must never wear the "on sale" pill. She would
+              wait for orders that cannot come, and never learn why. */}
           <span className={
             'absolute bottom-2 left-2 rounded-full px-2 py-1 text-[11px] font-bold shadow-rest ' +
-            (live ? 'bg-good text-white' : 'bg-gold-wash text-gold')
+            (product.demo ? 'bg-indigo text-white'
+              : live ? 'bg-good text-white' : 'bg-gold-wash text-gold')
           }>
-            {live ? t('onSale') : t('incomplete')}
+            {product.demo ? t('demoPill') : live ? t('onSale') : t('incomplete')}
           </span>
         </div>
 
@@ -538,7 +529,10 @@ function SoFar({ products, orders, draft }: {
   const delivered = orders.filter(o => o.status === 'delivered')
   const earned = delivered.reduce((n, o) => n + o.total, 0)
   const live = orders.filter(o => o.status !== 'declined').length
-  const onSale = products.filter(p => p.status === 'published').length
+  // Published and practice are different things, and this row is the one she
+  // reads to decide whether the app is working. A practice piece counted here
+  // is a "1 on sale" she will wait on, with no order coming and no reason why.
+  const onSale = products.filter(p => p.status === 'published' && !p.demo).length
 
   /**
    * How much more she got than she used to.

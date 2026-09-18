@@ -6,7 +6,7 @@
  * the badge section does not appear until she is signed in — and neither half
  * is on the golden path. Nobody photographs a pot by coming here.
  *
- * Like screens/Pair.tsx, the paragraph that explains the screen is read aloud
+ * The paragraph that explains the screen is read aloud
  * on arrival, because it is the only thing here that explains anything and she
  * cannot read it.
  */
@@ -25,6 +25,9 @@ import { getVerification, redeemVoucher, verifyAvailable } from '../services/ver
 import { speak } from '../lib/speak'
 import { t, tf, getLang } from '../lib/i18n'
 import { asrCode } from '../types'
+
+/** The coordinator-code card. See the note where it renders. */
+const SHOW_VOUCH = false
 
 export default function Account() {
   const nav = useNavigate()
@@ -212,19 +215,12 @@ function SignedIn({ label }: { label: string }) {
         {tf('keepSignedIn', { label })}
       </p>
 
-      <Vouch />
+      {/* Off. Typing a coordinator's code was one more thing to ask of a
+          woman who came here to sell a pot. Verification belongs on the
+          coordinator's side, not hers — services/verify.ts and the rules
+          stay, so turning this back on is this one flag. */}
+      {SHOW_VOUCH && <Vouch />}
 
-      {/* Last, quiet, and worded as what it DOES rather than as "sign out",
-          which means nothing to her. Her work is not deleted — it is on the
-          server under an identity she can sign back into — but this handset
-          stops showing it, and that is the sentence she needs. */}
-      <button
-        onClick={() => { void signOutAccount() }}
-        className="press mt-2 flex w-full min-h-0 items-center justify-center gap-2 rounded-card
-                   border border-line-2/70 bg-surface/60 px-3 py-2.5 text-sm text-ink-3 active:bg-surface-2"
-      >
-        {t('keepLeave')}
-      </button>
     </>
   )
 }

@@ -74,6 +74,13 @@ export const GUIDE_STEPS = [
      button she cannot read — so it is rung and explained before we go quiet. */
   'homeLearn',
 
+  /* And the two things that happen AFTER a sale is listed, which she would
+     otherwise meet cold: a stranger writing to her in English, and the day
+     the phone is lost. Both are said, not shown — neither has anything to
+     press yet. */
+  'homeMessages',  // a buyer's question arrives in her language; she answers by speaking
+  'homeKeep',      // if the app is deleted or the phone is new, this brings the shop back
+
   'done',
 ] as const
 
@@ -99,8 +106,34 @@ const listeners = new Set<() => void>()
 
 function write(step: GuideStep) {
   current = step
-  try { localStorage.setItem(KEY, step) } catch { /* private mode */ }
+  try {
+    localStorage.setItem(KEY, step)
+    // Latched the first time the guide ever ends, and never cleared —
+    // restartGuide() deliberately does not reopen it. See firstRun().
+    if (step === 'done') localStorage.setItem(FIRST_DONE, '1')
+  } catch { /* private mode */ }
   listeners.forEach(fn => fn())
+}
+
+/** Has she ever finished the guide? Not the same as "is it running now". */
+const FIRST_DONE = 'kalasetu.guide.firstRunDone'
+
+/**
+ * True only while she is being walked through the app for the FIRST time.
+ *
+ * What a product created in this window gets marked with, and why it matters
+ * that this is not simply `guiding()`: she can replay the guide whenever she
+ * likes from "learn how to sell", and a pot she photographs during a replay is
+ * a pot she is trying to sell. Hiding that one from every buyer would cost her
+ * a sale to save the demo some clutter, which is the wrong way round.
+ *
+ * Storage blocked reads as false, like everything else here — the rule is that
+ * a broken localStorage never traps her, and a practice flag she cannot clear
+ * would be a trap.
+ */
+export function firstRun(): boolean {
+  if (!guiding()) return false
+  try { return localStorage.getItem(FIRST_DONE) !== '1' } catch { return false }
 }
 
 export function getGuideStep(): GuideStep { return current }

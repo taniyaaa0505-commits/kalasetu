@@ -313,6 +313,19 @@ HARD RULES:
 - Descriptions must be warm and specific, not marketing fluff.
 - Hindi output must be simple, spoken Hindi. No Sanskritised vocabulary.
 - Always fill in BOTH the English and the Hindi fields, whatever she spoke.
+
+HANDMADE CHECK ("handmade" and "handmadeWhy"):
+- Do not assume it is handmade just because this app is for artisans. Look.
+- Set "handmade" to false for things that are plainly factory-made: electronics,
+  phones and phone cases, branded or packaged goods, cosmetics, vehicles,
+  appliances, moulded plastic, or anything with a visible brand or logo.
+- Set it to true for craft work, and whenever you are unsure: hand-work is
+  often neat, and wrongly hiding a real artisan's piece costs her a sale.
+- Her own account of how she made it (in the transcript or her answers)
+  counts. If she describes making it by hand and nothing contradicts it, true.
+- If false: never use the word "handmade" in the titles or descriptions, and
+  add a question asking her, simply, how she made it.
+- "handmadeWhy" is one short English sentence giving the reason.
 `.trim()
 }
 
@@ -345,8 +358,11 @@ const SCHEMA = {
     descriptionHi: { type: 'string' },
     keywords:      { type: 'array', items: { type: 'string' } },
     questions:     { type: 'array', items: { type: 'string' } },
+    handmade:      { type: 'boolean' },
+    handmadeWhy:   { type: 'string' },
   },
-  required: ['craft','material','titleEn','titleHi','descriptionEn','descriptionHi','keywords','questions'],
+  required: ['craft','material','titleEn','titleHi','descriptionEn','descriptionHi','keywords','questions',
+             'handmade','handmadeWhy'],
 }
 
 /** data:image/jpeg;base64,XXXX  ->  { mimeType, data } */
@@ -444,6 +460,8 @@ function mockListing(lang: LangCode = 'hi-IN', answers: Answer[] = []): Listing 
       'हर पेंटिंग हाथ से बनती है, इसलिए हर एक अलग होती है।',
     keywords: ['madhubani', 'mithila art', 'handmade painting', 'natural dye', 'bihar handicraft'],
     questions: unanswered,
+    handmade: true,
+    handmadeWhy: 'Demo text — no model was asked.',
   }
 }
 

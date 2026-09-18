@@ -27,9 +27,17 @@ export default function Buyer() {
    * so an order placed on it reaches no phone, ever — the buyer sees "order
    * placed", waits, and no artisan is even told. Listing something that
    * cannot be fulfilled is worse than not listing it.
+   *
+   * And not a practice piece. Everything made during the guided first run is
+   * somebody learning which button is the camera — twenty of them on a demo
+   * day — and this page goes on a projector. See `demo` in types.ts.
+   *
+   * And not something the model looked at and called factory-made. See
+   * `handmade` in types.ts.
    */
   useEffect(() => subscribeProducts(all =>
-    setItems(all.filter(p => p.status === 'published' && p.artisanId))), [])
+    setItems(all.filter(p => p.status === 'published' && p.artisanId && !p.demo
+                             && p.listing?.handmade !== false))), [])
 
   return (
     <div className="min-h-full bg-paper">

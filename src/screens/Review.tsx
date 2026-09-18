@@ -231,12 +231,63 @@ export default function Review() {
     void patchProduct(id, { answers: next })
   }
 
+  const answerFor = (q: string) => answers.find(a => a.question === q)?.answer
+  /**
+   * Every question must be answered before she can move on.
+   *
+   * The model only asks when it genuinely could not tell — a size, a material,
+   * a dye — and each unanswered question is a fact that will be missing from
+   * the listing a buyer reads. Answering one used to be enough: the footer
+   * flipped to "write it again" the moment anything was said, so the obvious
+   * thing to do next was leave the rest blank.
+   *
+   * She is never left guessing why: the gold chip says how many are left, says
+   * it out loud when tapped, and scrolls her to them.
+   */
+  const openQuestions = (listing?.questions ?? []).filter(q => !answerFor(q)).length
+  const blocked = openQuestions > 0 && !rewrote
+
+  /*
+   * The questions step ends when the LAST one is answered, not the first.
+   *
+   * It used to end on `dirty`: one answer and the guide moved on — it dimmed
+   * the questions she still had open and put its ring on "write it again",
+   * which is disabled until every one of them is answered. So on the very run
+   * we demonstrate, the tour pointed at a dead button, called it the next
+   * thing to do, and left two unanswered questions greyed out behind it.
+   *
+   * Answer them all. Then, and only then, having it written again is the next
+   * thing — and that is when the ring, and the footer, move to it.
+   */
+  useEffect(() => {
+    if (dirty && openQuestions === 0) advanceGuide('reviewQuestions')
+  }, [dirty, openQuestions])
+
+  /**
+   * Point her at what is still open: say how many are left, read the next one
+   * out, and scroll it into view.
+   *
+   * One job, two places — the gold chip at the top of the screen and the
+   * footer under it — because while a question is open "what do I do now" has
+   * exactly one answer, and whichever of the two she can see must give it.
+   */
+  function callQuestions() {
+    const first = (listing?.questions ?? []).find(q => !answerFor(q))
+    speak(
+      `${tf('askedMore', { n: openQuestions })}${first ? `. ${first}` : ''}`,
+      asrCode(lang),
+    )
+    questionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
   /** Ask the model to write it again, this time knowing what she told us. */
-  // She answered something. That, not the scroll, is the end of the step.
-  useEffect(() => { if (dirty) advanceGuide('reviewQuestions') }, [dirty])
 
   async function rewrite() {
-    advanceGuide('reviewRewrite')
+    // The guide does NOT move on here. It used to, at the press — so while the
+    // model was still writing, "hear it back" was already ringed over a title
+    // that was about to be replaced, and tapping it skipped her past the one
+    // thing this step is for. It advances in the read-back below, once the new
+    // words exist and she has heard them.
     const p = await getProduct(id)
     if (!p) return
 
@@ -270,10 +321,15 @@ export default function Review() {
       // Read it, and only when the reading is actually over point at the way
       // out. Ringing "next" while the phone is still talking asks her to
       // interrupt the one thing she came to this screen to hear.
+      //
+      // And that reading IS the "hear it back" step, so finishing it finishes
+      // both guide steps — ringing a button to hear again what she has just
+      // heard is how the app ends up talking about itself. `speak` calls
+      // onDone on an interruption too, so a tap mid-sentence cannot strand it.
       speak(
-        `${mine ? l.titleEn : l.titleHi}. ${mine ? l.descriptionEn : l.descriptionHi}`,
+        `${t('newListing')}. ${mine ? l.titleEn : l.titleHi}. ${mine ? l.descriptionEn : l.descriptionHi}`,
         asrCode(lang),
-        () => setReadBack(true),
+        () => { setReadBack(true); advanceGuide('reviewRewrite'); advanceGuide('reviewListen') },
       )
     } catch (e) {
       // The old listing stays on screen. A failed rewrite must never cost her
@@ -297,26 +353,11 @@ export default function Review() {
    */
   const nudge = useIdle() && getGuideStep() === 'done'
 
-  const answerFor = (q: string) => answers.find(a => a.question === q)?.answer
-  /**
-   * Every question must be answered before she can move on.
-   *
-   * The model only asks when it genuinely could not tell — a size, a material,
-   * a dye — and each unanswered question is a fact that will be missing from
-   * the listing a buyer reads. Answering one used to be enough: the footer
-   * flipped to "write it again" the moment anything was said, so the obvious
-   * thing to do next was leave the rest blank.
-   *
-   * She is never left guessing why: the gold chip says how many are left, says
-   * it out loud when tapped, and scrolls her to them.
-   */
-  const openQuestions = (listing?.questions ?? []).filter(q => !answerFor(q)).length
-  const blocked = openQuestions > 0 && !rewrote
-
-  /* Computed up here, above the early return, because it feeds a hook and a
-     hook may never sit after a conditional return — see the note above. While
-     she is blocked the footer button is disabled and therefore silent, so the
-     chip is the only thing lit and the only thing that may ring. */
+  /* For the gold chip, which is not a BigButton and so rings nothing by
+     itself. Computed up here, above the early return, because it feeds a hook
+     and a hook may never sit after a conditional return — see the note above.
+     The footer button beside it rings from its own `beacon`; both point at the
+     same questions, and chime() collapses the pair into one bell. */
   useBeaconChime(nudge && blocked && !busy)
 
   if (busy) return (
@@ -336,7 +377,29 @@ export default function Review() {
     <Screen
       title={t('screenListing')} step={4} onBack={() => { recRef.current?.stop(); stopSpeaking() }}
       action={
-        dirty
+        /*
+         * While anything is still open, the only thing in the footer is the
+         * questions.
+         *
+         * The footer used to flip to "write it again" the moment she answered
+         * one — a disabled button, at the biggest, brightest, most permanent
+         * spot on the screen, three questions before it could do anything. The
+         * screen was telling her the next step was a thing she was not allowed
+         * to press yet, and the questions she actually had to finish were the
+         * quiet part.
+         *
+         * So the order of the work is the order of the footer: finish the
+         * questions, and then rewriting arrives as the one thing left.
+         */
+        blocked
+          ? <BigButton
+              icon={<Icon name="speak" />} label={tf('askedMore', { n: openQuestions })}
+              /* It reads the next question out instead of its own label —
+                 saying "the app wants to know 2 more things" twice would tell
+                 her nothing about what they are. */
+              speakOnTap={false} beacon={nudge} onClick={callQuestions}
+            />
+        : dirty
           ? <div className="flex flex-col gap-2">
               <div data-guide="rewrite">
                 <BigButton
@@ -420,14 +483,7 @@ export default function Review() {
              this app could show someone who cannot read the reason beside it.
              So the count is spoken, then the first unanswered question is read
              out, which is also the answer to "what am I supposed to do now". */
-          onClick={() => {
-            const first = (listing?.questions ?? []).find(q => !answerFor(q))
-            speak(
-              `${tf('askedMore', { n: openQuestions })}${first ? `. ${first}` : ''}`,
-              asrCode(lang),
-            )
-            questionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          }}
+          onClick={callQuestions}
           className={'press mb-4 flex w-full items-center gap-3 rounded-card border-2 border-gold bg-gold-wash px-4 py-3 text-left '
             + (nudge ? 'beacon' : '')}
         >
@@ -451,7 +507,11 @@ export default function Review() {
               <span className="flex w-fit items-center gap-1.5 rounded-full bg-wash px-2.5 py-1 text-[11px] font-semibold label uppercase text-indigo">
                 <Icon name="ai" className="text-xs" />{t('screenListing')}
               </span>
-              <div data-guide="listen" onClickCapture={() => advanceGuide('reviewListen')}>
+              {/* Only on its own step. advanceGuide() jumps FORWARD from behind, so an
+                  unguarded tap here while the rewrite is still running skipped
+                  her straight past hearing the new words. */}
+              <div data-guide="listen"
+                onClickCapture={() => { if (getGuideStep() === 'reviewListen') advanceGuide('reviewListen') }}>
                 <Speakable text={mine ? listing.titleEn : listing.titleHi}
                   className="font-display text-xl font-bold leading-tight tracking-tight" />
               </div>

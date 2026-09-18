@@ -6,8 +6,7 @@
  * here argues with that. This is the other half of the trade it names:
  *
  *   - a reinstall, a cleared cache or a new handset orphans everything she has
- *     listed, and services/pairing.ts only rescues her while the OLD phone is
- *     still in her hand and still working;
+ *     listed;
  *   - the shop she has spent three months filling is the collateral behind the
  *     credit-history claim, and collateral that a factory reset destroys is not
  *     collateral.

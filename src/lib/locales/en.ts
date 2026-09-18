@@ -173,20 +173,6 @@ export const en: Strings = {
   hoursHint: 'How many hours it took you to make, in total',
   learnAgainHint: 'Forgotten how? Press here and I will show you the whole thing again.',
 
-  // Two phones, one shop — see services/pairing.ts.
-  pairOpen: 'Other phone',
-  pairTitle: 'One shop, two phones',
-  pairWhy: 'Open your shop on another phone as well. The same work, the same orders, the same messages.',
-  pairShow: "Show this phone's number",
-  pairCodeIs: 'Type these six digits on the other phone',
-  pairExpires: 'This number works for half an hour',
-  pairEnter: 'Type the number from your other phone',
-  pairJoin: 'Join',
-  pairOk: 'Done. Both phones now show the same shop.',
-  pairBad: 'That number did not work. Get a new one from the other phone.',
-  pairNeedNet: 'This needs an internet connection',
-  pairAlready: 'This phone is joined to your shop',
-
   // Getting her shop back — see services/account.ts.
   keepOpen: 'Keep my shop safe',
   keepTitle: 'Your shop, kept safe',
@@ -215,4 +201,18 @@ export const en: Strings = {
   vouchBad: 'That code was not recognised. Ask your field worker again.',
   vouchDone: 'Verified by {cluster}',
   verifiedBadge: 'Verified artisan',
+
+  // The practice piece from the guided first run — see `demo` in types.ts.
+  demoPill: 'Practice',
+  demoStays: 'This is your practice piece. It stays on your phone — buyers cannot see it.',
+  demoGoLive: 'Put it on sale for real',
+  demoOnPhone: 'Stays on your phone',
+  // Held back by the handmade check — see `handmade` in types.ts.
+  notHandmadeStays: 'Buyers cannot see this yet. It does not look handmade. Go back and tell us how you made it.',
+  notHandmadeOnPhone: 'Held back — does not look handmade',
+  // The last two steps of the first-run guide — see 'homeMessages' in lib/guide.ts.
+  tourMessagesSub: 'When a buyer asks something, you will see here, in your own language, what they are asking. Answer by speaking in your language — we will send it to the buyer in theirs.',
+  tourKeepSub: 'If the app is ever deleted or you get a new phone, press here and enter your phone number to bring your shop back. All your products will come back.',
+  // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
+  newListing: 'Here is the new description, with what you told us',
 }

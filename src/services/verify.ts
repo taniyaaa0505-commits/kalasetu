@@ -16,8 +16,7 @@
  *
  * WHAT THIS IS NOT: proof of identity, and not something a determined person
  * cannot forge. A code is a shared secret, so anyone who learns one can claim
- * the cluster it belongs to — the same honest limit services/pairing.ts writes
- * down about its six digits. What makes it worth having anyway is that the
+ * the cluster it belongs to. What makes it worth having anyway is that the
  * code belongs to a named human being who answers for it, which is a great
  * deal more accountability than a number typed into a box.
  *
@@ -66,7 +65,7 @@ export async function getVerification(artisan: string): Promise<Verification | u
  * which the screen says in words — a mistyped digit is not an exceptional
  * event and must not throw.
  *
- * Deliberately NOT spent on use, unlike a pairing code. One coordinator
+ * Deliberately NOT spent on use. One coordinator
  * verifies a room full of women from the same code in an afternoon, and a code
  * that died on the first of them would mean nineteen more trips to whoever
  * mints them.
@@ -89,7 +88,7 @@ export async function redeemVoucher(artisan: string, raw: string): Promise<strin
    * card number when that arrives. A verification must not be the write that
    * erases them.
    *
-   * Awaited, like a pairing code and for the same reason: someone is standing
+   * Awaited, because someone is standing
    * next to her waiting to see the badge appear.
    */
   await setDoc(
