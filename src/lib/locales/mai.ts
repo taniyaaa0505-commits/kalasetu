@@ -186,20 +186,6 @@ export const mai: Strings = {
   hoursHint: 'एकरा बनाबय मे कुल कतेक घंटा लागल',
   learnAgainHint: 'कहियो बिसरि जाइ तँ एतय दबाउ। हम फेर सँ पूरा तरीका देखाएब।',
 
-  // Two phones, one shop — see services/pairing.ts.
-  pairOpen: 'दोसर फोन',
-  pairTitle: 'एकहि दोकान, दू फोन',
-  pairWhy: 'अपन दोकान दोसर फोन पर सेहो खोलू। ओएह सामान, ओएह ऑर्डर, ओएह संदेश।',
-  pairShow: 'एहि फोनक नंबर देखाउ',
-  pairCodeIs: 'ई छह अंक दोसर फोन पर भरू',
-  pairExpires: 'ई नंबर आधा घंटा धरि चलत',
-  pairEnter: 'दोसर फोनक नंबर एतय भरू',
-  pairJoin: 'जुड़ू',
-  pairOk: 'भऽ गेल। आब दूनू फोन पर एकहि दोकान अछि।',
-  pairBad: 'ई नंबर नहि चलल। दोसर फोन सँ नव नंबर लिअ।',
-  pairNeedNet: 'एहि लेल इंटरनेट चाही',
-  pairAlready: 'ई फोन अहाँक दोकान सँ जुड़ल अछि',
-
   // Getting her shop back — see services/account.ts.
   keepOpen: 'दोकान सुरक्षित राखू',
   keepTitle: 'अहाँक दोकान, सुरक्षित',
@@ -228,4 +214,18 @@ export const mai: Strings = {
   vouchBad: 'ई कोड नहि चलल। कार्यकर्ता सँ फेर पूछू।',
   vouchDone: '{cluster} पहचान कएलक',
   verifiedBadge: 'पहचानल कारीगर',
+
+  // The practice piece from the guided first run — see `demo` in types.ts.
+  demoPill: 'अभ्यास',
+  demoStays: 'ई अहाँक अभ्यासक सामान थिक। ई अहाँक फोन पर रहत — खरीदार एकरा नहि देखि सकत।',
+  demoGoLive: 'एकरा सचमुच बिक्री पर लगाउ',
+  demoOnPhone: 'अहाँक फोन पर रहत',
+  // Held back by the handmade check — see `handmade` in types.ts.
+  notHandmadeStays: 'खरीदार एकरा एखन नहि देखि सकत। ई हाथसँ बनल नहि लगैत अछि। पाछाँ जा कऽ कहू जे अहाँ एकरा कोना बनौलहुँ।',
+  notHandmadeOnPhone: 'रोकल गेल — हाथसँ बनल नहि लगैत अछि',
+  // The last two steps of the first-run guide — see 'homeMessages' in lib/guide.ts.
+  tourMessagesSub: 'जखन कोनो खरीदार किछु पुछत, तँ एतए अहाँक अपन भाषामे देखाएत जे ओ की पुछि रहल अछि। अहाँ अपन भाषामे बाजि कऽ जवाब दिअ — हम ओकरा खरीदारक भाषामे पहुँचा देब।',
+  tourKeepSub: 'कहियो ऐप डिलीट भऽ जाए वा फोन नव हो, तँ अपन दोकान वापस आनबाक लेल एतए दबाउ आ अपन फोन नंबर लिखू। अहाँक सभटा सामान वापस आबि जाएत।',
+  // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
+  newListing: 'ई रहल नव विवरण, अहाँक बातक संग',
 }

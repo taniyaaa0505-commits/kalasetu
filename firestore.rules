@@ -80,23 +80,11 @@ service cloud.firestore {
      */
     match /orders/{id} {
       allow read: if true;
-      allow create: if signedIn();
+      // And never on a practice piece: the buyer page hides them, but the
+      // client is not the last word — see `demo` in src/types.ts.
+      allow create: if signedIn() && notPractice(request.resource.data.productId);
       allow update: if ownedByMe(resource.data.artisanId);
       allow delete: if false;
-    }
-
-    /*
-     * Six digits, half an hour, and services/pairing.ts is candid that this is
-     * not security. Rules cannot make it so — the whole mechanism is a secret
-     * short enough to say across a room. What they can do is stop it being a
-     * way to WRITE someone else's identity into the database: a code may only
-     * ever carry the uid of whoever made it.
-     */
-    match /pairs/{code} {
-      allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.artisanId == request.auth.uid;
-      allow update: if false;
-      allow delete: if signedIn();   // spent by whoever redeems it
     }
 
     /*
@@ -108,13 +96,18 @@ service cloud.firestore {
      * server-side checking available to a project with no billing card: Cloud
      * Functions need Blaze, so rules are all there is.
      *
-     * Honest limit, same as the pairing code above: whoever LEARNS a voucher
+     * Honest limit: whoever LEARNS a voucher
      * can claim its cluster. The code belongs to a named field worker who
      * answers for it, which is the accountability — not the six characters.
      */
     match /artisans/{uid} {
       allow read: if true;
       allow write: if signedIn() && request.auth.uid == uid && vouched();
+    }
+
+    function notPractice(productId) {
+      return !exists(/databases/$(database)/documents/products/$(productId))
+        || get(/databases/$(database)/documents/products/$(productId)).data.get('demo', false) != true;
     }
 
     function vouched() {

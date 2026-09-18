@@ -179,20 +179,6 @@ export const mr: Strings = {
   hoursHint: 'हे बनवायला एकूण किती तास लागले',
   learnAgainHint: 'कधी विसरलात तर इथे दाबा. मी पुन्हा संपूर्ण पद्धत दाखवेन.',
 
-  // Two phones, one shop — see services/pairing.ts.
-  pairOpen: 'दुसरा फोन',
-  pairTitle: 'एकच दुकान, दोन फोन',
-  pairWhy: 'तुमचे दुकान दुसऱ्या फोनवरही उघडा. तेच सामान, तेच ऑर्डर, तेच संदेश.',
-  pairShow: 'या फोनचा नंबर दाखवा',
-  pairCodeIs: 'हे सहा अंक दुसऱ्या फोनवर भरा',
-  pairExpires: 'हा नंबर अर्धा तास चालेल',
-  pairEnter: 'दुसऱ्या फोनचा नंबर इथे भरा',
-  pairJoin: 'जोडा',
-  pairOk: 'झाले. आता दोन्ही फोनवर एकच दुकान आहे.',
-  pairBad: 'हा नंबर चालला नाही. दुसऱ्या फोनवरून नवा नंबर घ्या.',
-  pairNeedNet: 'यासाठी इंटरनेट हवे',
-  pairAlready: 'हा फोन तुमच्या दुकानाशी जोडलेला आहे',
-
   // Getting her shop back — see services/account.ts.
   keepOpen: 'दुकान सुरक्षित ठेवा',
   keepTitle: 'तुमचे दुकान, सुरक्षित',
@@ -221,4 +207,18 @@ export const mr: Strings = {
   vouchBad: 'हा कोड चालला नाही. कार्यकर्त्याला पुन्हा विचारा.',
   vouchDone: '{cluster} ने ओळख पटवली',
   verifiedBadge: 'ओळखीचे कारागीर',
+
+  // The practice piece from the guided first run — see `demo` in types.ts.
+  demoPill: 'सराव',
+  demoStays: 'हे तुमचे सरावाचे सामान आहे. ते तुमच्या फोनवरच राहील — खरेदीदारांना ते दिसणार नाही.',
+  demoGoLive: 'हे खरोखर विक्रीला ठेवा',
+  demoOnPhone: 'तुमच्या फोनवरच राहील',
+  // Held back by the handmade check — see `handmade` in types.ts.
+  notHandmadeStays: 'खरेदीदारांना हे अजून दिसणार नाही. हे हाताने बनवलेले वाटत नाही. मागे जाऊन सांगा की तुम्ही हे कसे बनवले.',
+  notHandmadeOnPhone: 'थांबवले — हाताने बनवलेले वाटत नाही',
+  // The last two steps of the first-run guide — see 'homeMessages' in lib/guide.ts.
+  tourMessagesSub: 'जेव्हा एखादा खरेदीदार काही विचारेल, तेव्हा इथे तुमच्या स्वतःच्या भाषेत दिसेल की तो काय विचारत आहे. तुमच्या भाषेत बोलून उत्तर द्या — आम्ही ते खरेदीदाराच्या भाषेत पोहोचवू.',
+  tourKeepSub: 'कधी ॲप डिलीट झाले किंवा फोन नवीन असेल, तर तुमचे दुकान परत आणण्यासाठी इथे दाबा आणि तुमचा फोन नंबर टाका. तुमचे सगळे सामान परत येईल.',
+  // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
+  newListing: 'हे आहे नवीन वर्णन, तुमच्या सांगण्यासह',
 }

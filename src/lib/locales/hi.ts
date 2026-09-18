@@ -177,20 +177,6 @@ export const hi = {
   hoursHint: 'इसे बनाने में कुल कितने घंटे लगे',
   learnAgainHint: 'कभी भूल जाएँ तो यहाँ दबाइए। मैं फिर से पूरा तरीका दिखाऊँगी।',
 
-  // Two phones, one shop — see services/pairing.ts.
-  pairOpen: 'दूसरा फ़ोन',
-  pairTitle: 'एक ही दुकान, दो फ़ोन',
-  pairWhy: 'अपनी दुकान दूसरे फ़ोन पर भी खोलिए। वही सामान, वही ऑर्डर, वही संदेश।',
-  pairShow: 'इस फ़ोन का नंबर दिखाइए',
-  pairCodeIs: 'यह छह अंक दूसरे फ़ोन पर भरिए',
-  pairExpires: 'यह नंबर आधे घंटे तक चलेगा',
-  pairEnter: 'दूसरे फ़ोन का नंबर यहाँ भरिए',
-  pairJoin: 'जुड़िए',
-  pairOk: 'हो गया। अब दोनों फ़ोन पर एक ही दुकान है।',
-  pairBad: 'यह नंबर नहीं चला। दूसरे फ़ोन से नया नंबर लीजिए।',
-  pairNeedNet: 'इसके लिए इंटरनेट चाहिए',
-  pairAlready: 'यह फ़ोन आपकी दुकान से जुड़ा हुआ है',
-
   // Getting her shop back — see services/account.ts.
   keepOpen: 'दुकान सुरक्षित रखिए',
   keepTitle: 'आपकी दुकान, सुरक्षित',
@@ -219,6 +205,20 @@ export const hi = {
   vouchBad: 'यह कोड नहीं चला। कार्यकर्ता से दोबारा पूछिए।',
   vouchDone: '{cluster} ने पहचान की',
   verifiedBadge: 'पहचाने हुए कारीगर',
+
+  // The practice piece from the guided first run — see `demo` in types.ts.
+  demoPill: 'अभ्यास',
+  demoStays: 'यह आपका अभ्यास वाला सामान है। यह आपके फ़ोन पर ही रहेगा — खरीदार इसे नहीं देख पाएँगे।',
+  demoGoLive: 'इसे सचमुच बिक्री पर लगाइए',
+  demoOnPhone: 'आपके फ़ोन पर ही',
+  // Held back by the handmade check — see `handmade` in types.ts.
+  notHandmadeStays: 'खरीदार इसे अभी नहीं देख पाएँगे। यह हाथ से बना नहीं लगता। वापस जाकर बताइए कि आपने इसे कैसे बनाया।',
+  notHandmadeOnPhone: 'रोका गया — हाथ से बना नहीं लगता',
+  // The last two steps of the first-run guide — see 'homeMessages' in lib/guide.ts.
+  tourMessagesSub: 'जब कोई खरीदार कुछ पूछेगा, तो यहाँ आपकी अपनी भाषा में दिखेगा कि वह क्या पूछ रहा है। आप अपनी भाषा में बोलकर जवाब दीजिए — हम उसे खरीदार की भाषा में पहुँचा देंगे।',
+  tourKeepSub: 'कभी ऐप डिलीट हो जाए या फ़ोन नया हो, तो अपनी दुकान वापस लाने के लिए यहाँ दबाइए और अपना फ़ोन नंबर डालिए। आपका सारा सामान वापस आ जाएगा।',
+  // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
+  newListing: 'यह रहा नया विवरण, आपकी बातों के साथ',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

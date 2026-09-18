@@ -37,6 +37,25 @@ export interface Listing {
   keywords: string[]
   /** Anything the AI was NOT sure about becomes a spoken question to the artisan. */
   questions: string[]
+  /**
+   * Does the photo plausibly show handmade work? The model's call, not hers.
+   *
+   * Phone OTP proves the shop is hers and a coordinator's vouch proves she is
+   * an artisan; neither says anything about THIS product. The live database
+   * had a MacBook, an iPhone case and a lipstick on the buyer page, each
+   * titled "Handmade" by a model that had been told everything is. This is
+   * the cheapest check there is: the same call that writes the listing looks
+   * at the same photo and answers one more question.
+   *
+   * `false` keeps it off the buyer page, exactly like a practice piece. The
+   * way out is the question loop she already uses — the model asks how she
+   * made it, and her spoken answer can change its mind. Optional because
+   * every listing written before this has no opinion, and no opinion means
+   * for sale.
+   */
+  handmade?: boolean
+  /** One short English line on why, for the coordinator and the judges. */
+  handmadeWhy?: string
 }
 
 /**
@@ -89,6 +108,26 @@ export interface Product {
    */
   artisanId?: string
   status: 'draft' | 'published'
+  /**
+   * Made during the guided first run, so it never reaches a buyer.
+   *
+   * lib/guide.ts is proud that the guide runs on the REAL app and that she
+   * ends it holding a real published listing, not a simulation — and that is
+   * still right about everything except the last inch. The marketplace is a
+   * projector surface at a demo and a shared shop in a pilot, and the first
+   * thing anybody makes while being talked through the app is a practice pot.
+   * Twenty judges each publishing one fills the buyer page with junk, and the
+   * Ministry dashboard counts every one of them as a catalogued product.
+   *
+   * So it stays on her phone: her shop shows it, the buyer page does not, and
+   * screens/Impact.tsx leaves it out of every metric and says how many it
+   * left out. She can put it on sale for real from the publish screen, which
+   * is the one place she is already looking at what a buyer would see.
+   *
+   * Only the FIRST run stamps this. Replaying the guide from "learn how to
+   * sell" must not quietly hide a real pot she is trying to sell.
+   */
+  demo?: boolean
   lang: LangCode
 
   photo?: string           // original, as a data URL

@@ -41,6 +41,27 @@ export default function Publish() {
   useSay(t('tourPublishSub'), !done)
   const nudge = useIdle() && getGuideStep() === 'done'
 
+  const demo = Boolean(p?.demo)
+  // Held back by the handmade check — see `handmade` in types.ts.
+  const held = !demo && p?.listing?.handmade === false
+
+  /**
+   * Make the practice piece real.
+   *
+   * The guided run has to end with something she can be proud of, and for
+   * some women the pot she photographed while learning the buttons IS the pot
+   * she wants to sell. Leaving her no way out of "practice" would mean telling
+   * her to make the same listing twice.
+   *
+   * Offered here rather than on the home screen because this is the one place
+   * she is already looking at the buyer's own card — she can see exactly what
+   * would go out before she decides it should.
+   */
+  async function goLive() {
+    setP(await patchProduct(id, { demo: false }))
+    speak(t('published'), asrCode(lang))
+  }
+
   async function publish() {
     await patchProduct(id, { status: 'published' })
     setDone(true)
@@ -67,7 +88,15 @@ export default function Publish() {
         <img src="./icons/icon-192.png" alt="" aria-hidden width={128} height={128}
           className="rise block rounded-3xl shadow-card ring-1 ring-gold-leaf/40" />
         <Gota className="w-40" />
-        <p className="font-display text-2xl font-semibold leading-snug">{t('published')}</p>
+        <p className="font-display text-2xl font-semibold leading-snug">
+          {demo ? t('demoStays') : held ? t('notHandmadeStays') : t('published')}
+        </p>
+        {demo && (
+          <div className="w-full max-w-xs">
+            <BigButton icon={<Icon name="market" />} label={t('demoGoLive')}
+                       variant="quiet" onClick={goLive} />
+          </div>
+        )}
       </div>
     </Screen>
   )
@@ -97,9 +126,18 @@ export default function Publish() {
         {t('sentTo')}
       </p>
       <ul className="flex flex-wrap gap-2">
-        <li className="rounded-full border-2 border-good bg-surface px-3 py-2 text-sm font-medium text-good">
-          ✓ {t('ourMarketplace')}
-        </li>
+        {/* The green tick is a promise that it reaches a buyer, and for a
+            practice piece that promise is false. Say the true thing instead —
+            this screen is the last one before she presses send. */}
+        {demo || held ? (
+          <li className="rounded-full border-2 border-gold bg-gold-wash px-3 py-2 text-sm font-medium text-gold">
+            {demo ? t('demoOnPhone') : t('notHandmadeOnPhone')}
+          </li>
+        ) : (
+          <li className="rounded-full border-2 border-good bg-surface px-3 py-2 text-sm font-medium text-good">
+            ✓ {t('ourMarketplace')}
+          </li>
+        )}
       </ul>
 
       {/* What does not happen yet, said plainly. */}

@@ -177,20 +177,6 @@ export const bn: Strings = {
   hoursHint: 'এটি বানাতে মোট কত ঘণ্টা লেগেছে',
   learnAgainHint: 'কখনও ভুলে গেলে এখানে চাপুন। আমি আবার পুরোটা দেখিয়ে দেব।',
 
-  // Two phones, one shop — see services/pairing.ts.
-  pairOpen: 'অন্য ফোন',
-  pairTitle: 'একই দোকান, দুটি ফোন',
-  pairWhy: 'আপনার দোকান অন্য ফোনেও খুলুন। একই জিনিস, একই অর্ডার, একই বার্তা।',
-  pairShow: 'এই ফোনের নম্বর দেখান',
-  pairCodeIs: 'এই ছয়টি সংখ্যা অন্য ফোনে লিখুন',
-  pairExpires: 'এই নম্বর আধ ঘণ্টা চলবে',
-  pairEnter: 'অন্য ফোনের নম্বর এখানে লিখুন',
-  pairJoin: 'যুক্ত হোন',
-  pairOk: 'হয়ে গেছে। এখন দুটি ফোনেই একই দোকান।',
-  pairBad: 'এই নম্বরটি কাজ করেনি। অন্য ফোন থেকে নতুন নম্বর নিন।',
-  pairNeedNet: 'এর জন্য ইন্টারনেট দরকার',
-  pairAlready: 'এই ফোনটি আপনার দোকানের সঙ্গে যুক্ত',
-
   // Getting her shop back — see services/account.ts.
   keepOpen: 'দোকান সুরক্ষিত রাখুন',
   keepTitle: 'আপনার দোকান, সুরক্ষিত',
@@ -219,4 +205,18 @@ export const bn: Strings = {
   vouchBad: 'এই কোডটি চলল না। কর্মীকে আবার জিজ্ঞাসা করুন।',
   vouchDone: '{cluster} পরিচয় নিশ্চিত করেছে',
   verifiedBadge: 'পরিচিত কারিগর',
+
+  // The practice piece from the guided first run — see `demo` in types.ts.
+  demoPill: 'অনুশীলন',
+  demoStays: 'এটি আপনার অনুশীলনের জিনিস। এটি আপনার ফোনেই থাকবে — ক্রেতারা এটি দেখতে পাবেন না।',
+  demoGoLive: 'সত্যিই বিক্রির জন্য রাখুন',
+  demoOnPhone: 'আপনার ফোনেই থাকবে',
+  // Held back by the handmade check — see `handmade` in types.ts.
+  notHandmadeStays: 'ক্রেতারা এটি এখনও দেখতে পাবেন না। এটি হাতে বানানো মনে হচ্ছে না। ফিরে গিয়ে বলুন আপনি এটি কীভাবে বানিয়েছেন।',
+  notHandmadeOnPhone: 'আটকে রাখা হয়েছে — হাতে বানানো মনে হচ্ছে না',
+  // The last two steps of the first-run guide — see 'homeMessages' in lib/guide.ts.
+  tourMessagesSub: 'কোনো ক্রেতা কিছু জিজ্ঞেস করলে, এখানে আপনার নিজের ভাষায় দেখবেন তিনি কী জিজ্ঞেস করছেন। আপনার ভাষায় বলে উত্তর দিন — আমরা সেটা ক্রেতার ভাষায় পৌঁছে দেব।',
+  tourKeepSub: 'কখনো অ্যাপ মুছে গেলে বা নতুন ফোন হলে, আপনার দোকান ফিরিয়ে আনতে এখানে চাপুন আর আপনার ফোন নম্বর দিন। আপনার সব জিনিস ফিরে আসবে।',
+  // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
+  newListing: 'এই যে নতুন বিবরণ, আপনার কথাগুলো সহ',
 }

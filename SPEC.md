@@ -346,9 +346,7 @@ not.
 
 The section above is still right that a login must not be the first thing she
 meets. It was wrong about the consequence being acceptable: a reinstall, a
-cracked screen or a new handset used to orphan every listing she had made, and
-`pairing.ts` only rescues her while the OLD phone is still working and still in
-her hand. The shop she spends three months filling is also the collateral
+cracked screen or a new handset used to orphan every listing she had made. The shop she spends three months filling is also the collateral
 behind the credit-history claim, and collateral a factory reset destroys is not
 collateral.
 
@@ -410,8 +408,7 @@ refuses any cluster name that does not match a real one. That matters because
 Cloud Functions need a billing card: **rules are the only server-side check
 this project gets**, and this is the most that can be done with them.
 
-Honest limit, written down the same way `pairing.ts` writes down its own:
-whoever *learns* a voucher can claim its cluster. The accountability is the
+Honest limit: whoever *learns* a voucher can claim its cluster. The accountability is the
 named field worker who answers for it, not the six characters.
 
 **Not built, deliberately** — the provenance half. One forced-camera shot of
@@ -547,6 +544,34 @@ Five rules that are load-bearing — `tools/guide.test.mjs` asserts them:
 - **Fewer steps is better.** Two rings on the same action bar one after another
   read as the photo step happening twice. Where no placement worked, the step
   was deleted rather than squeezed in.
+
+### The practice piece
+
+The guide ends with a real listing, and that was right about everything except
+the last inch. The buyer page is a projector surface at a demo and a shared shop
+in a pilot, and the first thing anyone makes while being talked through the app
+is a practice pot. Twenty judges each publishing one fills the marketplace with
+junk and tells the Ministry dashboard that twenty products were catalogued.
+
+So a product created during the **first** guided run carries `demo: true`
+(`types.ts`), and:
+
+- the buyer marketplace never lists it;
+- `screens/Impact.tsx` leaves it out of every figure **and prints how many it
+  left out**, the same way it already discloses unattributed products and
+  measurement coverage;
+- her own card says *practice*, not *on sale*, and her on-sale count skips it —
+  otherwise she waits for an order that cannot come and never learns why;
+- the send screen drops the green "sent to our marketplace" tick, because for a
+  practice piece that promise is false.
+
+**It is never a trap.** She can put it on sale for real from the publish screen,
+which is the one place she is already looking at the buyer's own card and can
+see exactly what would go out. And only the FIRST run stamps it — `firstRun()`
+in `lib/guide.ts` latches when the guide first ends, so replaying the tour from
+"learn how to sell" never quietly hides a pot she is trying to sell. That
+failure would be far worse than the clutter this prevents, which is why it has
+its own assertion in `tools/demo.test.mjs`.
 
 ## What every screen says
 
