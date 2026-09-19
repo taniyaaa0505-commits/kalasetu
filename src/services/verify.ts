@@ -38,6 +38,29 @@ export interface Verification {
   verifiedAt?: number
   /** Which code did it. Kept because firestore.rules checks it on every write. */
   voucher?: string
+
+  /*
+   * Her hands at work, photographed with the app's own camera.
+   *
+   * The other half of "how do you know she made it", and the half a reseller
+   * cannot produce. A warehouse in Delhi can photograph a factory pot on a
+   * white sheet; it cannot photograph the pot being made, and it certainly
+   * cannot do it on demand, on the spot, in the app.
+   *
+   * ONCE PER ARTISAN, not per product, and skippable. It is the maker being
+   * evidenced, not each pot — and a woman who is alone and cannot hold a
+   * phone while she works must not be locked out of her own shop over it.
+   * Asked at her first listing, offered again on any later one until she
+   * either gives it or stops being asked.
+   *
+   * Small on purpose: this rides in one Firestore document, and it is shown
+   * at about 200px next to the listing.
+   */
+  craftPhoto?: string
+  craftPhotoAt?: number
+  /** What the model made of it — see checkCraftPhoto in services/gemini.ts. */
+  craftAtWork?: boolean
+  craftWhy?: string
 }
 
 export function verifyAvailable(): boolean { return cloudEnabled() }
@@ -56,6 +79,27 @@ export async function getVerification(artisan: string): Promise<Verification | u
     console.warn('[verify] could not read a badge', err)
     return undefined
   }
+}
+
+/**
+ * Store her proof-of-making photograph.
+ *
+ * Merged like the vouch is, for the same reason: this document is her public
+ * record and other things land on it. Written by her own device under her own
+ * uid, which is all firestore.rules allows.
+ */
+export async function saveCraftProof(
+  artisan: string, photo: string, verdict?: { atWork: boolean; why: string },
+): Promise<void> {
+  if (!cloudEnabled() || !artisan) return
+  const db = await firestore()
+  const { doc, setDoc } = await import('firebase/firestore')
+  const proof: Verification = {
+    craftPhoto: photo,
+    craftPhotoAt: Date.now(),
+    ...(verdict ? { craftAtWork: verdict.atWork, craftWhy: verdict.why } : {}),
+  }
+  await setDoc(doc(db, ARTISANS, artisan), proof, { merge: true })
 }
 
 /**

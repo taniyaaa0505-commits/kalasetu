@@ -221,4 +221,11 @@ export const mr: Strings = {
   tourKeepSub: 'कधी ॲप डिलीट झाले किंवा फोन नवीन असेल, तर तुमचे दुकान परत आणण्यासाठी इथे दाबा आणि तुमचा फोन नंबर टाका. तुमचे सगळे सामान परत येईल.',
   // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
   newListing: 'हे आहे नवीन वर्णन, तुमच्या सांगण्यासह',
+  // The proof-of-making photograph — see components/CraftProof.tsx.
+  proofTitle: 'तुमच्या हाताचे काम दाखवा',
+  proofWhy: 'तुम्ही काम करत असतानाचा एक फोटो काढा — तुमचे हात, अवजारे, किंवा अर्धवट वस्तू. खरेदीदारांना दिसेल की हे खरोखर तुम्ही बनवले आहे. हे फक्त एकदाच विचारले जाईल.',
+  proofTake: 'फोटो काढा',
+  proofLater: 'नंतर',
+  proofSaving: 'जतन होत आहे…',
+  proofDone: 'झाले. आता खरेदीदार पाहू शकतील की हे तुमचे स्वतःचे काम आहे.',
 }

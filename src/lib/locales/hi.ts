@@ -219,6 +219,13 @@ export const hi = {
   tourKeepSub: 'कभी ऐप डिलीट हो जाए या फ़ोन नया हो, तो अपनी दुकान वापस लाने के लिए यहाँ दबाइए और अपना फ़ोन नंबर डालिए। आपका सारा सामान वापस आ जाएगा।',
   // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
   newListing: 'यह रहा नया विवरण, आपकी बातों के साथ',
+  // The proof-of-making photograph — see components/CraftProof.tsx.
+  proofTitle: 'अपने हाथ का काम दिखाइए',
+  proofWhy: 'एक फ़ोटो लीजिए जिसमें आप काम करते हुए दिखें — आपके हाथ, औज़ार, या अधूरा सामान। खरीदार को दिखेगा कि यह सचमुच आपने बनाया है। यह सिर्फ़ एक बार पूछा जाएगा।',
+  proofTake: 'फ़ोटो लीजिए',
+  proofLater: 'बाद में',
+  proofSaving: 'सहेजा जा रहा है…',
+  proofDone: 'हो गया। अब खरीदार देख सकेगा कि यह आपका अपना काम है।',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

@@ -30,7 +30,18 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: '21' }
 
+      # `packages: ''`, and that empty string is the whole fix.
+      #
+      # By default this action installs "tools", a package Google retired and
+      # then removed from the SDK repository — sdkmanager now exits 1 with
+      # "Failed to find package 'tools'" and the build dies in 29 seconds,
+      # before it has fetched a single dependency. The runner image already
+      # ships the Android SDK and platform-tools; all this step has to do is
+      # accept the licences and point ANDROID_HOME at them.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+
 
       - run: npm ci
 

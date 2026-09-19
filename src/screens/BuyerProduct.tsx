@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../services/db'
-import { getVerification } from '../services/verify'
+import { getVerification, type Verification } from '../services/verify'
 import { sendMessage, translatePending, subscribeMessages, TRANSLATING_WINDOW_MS } from '../services/messages'
 import { placeOrder, setStatus, subscribeOrders } from '../services/orders'
 import PriceInNotes from '../components/PriceInNotes'
@@ -49,13 +49,14 @@ export default function BuyerProduct() {
    * render whether or not this resolves, and an unverified maker is the
    * ordinary case, not an error.
    */
-  const [vouchedBy, setVouchedBy] = useState<string>()
+  const [vouch, setVouch] = useState<Verification>()
   useEffect(() => {
     if (!p?.artisanId) return
     let gone = false
-    void getVerification(p.artisanId).then(v => { if (!gone) setVouchedBy(v?.verifiedBy) })
+    void getVerification(p.artisanId).then(v => { if (!gone) setVouch(v) })
     return () => { gone = true }
   }, [p?.artisanId])
+  const vouchedBy = vouch?.verifiedBy
 
   useEffect(() => {
     const offMsgs = subscribeMessages(id, list => {
@@ -235,6 +236,27 @@ export default function BuyerProduct() {
               <span aria-hidden>✓</span> Verified artisan · vouched by {vouchedBy}
             </p>
           )}
+          {/*
+            * Her hands, not our word for it.
+            *
+            * The one piece of evidence on this page that a reseller cannot
+            * cheaply produce: a photograph of the work being made, taken in
+            * the app with the camera rather than chosen from a gallery. We
+            * describe exactly what it is and how it was taken, and claim
+            * nothing beyond that — the camera is a hint, not a lock.
+            */}
+          {vouch?.craftPhoto && (
+            <figure className="mt-3 flex max-w-xs items-start gap-3 rounded-card border border-line-2/70 bg-surface p-3">
+              <img src={vouch.craftPhoto} alt="The maker at work" loading="lazy" decoding="async"
+                   className="h-20 w-20 shrink-0 rounded-card object-cover" />
+              <figcaption className="min-w-0 text-sm leading-snug text-ink-2">
+                <span className="font-semibold text-ink">The maker at work</span><br />
+                Photographed in the app when this shop was opened
+                {vouch.craftAtWork === false && <> — not yet confirmed as work in progress</>}.
+              </figcaption>
+            </figure>
+          )}
+
           {p.price && <div className="mt-3 max-w-xs"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
 
           {/* Bulk order form. The problem statement asks for B2B buyers, so
