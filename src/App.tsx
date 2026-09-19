@@ -33,6 +33,8 @@ const Start        = lazy(() => import('./screens/Start'))
 const Account      = lazy(() => import('./screens/Account'))
 const Impact       = lazy(() => import('./screens/Impact'))
 const Channels     = lazy(() => import('./screens/Channels'))
+const ProductIdentity = lazy(() => import('./screens/ProductIdentity'))
+const PublicCard   = lazy(() => import('./screens/PublicCard'))
 
 /**
  * Fetch the next screens while nobody is waiting for them.
@@ -116,6 +118,10 @@ export default function App() {
           <Route path="/account"       element={<Account />} />
           <Route path="/impact"        element={<Impact />} />
           <Route path="/channels"      element={<Channels />} />
+          {/* The object's own page. /p/:id/card is hers; /card/:code is what
+              the QR on the tag opens, for anyone holding the product. */}
+          <Route path="/p/:id/card"    element={<ProductIdentity />} />
+          <Route path="/card/:code"    element={<PublicCard />} />
           <Route path="/buyer/:id"     element={<BuyerProduct />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

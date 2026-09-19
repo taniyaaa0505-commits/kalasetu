@@ -118,6 +118,34 @@ service cloud.firestore {
     }
 
     /*
+     * Product identity: the code on the tag, and who first claimed the object.
+     *
+     * Readable by everyone, because the whole point is that a stranger holding
+     * the pot can scan the tag and look it up without an account.
+     *
+     * The rule that matters is the update. `makerId` is the one field in this
+     * database that must never change: it is the answer to "who made this",
+     * and a feature that let an owner quietly become the maker would be worse
+     * than having no feature. So an update may move the piece to a new owner
+     * and touch nothing else — not the maker, not the hash, not the date, not
+     * the photograph. A reseller may say "I am selling this"; nobody may say
+     * "I made this" about somebody else's work.
+     *
+     * Nothing may be deleted. A registry a claim can vanish from is not a
+     * registry.
+     */
+    match /registry/{code} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.makerId == request.resource.data.ownerId;
+      allow update: if signedIn()
+        && request.resource.data.makerId == resource.data.makerId
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['ownerId', 'ownerSince']);
+      allow delete: if false;
+    }
+
+    /*
      * The public half of an artisan, and the one place a badge may come from.
      *
      * She writes her own document — and she may not simply declare herself

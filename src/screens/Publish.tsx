@@ -75,7 +75,15 @@ export default function Publish() {
        and going home is neither. Spending the confirm colour on plain
        navigation is what stops it meaning anything where it has to. */
     <Screen action={
-      <BigButton icon={<Icon name="back" />} label={t('goHome')} onClick={() => nav('/')} />
+      <div className="flex flex-col gap-2">
+        {/* Offered here because this is the moment the piece becomes real: it
+            is listed, it is hers, and giving it a permanent name is the one
+            thing left that is about the OBJECT rather than the listing. Quiet,
+            and under "go home", so it is an offer and not a step. */}
+        <BigButton icon={<Icon name="market" />} label={t('idRegister')} variant="quiet"
+          onClick={() => nav(`/p/${id}/card`)} />
+        <BigButton icon={<Icon name="back" />} label={t('goHome')} onClick={() => nav('/')} />
+      </div>
     }>
       {/* One thing to look at and one thing to press.
           This screen had four choices on it — marketplace, messages, orders,

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../services/db'
 import { getVerification, type Verification } from '../services/verify'
+import { makerLabel, registrationFor, type Registration } from '../services/identity'
 import { sendMessage, translatePending, subscribeMessages, TRANSLATING_WINDOW_MS } from '../services/messages'
 import { placeOrder, setStatus, subscribeOrders } from '../services/orders'
 import PriceInNotes from '../components/PriceInNotes'
@@ -49,6 +50,17 @@ export default function BuyerProduct() {
    * render whether or not this resolves, and an unverified maker is the
    * ordinary case, not an error.
    */
+  /*
+   * The piece's own identity, if it has one.
+   *
+   * The buyer is the person this is for: a code he can scan off the tag when
+   * the parcel arrives, and a maker whose name does not change if the piece
+   * is later resold by somebody else. Loaded separately and allowed to fail —
+   * an unregistered piece is the ordinary case, not an error.
+   */
+  const [reg, setReg] = useState<Registration>()
+  useEffect(() => { void registrationFor(id).then(setReg).catch(() => {}) }, [id])
+
   const [vouch, setVouch] = useState<Verification>()
   useEffect(() => {
     if (!p?.artisanId) return
@@ -255,6 +267,18 @@ export default function BuyerProduct() {
                 {vouch.craftAtWork === false && <> — not yet confirmed as work in progress</>}.
               </figcaption>
             </figure>
+          )}
+
+          {reg && (
+            <button onClick={() => nav(`/card/${reg.id}`)}
+              className="press mt-3 flex min-h-0 max-w-xs items-center gap-2 rounded-card border border-line-2/70 bg-surface px-3 py-2.5 text-left text-sm">
+              <span className="font-display font-bold tracking-tight text-gold">{reg.id}</span>
+              <span className="text-ink-3">
+                {reg.ownerId === reg.makerId
+                  ? <>made by {makerLabel(reg.makerId)}</>
+                  : <>made by {makerLabel(reg.makerId)} · sold by {makerLabel(reg.ownerId)}</>}
+              </span>
+            </button>
           )}
 
           {p.price && <div className="mt-3 max-w-xs"><PriceInNotes amount={p.price.suggested} size="sm" /></div>}
