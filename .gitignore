@@ -4,7 +4,18 @@ dist
 .env.local
 .DS_Store
 *.log
-tools/
+# The tools folder is scratch — benchmarks, one-off scripts, an orders dump
+# with real buyers' names in it. None of that belongs in the repository.
+#
+# The TESTS do. They are the only thing standing between this app and the
+# regressions it has already had once — a practice pot on the buyer page, a
+# screen that opened in silence, a guide step that skipped the one thing it
+# was there to teach. They were never committed, which meant a teammate who
+# cloned this repo got the app and none of its safety net.
+tools/*
+!tools/*.test.mjs
+# Repeatable, and it wrote to the live database once: worth keeping.
+!tools/backfill-handmade.mjs
 probe.mjs
 maketest.mjs
 
