@@ -61,5 +61,27 @@ check(/path="\/messages"/.test(app), 'and the route exists')
 check(/subscribeMyMessages/.test(list) && /one entry per conversation/.test(list),
   'the list is one row per conversation, live, like Orders')
 
+// --- the rules must let a translation land, and nothing else ---
+//
+// This is the bug that broke the feature the app is named for. A message is
+// stored the instant it is sent, in one language, because waiting for Gemini
+// first took up to 23 seconds. The translation arrives a few seconds later as
+// a SECOND write — and "allow update: if false" refused it, so every message a
+// buyer sent reached her in English and stayed there. Found by sending a real
+// message through the live site in a browser, not by reading this file.
+const rules = readFileSync('firestore.rules', 'utf8')
+const msgRule = rules.slice(rules.indexOf('match /messages'), rules.indexOf('match /orders'))
+check(/allow update: if signedIn\(\)/.test(msgRule),
+  'a message may be updated at all — the translation is a second write')
+check(/hasOnly\(\['local', 'english', 'untranslated'\]\)/.test(msgRule),
+  'and ONLY the translated fields: what was said, by whom, and when stay immutable')
+check(/allow delete: if false/.test(msgRule), 'a message still cannot be deleted')
+
+const orderRule = rules.slice(rules.indexOf('match /orders'), rules.indexOf('match /artisans'))
+check(/hasOnly\(\['noteLocal'\]\)/.test(orderRule),
+  "the buyer's note reaches her in her language — same second-write problem, same fix")
+check(/ownedByMe\(resource\.data\.artisanId\)/.test(orderRule),
+  'while moving an order along is still hers alone')
+
 console.log(bad ? `\n${bad} failed` : '\nall good')
 process.exit(bad ? 1 : 0)
