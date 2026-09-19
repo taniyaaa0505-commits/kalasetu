@@ -53,6 +53,12 @@ export default function Buyer() {
         {/* Not in the artisan's app — she never sees this one. It belongs on
             the demo surface, where the person asking "so what did it change?"
             is already standing. */}
+        <button onClick={() => nav('/channels')}
+          className="press absolute right-[7.5rem] top-[max(1.25rem,env(safe-area-inset-top))] min-h-0
+                     rounded-full border border-gold-leaf/50 px-3 py-1.5 text-sm text-surface/80
+                     active:bg-white/10">
+          Channels →
+        </button>
         <button onClick={() => nav('/impact')}
           className="press absolute right-6 top-[max(1.25rem,env(safe-area-inset-top))] min-h-0
                      rounded-full border border-gold-leaf/50 px-3 py-1.5 text-sm text-surface/80

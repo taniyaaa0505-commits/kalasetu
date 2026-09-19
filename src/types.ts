@@ -2,10 +2,15 @@
  * The languages we support.
  *
  * `asr` is what we hand the browser's speech recogniser, and it is NOT always
- * the same as `code`. Chrome's speech API has no Maithili model, so Maithili
+ * the same as `code`. It is not always: a language the interface exists in may
+ * be one no browser can hear, and then something honest has to happen — see
+ * the note on Gujarati in lib/locales/gu.ts for why there is no longer such a
+ * language on this list. Kept because the next one added may well be.
+ *
+ * (Historically: Chrome's speech API has no Maithili model, so Maithili
  * speech goes in as Hindi — the two are close enough that the transcript comes
  * out usable, and Gemini cleans up the rest. Be honest about this if asked:
- * proper Maithili ASR needs Bhashini or Whisper, which is a later task.
+ * proper Maithili ASR needs Bhashini or Whisper, which is a later task.)
  *
  * `sample` is spoken aloud when she taps the language, so she can confirm by
  * ear that she picked the right one. She cannot read the label.
@@ -13,7 +18,7 @@
 export const LANGS = [
   { code: 'hi-IN',  asr: 'hi-IN', label: 'हिंदी',   english: 'Hindi',    sample: 'नमस्ते, यह हिंदी है' },
   { code: 'en-IN',  asr: 'en-IN', label: 'English', english: 'English',  sample: 'Hello, this is English' },
-  { code: 'mai-IN', asr: 'hi-IN', label: 'मैथिली',  english: 'Maithili', sample: 'प्रणाम, ई मैथिली थिक' },
+  { code: 'gu-IN', asr: 'gu-IN', label: 'ગુજરાતી', english: 'Gujarati', sample: 'નમસ્તે, આ ગુજરાતી છે' },
   { code: 'bn-IN',  asr: 'bn-IN', label: 'বাংলা',   english: 'Bengali',  sample: 'নমস্কার, এটি বাংলা' },
   { code: 'mr-IN',  asr: 'mr-IN', label: 'मराठी',   english: 'Marathi',  sample: 'नमस्कार, ही मराठी आहे' },
   { code: 'ta-IN',  asr: 'ta-IN', label: 'தமிழ்',   english: 'Tamil',    sample: 'வணக்கம், இது தமிழ்' },

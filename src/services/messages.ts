@@ -1,7 +1,7 @@
 /**
  * The conversation between an artisan and a buyer.
  *
- * The whole point of this feature: she speaks Maithili, he reads English,
+ * The whole point of this feature: she speaks Gujarati, he reads English,
  * and neither of them needs a middleman to sit between them. So every
  * message is stored in both languages and each side is only ever shown
  * the one it can understand.
@@ -195,7 +195,7 @@ export async function translatePending(productId: string): Promise<number> {
 
 function languageName(code: LangCode): string {
   const map: Record<string, string> = {
-    'hi-IN': 'Hindi', 'en-IN': 'English', 'mai-IN': 'Maithili',
+    'hi-IN': 'Hindi', 'en-IN': 'English', 'gu-IN': 'Gujarati',
     'bn-IN': 'Bengali', 'mr-IN': 'Marathi', 'ta-IN': 'Tamil',
   }
   return map[code] ?? 'Hindi'
