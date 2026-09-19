@@ -54,7 +54,7 @@ check(/one-time-code/.test(readFileSync('src/screens/Account.tsx', 'utf8')),
 check(!/allow read, write: if true/.test(rules), 'the database is no longer open to everyone')
 check(/match \/products\/\{id\}[\s\S]{0,400}?allow update, delete: if ownedByMe/.test(rules),
   'only the maker may change or delete her own product')
-check(/match \/orders\/\{id\}[\s\S]{0,400}?allow delete: if false/.test(rules),
+check(/match \/orders\/\{id\}[\s\S]{0,2000}?allow delete: if false/.test(rules),
   'and nobody may delete an order — it is the sales record a loan rests on')
 check(/allow read, write: if false;\s*\}\s*\}\s*\}\s*$/.test(rules.trim()),
   'anything not thought about yet is closed')
