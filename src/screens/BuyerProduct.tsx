@@ -2,7 +2,7 @@
  * The buyer's side: a product page with a conversation.
  *
  * He types English and reads English. He never learns that the person on
- * the other end is speaking Maithili into a phone — which is the point.
+ * the other end is speaking Gujarati into a phone — which is the point.
  */
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'

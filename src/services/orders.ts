@@ -160,7 +160,7 @@ export function canGo(from: OrderStatus, to: OrderStatus): boolean {
 
 function languageName(code: LangCode): string {
   const map: Record<string, string> = {
-    'hi-IN': 'Hindi', 'en-IN': 'English', 'mai-IN': 'Maithili',
+    'hi-IN': 'Hindi', 'en-IN': 'English', 'gu-IN': 'Gujarati',
     'bn-IN': 'Bengali', 'mr-IN': 'Marathi', 'ta-IN': 'Tamil',
   }
   return map[code] ?? 'Hindi'

@@ -31,6 +31,7 @@ const Messages     = lazy(() => import('./screens/Messages'))
 const Start        = lazy(() => import('./screens/Start'))
 const Account      = lazy(() => import('./screens/Account'))
 const Impact       = lazy(() => import('./screens/Impact'))
+const Channels     = lazy(() => import('./screens/Channels'))
 
 /**
  * Fetch the next screens while nobody is waiting for them.
@@ -105,6 +106,7 @@ export default function App() {
           <Route path="/buyer"         element={<Buyer />} />
           <Route path="/account"       element={<Account />} />
           <Route path="/impact"        element={<Impact />} />
+          <Route path="/channels"      element={<Channels />} />
           <Route path="/buyer/:id"     element={<BuyerProduct />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
