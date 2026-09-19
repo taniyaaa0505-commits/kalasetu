@@ -15,10 +15,16 @@ import type { Product } from '../types'
 // IndexedDB database on her phone, and renaming it would orphan every product
 // she has already made. The name is invisible to her; her work is not.
 const DB_NAME = 'kalasetu'
-const DB_VERSION = 4
+// 5: the product registry — see REGISTRY_STORE below. A bump runs the
+// upgrade above, which only ever ADDS stores, so nothing already on her phone
+// is touched.
+const DB_VERSION = 5
 export const STORE = 'products'
 export const MSG_STORE = 'messages'
 export const ORDER_STORE = 'orders'
+/** Product identity: the code, the maker, the hash. Small rows on purpose —
+ *  every conflict check reads the whole thing. See services/identity.ts. */
+export const REGISTRY_STORE = 'registry'
 export const JOB_STORE = 'jobs'      // work that needs a network, parked until there is one
 const LEGACY_KEY = 'kalasetu.products'      // the old localStorage home
 
@@ -44,6 +50,11 @@ function open(): Promise<IDBDatabase> {
           const orders = upgraded.createObjectStore(ORDER_STORE, { keyPath: 'id' })
           orders.createIndex('productId', 'productId')
           orders.createIndex('status', 'status')
+        }
+        if (!upgraded.objectStoreNames.contains(REGISTRY_STORE)) {
+          const reg = upgraded.createObjectStore(REGISTRY_STORE, { keyPath: 'id' })
+          reg.createIndex('productId', 'productId')
+          reg.createIndex('makerId', 'makerId')
         }
         if (!upgraded.objectStoreNames.contains(JOB_STORE)) {
           const jobs = upgraded.createObjectStore(JOB_STORE, { keyPath: 'id' })

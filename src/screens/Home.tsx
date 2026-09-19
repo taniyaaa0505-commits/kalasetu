@@ -5,6 +5,7 @@ import Icon from '../components/Icon'
 import { Gota, Corner } from '../components/Ornament'
 import BigButton from '../components/BigButton'
 import { newId, subscribeMyProducts } from '../services/db'
+import { registrationFor } from '../services/identity'
 import { artisanId } from '../services/artisan'
 import { accountAvailable, currentAccount } from '../services/account'
 import { subscribeMyMessages } from '../services/messages'
@@ -334,6 +335,7 @@ export default function Home() {
                   }}
                   onChat={() => nav(`/p/${p.id}/chat`)}
                   onRemove={() => setRemoving(p)}
+                  onIdentity={() => nav(`/p/${p.id}/card`)}
                 />
               ))}
             </ul>
@@ -450,7 +452,7 @@ function WhatWeDo() {
  * the only irreversible thing here and it should never be the easiest hit.
  */
 function ProductCard({
-  product, title, messages, onOpen, onChat, onRemove,
+  product, title, messages, onOpen, onChat, onRemove, onIdentity,
 }: {
   product: Product
   title: string
@@ -458,7 +460,22 @@ function ProductCard({
   onOpen: () => void
   onChat: () => void
   onRemove: () => void
+  onIdentity: () => void
 }) {
+  /*
+   * The product's own identity, if it has one.
+   *
+   * Read per card rather than passed down from a subscription: the registry
+   * is a separate, small collection and this is the only screen that needs to
+   * know. A product with no registration simply offers to make one — nothing
+   * here is a warning and nothing blocks anything. See services/identity.ts.
+   */
+  const [code, setCode] = useState<string>()
+  useEffect(() => {
+    let gone = false
+    void registrationFor(product.id).then(r => { if (!gone && r) setCode(r.id) })
+    return () => { gone = true }
+  }, [product.id])
   const live = product.status === 'published'
   // The 420px thumbnail first — these tiles are two to a row on a phone, and
   // decoding a 1000px square for each one is what makes a full shop scroll
@@ -503,6 +520,20 @@ function ProductCard({
             {product.price ? `₹${product.price.suggested}` : '—'}
           </p>
         </div>
+      </button>
+
+      {/* Its identity, or the offer of one — one tap, no typing, and never in
+          the way of anything. A registered piece wears its code, which is the
+          number printed on the tag tied to the object itself. */}
+      <button
+        onClick={onIdentity}
+        className={
+          'press mt-1.5 flex w-full min-h-0 items-center justify-center gap-1.5 rounded-card border px-2 py-2 text-xs font-semibold ' +
+          (code ? 'border-gold/60 bg-gold-wash text-gold' : 'border-line-2/70 bg-surface/60 text-ink-2')
+        }
+      >
+        <Icon name={code ? 'gotIt' : 'market'} className="text-sm" />
+        {code ?? t('idChip')}
       </button>
 
       {/* A buyer is talking to her. This has to be impossible to miss. */}

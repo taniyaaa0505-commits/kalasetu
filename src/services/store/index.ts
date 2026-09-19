@@ -9,7 +9,7 @@ import type { Collection, Signature, Stored } from './types'
 import { cloudEnabled } from '../firebase'
 import { localCollection } from './local'
 import { cloudCollection } from './cloud'
-import { STORE, MSG_STORE, ORDER_STORE } from '../idb'
+import { STORE, MSG_STORE, ORDER_STORE, REGISTRY_STORE } from '../idb'
 
 export type { Collection } from './types'
 
@@ -22,4 +22,4 @@ export function collection<T extends Stored>(
 
 export function usingCloud(): boolean { return cloudEnabled() }
 
-export { STORE, MSG_STORE, ORDER_STORE }
+export { STORE, MSG_STORE, ORDER_STORE, REGISTRY_STORE }

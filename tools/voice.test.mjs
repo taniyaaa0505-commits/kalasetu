@@ -20,7 +20,10 @@ import { readFileSync, readdirSync } from 'node:fs'
 // The outward-facing three, plus the export screen: all English, all for
 // someone at a laptop — a gifting company, a ministry officer, a cluster
 // coordinator packing a catalogue for GeM. None of them is her.
-const BUYER_SIDE = ['Buyer', 'BuyerProduct', 'Impact', 'Channels']
+// PublicCard is what a QR code on a paper tag opens, in a stranger's hand —
+// English, no account, nobody's phone. ProductIdentity, which is HER side of
+// the same feature, is not exempt and is checked like every other screen.
+const BUYER_SIDE = ['Buyer', 'BuyerProduct', 'Impact', 'Channels', 'PublicCard']
 
 const screens = readdirSync('src/screens').filter(f => f.endsWith('.tsx')).map(f => f.replace('.tsx', ''))
 let bad = 0

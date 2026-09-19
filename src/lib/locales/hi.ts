@@ -236,6 +236,29 @@ export const hi = {
   // being safe is the only fact that matters at that moment.
   rescueSaid: 'ऐप थोड़ा अटक गया। आपकी दुकान सुरक्षित है।',
   rescueRetry: 'फिर से खोलिए',
+  // Product identity — see services/identity.ts and screens/ProductIdentity.tsx.
+  idTitle: 'सामान की पहचान',
+  idRegister: 'इस सामान की पहचान बनाइए',
+  idRegistering: 'बन रही है…',
+  idWhy: 'इस सामान को एक पहचान नंबर दीजिए, ताकि दुनिया जान सके कि इसे आपने बनाया है।',
+  idWhat: 'एक तस्वीर, एक नंबर, और एक QR — वही QR आप सामान पर लगा सकती हैं। कोई भी उसे स्कैन करके देख सकेगा कि असली कारीगर आप हैं।',
+  idMaker: 'असली कारीगर',
+  idOwner: 'अभी किसके पास है',
+  idYou: 'आप',
+  idRegistered: 'पहचान बनी',
+  idEvidence: 'बनाते हुए की तस्वीर',
+  idEvidenceYes: 'मौजूद है',
+  idEvidenceNo: 'नहीं है',
+  idQrHint: 'इस QR को कागज़ पर छापकर सामान के साथ बाँध दीजिए।',
+  idDoneSaid: 'इस सामान की पहचान बन गई — नंबर {code}। यह नंबर हमेशा आपके नाम रहेगा।',
+  idConflict: 'यह सामान शायद पहले से दर्ज है',
+  idConflictWhy: 'इस तस्वीर से मिलती-जुलती तस्वीर पहले से दर्ज है। हो सकता है यह आपका ही दूसरा सामान हो, या आप किसी और का बनाया सामान बेच रही हों। दोनों ठीक हैं — बस सच बताइए।',
+  idIMadeIt: 'यह मैंने ही बनाया है',
+  idIAmSelling: 'यह इनका बनाया है, मैं बेच रही हूँ',
+  idOwnerSaid: 'ठीक है। बनाने वाले का नाम वैसा ही रहेगा, और आपका नाम बेचने वाले की जगह लग गया।',
+  idConflictSaid: 'यह सामान शायद पहले से दर्ज है। नीचे देखिए।',
+  idNotChecked: 'इंटरनेट न होने से पुरानी पहचानों से मिलान नहीं हो पाया। पहचान बन गई है।',
+  idChip: 'पहचान बनाइए',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi
