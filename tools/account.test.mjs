@@ -12,8 +12,6 @@ const acc     = readFileSync('src/services/account.ts', 'utf8')
 const artisan = readFileSync('src/services/artisan.ts', 'utf8')
 const screen  = readFileSync('src/screens/Account.tsx', 'utf8')
 const home    = readFileSync('src/screens/Home.tsx', 'utf8')
-const verify  = readFileSync('src/services/verify.ts', 'utf8')
-const buyer   = readFileSync('src/screens/BuyerProduct.tsx', 'utf8')
 const rules   = readFileSync('firestore.rules', 'utf8')
 const app     = readFileSync('src/App.tsx', 'utf8')
 
@@ -59,19 +57,11 @@ check(/match \/orders\/\{id\}[\s\S]{0,2000}?allow delete: if false/.test(rules),
 check(/allow read, write: if false;\s*\}\s*\}\s*\}\s*$/.test(rules.trim()),
   'anything not thought about yet is closed')
 
-// --- verification is vouched, never self-declared ---
-check(/get\(\/databases\/\$\(database\)\/documents\/vouchers/.test(rules),
-  'a badge is checked against a real voucher by the rule, not trusted from the phone')
-check(/allow write: if false/.test(rules.slice(rules.indexOf('match /vouchers'))),
-  'and no client can mint one')
-// Not a stray grep: the word appears in verify.ts on purpose, explaining why
-// the mechanism is a vouch. What must never appear is a FIELD holding one.
-check(!/\b(aadhaar|aadhar|vid|uidai)\s*:/i.test(acc + verify),
+// --- phone and OTP are the whole of it ---
+check(!/\b(aadhaar|aadhar|vid|uidai)\s*:/i.test(acc),
   'no Aadhaar or VID number is ever collected or stored')
-check(/AUA\/KUA|licence|license/.test(verify),
-  'and the file says why, so nobody re-opens the question on demo morning')
-check(/verifiedBy/.test(buyer),
-  'the badge is shown to the BUYER, which is the only place it earns anything')
+check(!/verify|voucher|vouch/i.test(screen),
+  'no verification step after the OTP — phone and code, then back to her shop')
 
 // --- and she can leave the screen, and knows what came back ---
 //

@@ -197,14 +197,6 @@ export const hi = {
   keepSignedIn: 'आपकी दुकान {label} पर सुरक्षित है',
   keepLeave: 'इस फ़ोन पर दूसरी दुकान खोलिए',
 
-  // Proving she is an artisan — see services/verify.ts.
-  vouchTitle: 'अपनी पहचान दिखाइए',
-  vouchWhy: 'अपने क्षेत्र के कार्यकर्ता, स्वयं सहायता समूह या सीएससी से एक कोड लीजिए। एक बार भरिए, और आपकी दुकान पर पहचान का निशान लग जाएगा — खरीदार को दिखेगा कि यह असली कारीगर का काम है।',
-  vouchEnter: 'कार्यकर्ता का दिया कोड भरिए',
-  vouchGo: 'पहचान जोड़िए',
-  vouchBad: 'यह कोड नहीं चला। कार्यकर्ता से दोबारा पूछिए।',
-  vouchDone: '{cluster} ने पहचान की',
-  verifiedBadge: 'पहचाने हुए कारीगर',
 
   // The practice piece from the guided first run — see `demo` in types.ts.
   demoPill: 'अभ्यास',
@@ -219,13 +211,6 @@ export const hi = {
   tourKeepSub: 'कभी ऐप डिलीट हो जाए या फ़ोन नया हो, तो अपनी दुकान वापस लाने के लिए यहाँ दबाइए और अपना फ़ोन नंबर डालिए। आपका सारा सामान वापस आ जाएगा।',
   // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
   newListing: 'यह रहा नया विवरण, आपकी बातों के साथ',
-  // The proof-of-making photograph — see components/CraftProof.tsx.
-  proofTitle: 'अपने हाथ का काम दिखाइए',
-  proofWhy: 'एक फ़ोटो लीजिए जिसमें आप काम करते हुए दिखें — आपके हाथ, औज़ार, या अधूरा सामान। खरीदार को दिखेगा कि यह सचमुच आपने बनाया है। यह सिर्फ़ एक बार पूछा जाएगा।',
-  proofTake: 'फ़ोटो लीजिए',
-  proofLater: 'बाद में',
-  proofSaving: 'सहेजा जा रहा है…',
-  proofDone: 'हो गया। अब खरीदार देख सकेगा कि यह आपका अपना काम है।',
   // Said after she signs in — see SignedIn in screens/Account.tsx. The
   // empty case matters most: recovery that works looks identical to
   // recovery that failed unless the app says which one happened.
@@ -246,9 +231,6 @@ export const hi = {
   idOwner: 'अभी किसके पास है',
   idYou: 'आप',
   idRegistered: 'पहचान बनी',
-  idEvidence: 'बनाते हुए की तस्वीर',
-  idEvidenceYes: 'मौजूद है',
-  idEvidenceNo: 'नहीं है',
   idQrHint: 'इस QR को कागज़ पर छापकर सामान के साथ बाँध दीजिए।',
   idDoneSaid: 'इस सामान की पहचान बन गई — नंबर {code}। यह नंबर हमेशा आपके नाम रहेगा।',
   idConflict: 'यह सामान शायद पहले से दर्ज है',

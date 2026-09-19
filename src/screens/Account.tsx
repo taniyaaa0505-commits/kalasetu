@@ -1,10 +1,7 @@
 /**
- * Keeping her shop, and proving it is hers.
+ * Keeping her shop: her phone number and a one-time code, and nothing else.
  *
- * Two jobs on one screen, in the order she meets them. There is no identity
- * worth verifying until there is an identity that survives a new handset, so
- * the badge section does not appear until she is signed in — and neither half
- * is on the golden path. Nobody photographs a pot by coming here.
+ * Not on the golden path. Nobody photographs a pot by coming here.
  *
  * The paragraph that explains the screen is read aloud
  * on arrival, because it is the only thing here that explains anything and she
@@ -23,13 +20,9 @@ import {
 import { artisanId } from '../services/artisan'
 import { listMyProducts } from '../services/db'
 import { useSay } from '../lib/arrival'
-import { getVerification, redeemVoucher, verifyAvailable } from '../services/verify'
 import { speak } from '../lib/speak'
 import { t, tf, getLang } from '../lib/i18n'
 import { asrCode } from '../types'
-
-/** The coordinator-code card. See the note where it renders. */
-const SHOW_VOUCH = false
 
 export default function Account() {
   const nav = useNavigate()
@@ -266,84 +259,6 @@ function SignedIn({ label }: { label: string }) {
           only thing to press, and removing that left her looking at a green
           line with nowhere to go. */}
       <BigButton icon={<Icon name="back" />} label={t('seeMyShop')} onClick={() => nav('/')} />
-
-      {/* Off. Typing a coordinator's code was one more thing to ask of a
-          woman who came here to sell a pot. Verification belongs on the
-          coordinator's side, not hers — services/verify.ts and the rules
-          stay, so turning this back on is this one flag. */}
-      {SHOW_VOUCH && <Vouch />}
-
     </>
-  )
-}
-
-function Vouch() {
-  const [cluster, setCluster] = useState<string>()
-  const [typed, setTyped] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
-
-  useEffect(() => {
-    let gone = false
-    void artisanId()
-      .then(getVerification)
-      .then(v => { if (!gone) setCluster(v?.verifiedBy) })
-    return () => { gone = true }
-  }, [])
-
-  async function redeem() {
-    setBusy(true); setFailed(false)
-    try {
-      const me = await artisanId()
-      const got = await redeemVoucher(me, typed)
-      if (got) {
-        setCluster(got)
-        speak(tf('vouchDone', { cluster: got }), asrCode(getLang()))
-      } else {
-        setFailed(true)
-        speak(t('vouchBad'), asrCode(getLang()))
-      }
-    } catch {
-      setFailed(true)
-    } finally { setBusy(false) }
-  }
-
-  if (cluster) {
-    return (
-      <section className="rounded-panel border-2 border-gold bg-gold-wash p-5 shadow-card">
-        <p className="flex items-center gap-2 font-display text-lg font-bold text-gold">
-          <Icon name="gotIt" /> {t('verifiedBadge')}
-        </p>
-        <p className="mt-1 text-sm text-ink-2">{tf('vouchDone', { cluster })}</p>
-      </section>
-    )
-  }
-
-  return (
-    <section className="rounded-panel border border-line-2/70 bg-surface p-5 shadow-card">
-      <Speakable text={t('vouchTitle')} className="font-display text-base font-bold" />
-      <Speakable text={t('vouchWhy')} className="mt-2 text-sm leading-relaxed text-ink-2" />
-      <input
-        value={typed}
-        onChange={e => { setTyped(e.target.value.toUpperCase().slice(0, 12)); setFailed(false) }}
-        autoComplete="off" aria-label={t('vouchEnter')}
-        placeholder={t('vouchEnter')}
-        className="mt-3 w-full rounded-card border-2 border-line-2/70 bg-paper px-4 py-4 text-center
-                   font-display text-xl font-bold tracking-[0.12em] outline-none placeholder:text-sm
-                   placeholder:font-normal placeholder:tracking-normal placeholder:text-ink-3
-                   focus-visible:border-indigo"
-      />
-      {failed && (
-        <p className="mt-3 rounded-card border border-danger/30 bg-gold-wash px-3 py-2 text-sm text-danger">
-          {t('vouchBad')}
-        </p>
-      )}
-      <div className="mt-4">
-        <BigButton
-          icon={<Icon name="next" />} label={t('vouchGo')} variant="quiet"
-          onClick={redeem} disabled={busy || typed.trim().length < 4}
-        />
-      </div>
-    </section>
   )
 }

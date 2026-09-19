@@ -199,14 +199,6 @@ export const mr: Strings = {
   keepSignedIn: 'तुमचे दुकान {label} वर सुरक्षित आहे',
   keepLeave: 'या फोनवर दुसरे दुकान उघडा',
 
-  // Proving she is an artisan — see services/verify.ts.
-  vouchTitle: 'तुम्ही कारागीर आहात हे दाखवा',
-  vouchWhy: 'तुमच्या भागातील कार्यकर्ता, बचत गट किंवा सीएससी कडून एक कोड घ्या. एकदा भरा, आणि तुमच्या दुकानावर ओळखीची खूण लागेल — खरेदीदाराला दिसेल की हे खऱ्या कारागिराचे काम आहे.',
-  vouchEnter: 'कार्यकर्त्याने दिलेला कोड भरा',
-  vouchGo: 'खूण जोडा',
-  vouchBad: 'हा कोड चालला नाही. कार्यकर्त्याला पुन्हा विचारा.',
-  vouchDone: '{cluster} ने ओळख पटवली',
-  verifiedBadge: 'ओळखीचे कारागीर',
 
   // The practice piece from the guided first run — see `demo` in types.ts.
   demoPill: 'सराव',
@@ -221,13 +213,6 @@ export const mr: Strings = {
   tourKeepSub: 'कधी ॲप डिलीट झाले किंवा फोन नवीन असेल, तर तुमचे दुकान परत आणण्यासाठी इथे दाबा आणि तुमचा फोन नंबर टाका. तुमचे सगळे सामान परत येईल.',
   // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
   newListing: 'हे आहे नवीन वर्णन, तुमच्या सांगण्यासह',
-  // The proof-of-making photograph — see components/CraftProof.tsx.
-  proofTitle: 'तुमच्या हाताचे काम दाखवा',
-  proofWhy: 'तुम्ही काम करत असतानाचा एक फोटो काढा — तुमचे हात, अवजारे, किंवा अर्धवट वस्तू. खरेदीदारांना दिसेल की हे खरोखर तुम्ही बनवले आहे. हे फक्त एकदाच विचारले जाईल.',
-  proofTake: 'फोटो काढा',
-  proofLater: 'नंतर',
-  proofSaving: 'जतन होत आहे…',
-  proofDone: 'झाले. आता खरेदीदार पाहू शकतील की हे तुमचे स्वतःचे काम आहे.',
   // Said after she signs in — see SignedIn in screens/Account.tsx. The
   // empty case matters most: recovery that works looks identical to
   // recovery that failed unless the app says which one happened.
@@ -248,9 +233,6 @@ export const mr: Strings = {
   idOwner: 'आता कोणाकडे',
   idYou: 'तुम्ही',
   idRegistered: 'ओळख तयार झाली',
-  idEvidence: 'बनवतानाचा फोटो',
-  idEvidenceYes: 'आहे',
-  idEvidenceNo: 'नाही',
   idQrHint: 'हा QR कागदावर छापून वस्तूला बांधा.',
   idDoneSaid: 'या वस्तूची ओळख तयार झाली — क्रमांक {code}. हा क्रमांक कायम तुमच्या नावावर राहील.',
   idConflict: 'ही वस्तू कदाचित आधीच नोंदवलेली आहे',

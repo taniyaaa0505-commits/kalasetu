@@ -2,7 +2,7 @@
  * A name for the thing itself.
  *
  * Everything else in this app identifies a PERSON — her phone number, her
- * anonymous uid, the coordinator who vouches for her. None of it identifies
+ * anonymous uid. None of it identifies
  * the pot. So when a second seller photographs the same pot and lists it, the
  * app has nothing to say: two listings, two accounts, both sincere-looking,
  * and the woman who actually made it has no way to point at it and say that
@@ -53,8 +53,6 @@ export interface Registration {
   title?: string
   craft?: string
   material?: string
-  /** Was there work-in-progress evidence on file when this was registered? */
-  evidence: boolean
   /** Registered anyway, over a conflict. Recorded rather than hidden. */
   conflictWith?: string
   /** False when the conflict check could not run — offline, usually. */
@@ -67,8 +65,7 @@ const registry = collection<Registration>(REGISTRY_STORE, r => `${r.id}:${r.owne
 
 /**
  * No I, O, 0, 1 — the four characters that ruin a code read aloud across a
- * room or copied off a cracked screen. Same alphabet as the coordinator
- * vouchers, for the same reason.
+ * room or copied off a cracked screen.
  */
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
@@ -195,7 +192,6 @@ export async function registerProduct(input: {
   craft?: string
   material?: string
   thumb?: string
-  evidence?: boolean
 }): Promise<RegisterResult> {
   const existing = await registrationFor(input.productId)
   if (existing) return { registration: existing, conflicts: [] }
@@ -225,7 +221,6 @@ export async function registerProduct(input: {
     title: input.title,
     craft: input.craft,
     material: input.material,
-    evidence: Boolean(input.evidence),
     checked,
     ...(conflicts.length ? { conflictWith: conflicts[0].id } : {}),
   }

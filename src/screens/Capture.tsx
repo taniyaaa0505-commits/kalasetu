@@ -4,7 +4,6 @@ import Screen from '../components/Screen'
 import Icon from '../components/Icon'
 import BigButton from '../components/BigButton'
 import Speakable from '../components/Speakable'
-import CraftProof from '../components/CraftProof'
 import Working from '../components/Working'
 import Coach from '../components/Coach'
 import { useSay } from '../lib/arrival'
@@ -145,11 +144,6 @@ export default function Capture() {
               onClick={() => fileRef.current?.click()} />
       }
     >
-      {/* Her hands at work — asked once, ever, and skippable. See
-          components/CraftProof.tsx. Shown only once the product photograph is
-          safely stored, so it can never stand between her and her listing. */}
-      {clean && saved && !busy && <CraftProof />}
-
       {/* The only ring on this screen. Nothing rings while the cut-out runs —
           Working is already saying what it is doing out loud, and a ring round
           a progress bar asks her to press something she must not press. */}

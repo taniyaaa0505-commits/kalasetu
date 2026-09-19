@@ -470,62 +470,6 @@ function mockListing(lang: LangCode = 'hi-IN', answers: Answer[] = []): Listing 
 /* ------------------------------------------------------------------ */
 
 /**
- * Is this a photograph of someone making something?
- *
- * Asked once per artisan, of the proof photograph — see `craftPhoto` in
- * services/verify.ts. It is a different question from the handmade check on a
- * listing: that one looks at a finished object, this one looks for hands,
- * tools, a loom, a wheel, half-finished work, a workshop floor.
- *
- * Generous on purpose, in the same direction as everything else here: a badly
- * lit photograph of a woman at a charkha must not cost her the badge, so
- * anything plausible is a yes. Returns undefined when we cannot ask — no key,
- * quota gone, no signal — and the caller stores the photograph anyway. A
- * verdict we could not get is not a verdict against her.
- */
-export async function checkCraftPhoto(
-  photoDataUrl: string,
-): Promise<{ atWork: boolean; why: string } | undefined> {
-  if (!geminiConfigured() || !photoDataUrl) return undefined
-  const img = splitDataUrl(photoDataUrl)
-  if (!img.data) return undefined
-
-  const body = {
-    systemInstruction: { parts: [{ text:
-      'You are looking at one photograph, taken by an Indian artisan with her own phone, ' +
-      'as proof that she makes things by hand.\n\n' +
-      'Answer one question: does this photograph show craft work being MADE, rather than a ' +
-      'finished product on its own?\n' +
-      'Say yes for: hands working, tools, a loom, a potter\'s wheel, a needle, dye, clay, ' +
-      'half-finished work, a workshop or work area, a person at work.\n' +
-      'Say no only when it is plainly just a finished object, a screenshot, a catalogue ' +
-      'photograph, or something with nothing to do with making.\n' +
-      'Be generous: a dark or blurred photograph of real work is still real work. ' +
-      '"why" is one short English sentence.' }] },
-    contents: [{ role: 'user', parts: [{ inlineData: { mimeType: img.mimeType, data: img.data } }] }],
-    generationConfig: {
-      responseMimeType: 'application/json',
-      responseSchema: {
-        type: 'object',
-        properties: { atWork: { type: 'boolean' }, why: { type: 'string' } },
-        required: ['atWork', 'why'],
-      },
-      temperature: 0.2,
-      ...NO_THINKING,
-    },
-  }
-
-  try {
-    const res = await ask(LISTING_MODELS, body)
-    const text = textOf(await res.json())
-    return text ? JSON.parse(text) as { atWork: boolean; why: string } : undefined
-  } catch (err) {
-    console.warn('[gemini] could not check the craft photo', err)
-    return undefined
-  }
-}
-
-/**
  * Translate one chat message.
  *
  * Kept deliberately narrow: short, conversational, no explanations, no

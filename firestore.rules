@@ -145,45 +145,9 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    /*
-     * The public half of an artisan, and the one place a badge may come from.
-     *
-     * She writes her own document — and she may not simply declare herself
-     * verified. `vouched()` makes the rule fetch the coordinator's voucher and
-     * refuse any cluster name that does not match a real one, which is the most
-     * server-side checking available to a project with no billing card: Cloud
-     * Functions need Blaze, so rules are all there is.
-     *
-     * Honest limit: whoever LEARNS a voucher
-     * can claim its cluster. The code belongs to a named field worker who
-     * answers for it, which is the accountability — not the six characters.
-     */
-    match /artisans/{uid} {
-      allow read: if true;
-      allow write: if signedIn() && request.auth.uid == uid && vouched();
-    }
-
     function notPractice(productId) {
       return !exists(/databases/$(database)/documents/products/$(productId))
         || get(/databases/$(database)/documents/products/$(productId)).data.get('demo', false) != true;
-    }
-
-    function vouched() {
-      return !('verifiedBy' in request.resource.data) || (
-        'voucher' in request.resource.data
-        && exists(/databases/$(database)/documents/vouchers/$(request.resource.data.voucher))
-        && get(/databases/$(database)/documents/vouchers/$(request.resource.data.voucher)).data.cluster
-           == request.resource.data.verifiedBy
-      );
-    }
-
-    /*
-     * Minted by hand in the console, or by tools/vouchers.mjs. Never from the
-     * app — a voucher the client could create is not a voucher.
-     */
-    match /vouchers/{code} {
-      allow read: if signedIn();
-      allow write: if false;
     }
 
     // Anything we have not thought about yet is closed.

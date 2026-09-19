@@ -197,14 +197,6 @@ export const bn: Strings = {
   keepSignedIn: 'আপনার দোকান {label} এ সুরক্ষিত আছে',
   keepLeave: 'এই ফোনে অন্য দোকান খুলুন',
 
-  // Proving she is an artisan — see services/verify.ts.
-  vouchTitle: 'আপনি যে কারিগর, তা দেখান',
-  vouchWhy: 'আপনার এলাকার কর্মী, স্বনির্ভর গোষ্ঠী বা সিএসসি থেকে একটি কোড নিন। একবার লিখুন, আর আপনার দোকানে পরিচয়ের চিহ্ন বসে যাবে — ক্রেতা দেখতে পাবেন এটি সত্যিকারের কারিগরের কাজ।',
-  vouchEnter: 'কর্মীর দেওয়া কোডটি লিখুন',
-  vouchGo: 'চিহ্ন যোগ করুন',
-  vouchBad: 'এই কোডটি চলল না। কর্মীকে আবার জিজ্ঞাসা করুন।',
-  vouchDone: '{cluster} পরিচয় নিশ্চিত করেছে',
-  verifiedBadge: 'পরিচিত কারিগর',
 
   // The practice piece from the guided first run — see `demo` in types.ts.
   demoPill: 'অনুশীলন',
@@ -219,13 +211,6 @@ export const bn: Strings = {
   tourKeepSub: 'কখনো অ্যাপ মুছে গেলে বা নতুন ফোন হলে, আপনার দোকান ফিরিয়ে আনতে এখানে চাপুন আর আপনার ফোন নম্বর দিন। আপনার সব জিনিস ফিরে আসবে।',
   // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
   newListing: 'এই যে নতুন বিবরণ, আপনার কথাগুলো সহ',
-  // The proof-of-making photograph — see components/CraftProof.tsx.
-  proofTitle: 'আপনার হাতের কাজ দেখান',
-  proofWhy: 'আপনি কাজ করছেন এমন একটি ছবি তুলুন — আপনার হাত, যন্ত্রপাতি, বা আধা-তৈরি জিনিস। ক্রেতারা দেখতে পাবেন যে এটি সত্যিই আপনি বানিয়েছেন। এটি একবারই জিজ্ঞাসা করা হবে।',
-  proofTake: 'ছবি তুলুন',
-  proofLater: 'পরে',
-  proofSaving: 'সংরক্ষণ হচ্ছে…',
-  proofDone: 'হয়ে গেছে। ক্রেতারা এখন দেখতে পাবেন যে এটি আপনার নিজের কাজ।',
   // Said after she signs in — see SignedIn in screens/Account.tsx. The
   // empty case matters most: recovery that works looks identical to
   // recovery that failed unless the app says which one happened.
@@ -246,9 +231,6 @@ export const bn: Strings = {
   idOwner: 'এখন কার কাছে',
   idYou: 'আপনি',
   idRegistered: 'পরিচয় তৈরি হয়েছে',
-  idEvidence: 'বানানোর সময়ের ছবি',
-  idEvidenceYes: 'আছে',
-  idEvidenceNo: 'নেই',
   idQrHint: 'এই QR কাগজে ছাপিয়ে জিনিসের সঙ্গে বেঁধে দিন।',
   idDoneSaid: 'এই জিনিসের পরিচয় তৈরি হয়েছে — নম্বর {code}। এই নম্বর চিরকাল আপনার নামে থাকবে।',
   idConflict: 'এই জিনিস হয়তো আগেই নথিভুক্ত',

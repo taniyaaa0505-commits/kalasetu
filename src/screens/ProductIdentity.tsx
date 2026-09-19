@@ -21,7 +21,6 @@ import Speakable from '../components/Speakable'
 import QrCode from '../components/QrCode'
 import { getProduct } from '../services/db'
 import { artisanId } from '../services/artisan'
-import { getVerification } from '../services/verify'
 import {
   cardUrl, makerLabel, registerProduct, registrationFor, transferTo,
   type Registration,
@@ -53,14 +52,10 @@ export default function ProductIdentity() {
     try {
       const photo = p.cleanPhoto ?? p.photo
       if (!photo) return
-      // Evidence is the proof-of-making photograph on her artisan record —
-      // not required, and recorded as a yes or no rather than published.
-      const vouch = await getVerification(me).catch(() => undefined)
       const out = await registerProduct({
         productId: id, photo, makerId: me,
         title: p.listing?.titleEn, craft: p.listing?.craft, material: p.listing?.material,
         thumb: p.photo ?? p.cleanPhoto,
-        evidence: Boolean(vouch?.craftPhoto),
       })
       setReg(out.registration)
       setConflicts(out.conflicts)
@@ -121,7 +116,6 @@ export default function ProductIdentity() {
                 <Row label={t('idOwner')} value={`${makerLabel(reg.ownerId)}${reg.ownerId === me ? ` (${t('idYou')})` : ''}`} />
               )}
               <Row label={t('idRegistered')} value={new Date(reg.registeredAt).toLocaleDateString('en-IN')} />
-              <Row label={t('idEvidence')} value={reg.evidence ? t('idEvidenceYes') : t('idEvidenceNo')} />
             </dl>
 
             {/* The QR, big enough to scan off a screen and to print. */}

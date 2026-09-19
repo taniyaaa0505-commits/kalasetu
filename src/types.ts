@@ -45,9 +45,8 @@ export interface Listing {
   /**
    * Does the photo plausibly show handmade work? The model's call, not hers.
    *
-   * Phone OTP proves the shop is hers and a coordinator's vouch proves she is
-   * an artisan; neither says anything about THIS product. The live database
-   * had a MacBook, an iPhone case and a lipstick on the buyer page, each
+   * Phone OTP proves the shop is hers; it says nothing about THIS product.
+   * The live database had a MacBook, an iPhone case and a lipstick on the buyer page, each
    * titled "Handmade" by a model that had been told everything is. This is
    * the cheapest check there is: the same call that writes the listing looks
    * at the same photo and answers one more question.

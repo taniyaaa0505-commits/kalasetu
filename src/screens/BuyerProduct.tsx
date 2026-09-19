@@ -7,7 +7,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProduct } from '../services/db'
-import { getVerification, type Verification } from '../services/verify'
 import { makerLabel, registrationFor, type Registration } from '../services/identity'
 import { sendMessage, translatePending, subscribeMessages, TRANSLATING_WINDOW_MS } from '../services/messages'
 import { placeOrder, setStatus, subscribeOrders } from '../services/orders'
@@ -39,18 +38,6 @@ export default function BuyerProduct() {
   useEffect(() => { getProduct(id).then(setP) }, [id])
 
   /*
-   * Who says she is an artisan.
-   *
-   * This is the only place the vouch in services/verify.ts actually earns its
-   * keep. The buyer is the person asking "is this really handmade, or is it a
-   * reseller in a warehouse", and a badge she can see on her own screen is
-   * worth more than any amount of the same claim in our pitch deck.
-   *
-   * Loaded separately from the product and allowed to fail: the listing must
-   * render whether or not this resolves, and an unverified maker is the
-   * ordinary case, not an error.
-   */
-  /*
    * The piece's own identity, if it has one.
    *
    * The buyer is the person this is for: a code he can scan off the tag when
@@ -60,15 +47,6 @@ export default function BuyerProduct() {
    */
   const [reg, setReg] = useState<Registration>()
   useEffect(() => { void registrationFor(id).then(setReg).catch(() => {}) }, [id])
-
-  const [vouch, setVouch] = useState<Verification>()
-  useEffect(() => {
-    if (!p?.artisanId) return
-    let gone = false
-    void getVerification(p.artisanId).then(v => { if (!gone) setVouch(v) })
-    return () => { gone = true }
-  }, [p?.artisanId])
-  const vouchedBy = vouch?.verifiedBy
 
   useEffect(() => {
     const offMsgs = subscribeMessages(id, list => {
@@ -237,37 +215,6 @@ export default function BuyerProduct() {
             <p className="text-[34px] font-bold leading-none tabular-nums text-indigo">₹{p.price?.suggested}</p>
             <p className="text-sm text-ink-3">per piece · direct from the maker</p>
           </div>
-
-          {/* Named, not a tick.
-              "Verified" on its own is a word any marketplace prints about
-              itself. The cluster's name is a claim someone can be held to —
-              which is the whole argument for vouching over a document scan. */}
-          {vouchedBy && (
-            <p className="mt-3 inline-flex items-center gap-2 rounded-full border-2 border-good
-                          bg-sage-wash px-3 py-1.5 text-sm font-semibold text-good">
-              <span aria-hidden>✓</span> Verified artisan · vouched by {vouchedBy}
-            </p>
-          )}
-          {/*
-            * Her hands, not our word for it.
-            *
-            * The one piece of evidence on this page that a reseller cannot
-            * cheaply produce: a photograph of the work being made, taken in
-            * the app with the camera rather than chosen from a gallery. We
-            * describe exactly what it is and how it was taken, and claim
-            * nothing beyond that — the camera is a hint, not a lock.
-            */}
-          {vouch?.craftPhoto && (
-            <figure className="mt-3 flex max-w-xs items-start gap-3 rounded-card border border-line-2/70 bg-surface p-3">
-              <img src={vouch.craftPhoto} alt="The maker at work" loading="lazy" decoding="async"
-                   className="h-20 w-20 shrink-0 rounded-card object-cover" />
-              <figcaption className="min-w-0 text-sm leading-snug text-ink-2">
-                <span className="font-semibold text-ink">The maker at work</span><br />
-                Photographed in the app when this shop was opened
-                {vouch.craftAtWork === false && <> — not yet confirmed as work in progress</>}.
-              </figcaption>
-            </figure>
-          )}
 
           {reg && (
             <button onClick={() => nav(`/card/${reg.id}`)}

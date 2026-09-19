@@ -203,14 +203,6 @@ export const ta: Strings = {
   keepSignedIn: 'உங்கள் கடை {label} இல் பாதுகாக்கப்பட்டுள்ளது',
   keepLeave: 'இந்தத் தொலைபேசியில் வேறு கடையைத் திறக்கவும்',
 
-  // Proving she is an artisan — see services/verify.ts.
-  vouchTitle: 'நீங்கள் கைவினைஞர் என்பதைக் காட்டுங்கள்',
-  vouchWhy: 'உங்கள் பகுதி பணியாளர், சுய உதவிக் குழு அல்லது சிஎஸ்சி இடமிருந்து ஒரு குறியீட்டைப் பெறுங்கள். ஒரு முறை எழுதினால் உங்கள் கடையில் அடையாள முத்திரை விழும் — இது உண்மையான கைவினைஞரின் வேலை என்று வாங்குபவர் பார்ப்பார்.',
-  vouchEnter: 'பணியாளர் கொடுத்த குறியீட்டை எழுதுங்கள்',
-  vouchGo: 'முத்திரையைச் சேர்க்கவும்',
-  vouchBad: 'இந்தக் குறியீடு வேலை செய்யவில்லை. பணியாளரிடம் மீண்டும் கேளுங்கள்.',
-  vouchDone: '{cluster} அடையாளம் உறுதி செய்தது',
-  verifiedBadge: 'அடையாளம் காணப்பட்ட கைவினைஞர்',
 
   // The practice piece from the guided first run — see `demo` in types.ts.
   demoPill: 'பயிற்சி',
@@ -225,13 +217,6 @@ export const ta: Strings = {
   tourKeepSub: 'எப்போதாவது ஆப் அழிந்துவிட்டால் அல்லது புதிய தொலைபேசி வாங்கினால், உங்கள் கடையைத் திரும்பப் பெற இங்கே அழுத்தி உங்கள் தொலைபேசி எண்ணைப் போடுங்கள். உங்கள் எல்லா பொருட்களும் திரும்ப வரும்.',
   // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
   newListing: 'இதோ புதிய விவரம், நீங்கள் சொன்னவற்றுடன்',
-  // The proof-of-making photograph — see components/CraftProof.tsx.
-  proofTitle: 'உங்கள் கைவேலையைக் காட்டுங்கள்',
-  proofWhy: 'நீங்கள் வேலை செய்யும் ஒரு புகைப்படம் எடுங்கள் — உங்கள் கைகள், கருவிகள், அல்லது பாதி முடிந்த வேலை. இதை நீங்கள்தான் செய்தீர்கள் என்பது வாங்குபவர்களுக்குத் தெரியும். இது ஒரு முறை மட்டுமே கேட்கப்படும்.',
-  proofTake: 'புகைப்படம் எடுங்கள்',
-  proofLater: 'பிறகு',
-  proofSaving: 'சேமிக்கப்படுகிறது…',
-  proofDone: 'முடிந்தது. இது உங்கள் சொந்த வேலை என்பதை வாங்குபவர்கள் இப்போது பார்க்க முடியும்.',
   // Said after she signs in — see SignedIn in screens/Account.tsx. The
   // empty case matters most: recovery that works looks identical to
   // recovery that failed unless the app says which one happened.
@@ -252,9 +237,6 @@ export const ta: Strings = {
   idOwner: 'இப்போது யாரிடம்',
   idYou: 'நீங்கள்',
   idRegistered: 'அடையாளம் உருவானது',
-  idEvidence: 'செய்யும்போது எடுத்த படம்',
-  idEvidenceYes: 'உள்ளது',
-  idEvidenceNo: 'இல்லை',
   idQrHint: 'இந்த QR-ஐ காகிதத்தில் அச்சிட்டு பொருளுடன் கட்டுங்கள்.',
   idDoneSaid: 'இந்தப் பொருளுக்கு அடையாளம் உருவானது — எண் {code}. இந்த எண் எப்போதும் உங்கள் பெயரில் இருக்கும்.',
   idConflict: 'இந்தப் பொருள் ஏற்கனவே பதிவாகியிருக்கலாம்',

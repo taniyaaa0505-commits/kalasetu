@@ -193,14 +193,6 @@ export const en: Strings = {
   keepSignedIn: 'Your shop is saved to {label}',
   keepLeave: 'Use a different shop on this phone',
 
-  // Proving she is an artisan — see services/verify.ts.
-  vouchTitle: 'Show that you are an artisan',
-  vouchWhy: 'Ask your field worker, self-help group or CSC for a code. Type it once and your shop carries a mark of trust — a buyer can see the work is from a real artisan.',
-  vouchEnter: 'Type the code your field worker gave you',
-  vouchGo: 'Add the mark',
-  vouchBad: 'That code was not recognised. Ask your field worker again.',
-  vouchDone: 'Verified by {cluster}',
-  verifiedBadge: 'Verified artisan',
 
   // The practice piece from the guided first run — see `demo` in types.ts.
   demoPill: 'Practice',
@@ -215,13 +207,6 @@ export const en: Strings = {
   tourKeepSub: 'If the app is ever deleted or you get a new phone, press here and enter your phone number to bring your shop back. All your products will come back.',
   // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
   newListing: 'Here is the new description, with what you told us',
-  // The proof-of-making photograph — see components/CraftProof.tsx.
-  proofTitle: 'Show your hands at work',
-  proofWhy: 'Take one photo of yourself working — your hands, your tools, or a half-finished piece. Buyers will see that you really made this. You will only be asked once.',
-  proofTake: 'Take the photo',
-  proofLater: 'Later',
-  proofSaving: 'Saving…',
-  proofDone: 'Done. Buyers can now see that this is your own work.',
   // Said after she signs in — see SignedIn in screens/Account.tsx. The
   // empty case matters most: recovery that works looks identical to
   // recovery that failed unless the app says which one happened.
@@ -242,9 +227,6 @@ export const en: Strings = {
   idOwner: 'Held now by',
   idYou: 'you',
   idRegistered: 'Registered',
-  idEvidence: 'Photo of it being made',
-  idEvidenceYes: 'On file',
-  idEvidenceNo: 'Not on file',
   idQrHint: 'Print this QR on paper and tie it to the product.',
   idDoneSaid: 'This product now has an identity — number {code}. That number stays in your name for good.',
   idConflict: 'This product may already be registered',

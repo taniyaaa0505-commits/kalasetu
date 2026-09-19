@@ -77,7 +77,7 @@ check(/hasOnly\(\['local', 'english', 'untranslated'\]\)/.test(msgRule),
   'and ONLY the translated fields: what was said, by whom, and when stay immutable')
 check(/allow delete: if false/.test(msgRule), 'a message still cannot be deleted')
 
-const orderRule = rules.slice(rules.indexOf('match /orders'), rules.indexOf('match /artisans'))
+const orderRule = rules.slice(rules.indexOf('match /orders'), rules.indexOf('function notPractice'))
 check(/hasOnly\(\['noteLocal'\]\)/.test(orderRule),
   "the buyer's note reaches her in her language — same second-write problem, same fix")
 check(/ownedByMe\(resource\.data\.artisanId\)/.test(orderRule),

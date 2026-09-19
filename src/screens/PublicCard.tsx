@@ -78,7 +78,6 @@ export default function PublicCard() {
                 <Row label="Registered" value={new Date(reg.registeredAt).toLocaleDateString('en-IN', {
                   day: 'numeric', month: 'long', year: 'numeric',
                 })} />
-                <Row label="Evidence of making" value={reg.evidence ? 'Available' : 'Not on file'} />
               </dl>
 
               {/* Said here rather than in a footnote: the difference between

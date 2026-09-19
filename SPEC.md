@@ -68,7 +68,6 @@ src/
     messages.ts   artisan <-> buyer chat  ✅ works (translation needs the key)
     orders.ts     bulk orders             ✅ works (no payments)
     account.ts    getting her shop back   ✅ phone or Google, offered AFTER her first sale
-    verify.ts     "she is a real artisan" ✅ a coordinator's vouch, enforced in rules
   components/   shared UI
   screens/      one file per step of the golden path
                 Start.tsx is the language screen, shown before anything else
@@ -116,7 +115,6 @@ Without a key the app uses mock listing text, so the flow still works.
 | 9 | Rotate several Gemini keys | AI | The daily quota is per PROJECT, so one key per teammate multiplies it. See the quota note below |
 | 10 | Native-speaker pass on 4 locales | Voice | Bengali, Marathi, Tamil, Maithili are machine-translated. Coverage is complete; wording is provisional |
 | 11 | **Turn on Phone + Google sign-in, deploy the rules** | Data | `services/account.ts` and `firestore.rules` are written and building, and neither does anything until the console is switched on. Ten minutes, and it is the difference between a demo and a deleted shop — see "Keeping her shop" below |
-| 12 | Live craft capture at first listing | Camera | The provenance half of verification: one forced-camera shot of work in progress, which a reseller cannot produce. Designed, not built — see the same section |
 
 ---
 
@@ -392,30 +390,13 @@ The honest scale-up path is Aadhaar's **offline secure QR** (signature verified
 on-device, free, no licence, nothing sensitive stored) or DigiLocker via
 APISetu. Both are roadmap slides, not code.
 
-## Proving she is an artisan — a vouch, not a document
+## No artisan verification, on purpose
 
-`services/verify.ts`, `tools/vouchers.mjs`, and a rule.
-
-The question a judge asks about any marketplace is what stops a reseller
-listing factory goods as handmade. What the scheme itself trusts is a *person*:
-an SHG leader, a cluster coordinator, a CSC operator, the DRDA field staff who
-already know every artisan in the block by name. So a coordinator holds a code,
-she types it once, and her shop carries **"verified by <cluster>"** — shown to
-the buyer on the listing, which is the only place a badge earns anything.
-
-It is enforced, not trusted. `firestore.rules` does a `get()` on the voucher and
-refuses any cluster name that does not match a real one. That matters because
-Cloud Functions need a billing card: **rules are the only server-side check
-this project gets**, and this is the most that can be done with them.
-
-Honest limit: whoever *learns* a voucher can claim its cluster. The accountability is the
-named field worker who answers for it, not the six characters.
-
-**Not built, deliberately** — the provenance half. One forced-camera shot of
-work in progress or of her hands and tools at first listing, which a reseller
-cannot produce and which feeds the listing the AI already writes. It touches
-`Capture.tsx`, which is the golden path, so it is a separate change made with a
-real phone in hand. Item 12 in the table above.
+Phone number and OTP are the whole of it. The coordinator voucher and the
+hands-at-work photograph were both built and then removed (2026-09-20): each
+was one more thing to ask of a woman who came here to sell a pot. What stands
+between a factory item and the buyer page is the automatic handmade check on
+each listing (`handmade` in `types.ts`), which asks her nothing.
 
 ## The database is no longer open
 

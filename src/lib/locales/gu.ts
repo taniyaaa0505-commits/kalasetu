@@ -207,13 +207,6 @@ export const gu: Strings = {
   keepNeedNet: 'આના માટે ઇન્ટરનેટ જોઈએ',
   keepSignedIn: 'તમારી દુકાન {label} પર સુરક્ષિત છે',
   keepLeave: 'આ ફોન પર બીજી દુકાન ખોલો',
-  vouchTitle: 'તમે કારીગર છો તે બતાવો',
-  vouchWhy: 'તમારા વિસ્તારના કાર્યકર, સ્વસહાય જૂથ કે સીએસસી પાસેથી એક કોડ લો. એક વાર ભરો, અને તમારી દુકાન પર ભરોસાનું નિશાન લાગી જશે — ખરીદનારને દેખાશે કે આ સાચા કારીગરનું કામ છે.',
-  vouchEnter: 'કાર્યકરે આપેલો કોડ લખો',
-  vouchGo: 'નિશાન લગાવો',
-  vouchBad: 'આ કોડ ચાલ્યો નહીં. કાર્યકરને ફરી પૂછો.',
-  vouchDone: '{cluster} દ્વારા પ્રમાણિત',
-  verifiedBadge: 'પ્રમાણિત કારીગર',
   demoPill: 'અભ્યાસ',
   demoStays: 'આ તમારી અભ્યાસની વસ્તુ છે. તે તમારા ફોનમાં જ રહેશે — ખરીદનાર તેને જોઈ શકશે નહીં.',
   demoGoLive: 'તેને ખરેખર વેચાણ પર મૂકો',
@@ -223,13 +216,6 @@ export const gu: Strings = {
   tourMessagesSub: 'જ્યારે કોઈ ખરીદનાર કંઈ પૂછશે, ત્યારે અહીં તમારી પોતાની ભાષામાં દેખાશે કે તે શું પૂછે છે. તમે તમારી ભાષામાં બોલીને જવાબ આપો — અમે તેને ખરીદનારની ભાષામાં પહોંચાડી દઈશું.',
   tourKeepSub: 'ક્યારેક એપ કાઢી નાખવી પડે કે ફોન નવો લેવો પડે, તો તમારી દુકાન પાછી લાવવા માટે અહીં દબાવો અને તમારો ફોન નંબર લખો. તમારો બધો સામાન પાછો આવી જશે.',
   newListing: 'આ રહ્યું નવું વર્ણન, તમે કહેલી વાતો સાથે',
-  // The proof-of-making photograph — see components/CraftProof.tsx.
-  proofTitle: 'તમારા હાથનું કામ બતાવો',
-  proofWhy: 'તમે કામ કરતા હો તેવો એક ફોટો પાડો — તમારા હાથ, ઓજાર, કે અધૂરી વસ્તુ. ખરીદનારને દેખાશે કે આ ખરેખર તમે બનાવ્યું છે. આ ફક્ત એક જ વાર પૂછાશે.',
-  proofTake: 'ફોટો પાડો',
-  proofLater: 'પછી',
-  proofSaving: 'સાચવાઈ રહ્યું છે…',
-  proofDone: 'થઈ ગયું. હવે ખરીદનાર જોઈ શકશે કે આ તમારું પોતાનું કામ છે.',
   // Said after she signs in — see SignedIn in screens/Account.tsx. The
   // empty case matters most: recovery that works looks identical to
   // recovery that failed unless the app says which one happened.
@@ -250,9 +236,6 @@ export const gu: Strings = {
   idOwner: 'અત્યારે કોની પાસે',
   idYou: 'તમે',
   idRegistered: 'ઓળખ બની',
-  idEvidence: 'બનાવતી વખતનો ફોટો',
-  idEvidenceYes: 'છે',
-  idEvidenceNo: 'નથી',
   idQrHint: 'આ QR કાગળ પર છાપીને વસ્તુ સાથે બાંધી દો.',
   idDoneSaid: 'આ વસ્તુની ઓળખ બની ગઈ — નંબર {code}. આ નંબર હંમેશા તમારા નામે રહેશે.',
   idConflict: 'આ વસ્તુ કદાચ પહેલેથી નોંધાયેલી છે',

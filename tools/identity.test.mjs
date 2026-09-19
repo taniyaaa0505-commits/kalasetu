@@ -76,7 +76,7 @@ check(/const next: Registration = \{ \.\.\.r, ownerId: newOwner, ownerSince: Dat
   'a transfer moves the owner and copies everything else — the maker included')
 
 const rules = readFileSync('firestore.rules', 'utf8')
-const reg = rules.slice(rules.indexOf('match /registry'), rules.indexOf('match /artisans'))
+const reg = rules.slice(rules.indexOf('match /registry'), rules.indexOf('function notPractice'))
 check(/request\.resource\.data\.makerId == resource\.data\.makerId/.test(reg),
   'and the server refuses any update that changes the maker')
 check(/hasOnly\(\['ownerId', 'ownerSince'\]\)/.test(reg),
