@@ -16,6 +16,9 @@ tools/*
 !tools/*.test.mjs
 # Repeatable, and it wrote to the live database once: worth keeping.
 !tools/backfill-handmade.mjs
+# Drives a real browser and prints what actually happened — how the blank
+# screen was found. Worth having on every clone.
+!tools/probe.mjs
 probe.mjs
 maketest.mjs
 
