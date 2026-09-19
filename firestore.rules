@@ -64,12 +64,28 @@ service cloud.firestore {
     /*
      * A conversation has two sides and only one of them is the owner, so a
      * buyer must be able to write a message about somebody else's product.
-     * Editing one after the fact is nobody's business: create, never update.
+     * Editing one after the fact is nobody's business.
+     *
+     * But "create, never update" was too blunt, and it silently broke the one
+     * feature this app is named for. A message is stored IMMEDIATELY in the
+     * language it was typed in — waiting for Gemini before showing it took up
+     * to 23 seconds — and its translation lands a few seconds later as a
+     * second write. That second write is an update, so the rule refused it,
+     * and every message a buyer sent reached her in English and stayed there.
+     * Found by driving the live site in a browser; the database had a dozen
+     * messages stuck with untranslated: true.
+     *
+     * So: an update may touch the translated fields and nothing else. What
+     * somebody actually SAID — the source, who said it, when, and which
+     * product it is about — is still immutable.
      */
     match /messages/{id} {
       allow read: if true;
       allow create: if signedIn();
-      allow update, delete: if false;
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['local', 'english', 'untranslated']);
+      allow delete: if false;
     }
 
     /*
@@ -83,7 +99,21 @@ service cloud.firestore {
       // And never on a practice piece: the buyer page hides them, but the
       // client is not the last word — see `demo` in src/types.ts.
       allow create: if signedIn() && notPractice(request.resource.data.productId);
-      allow update: if ownedByMe(resource.data.artisanId);
+      /*
+       * She moves it along — accept, decline, ship.
+       *
+       * The second clause is the buyer's note arriving in her language. It is
+       * written by the BUYER's device, seconds after the order, and the rule
+       * above refused it for the same reason the messages rule did: the
+       * translation is a second write. A buyer's "can you make fifty by
+       * Diwali" reached her in English and stayed there.
+       *
+       * Narrow on purpose: that write may touch `noteLocal` and nothing else,
+       * so it cannot move an order along or change a price.
+       */
+      allow update: if ownedByMe(resource.data.artisanId)
+        || (signedIn()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['noteLocal']));
       allow delete: if false;
     }
 
