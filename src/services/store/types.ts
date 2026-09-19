@@ -8,8 +8,21 @@
 export interface Stored { id: string }
 
 export interface Collection<T extends Stored> {
-  list(): Promise<T[]>
-  get(id: string): Promise<T | undefined>
+  /** Everything, or everything matching one field — filtered server-side in
+   *  the cloud, so a screen that wants her products does not download the
+   *  whole catalogue's photographs to throw most of them away. */
+  list(only?: Where): Promise<T[]>
+  /**
+   * Read one.
+   *
+   * `from: 'cache'` answers out of the on-device copy when it has it, and only
+   * goes to the server on a miss. It is for documents THIS device wrote and is
+   * about to write again — every "next" on the golden path patches the product
+   * it has just saved — where a server round trip buys nothing and costs her a
+   * frozen button on a weak signal. Anything showing someone else's work reads
+   * from the server as before.
+   */
+  get(id: string, from?: 'server' | 'cache'): Promise<T | undefined>
   put(item: T): Promise<void>
   remove(id: string): Promise<void>
   /**
@@ -28,8 +41,17 @@ export interface Collection<T extends Stored> {
   subscribe(cb: (items: T[]) => void, only?: Where): () => void
 }
 
-/** A single equality filter. Enough for "whose is this?" and nothing more. */
-export interface Where { field: string; equals: string }
+/**
+ * A single equality filter, and optionally a ceiling on how many come back.
+ *
+ * `max` exists for one screen. The buyer marketplace watched the WHOLE
+ * products collection, and every document carries two base64 photographs —
+ * measured at 120 KB average, 450 KB at worst. Fifty-four products is six
+ * megabytes pulled down before the first card paints, growing with every
+ * listing anyone ever makes. A marketplace does not need the whole catalogue
+ * on screen at once, and a phone on 3G cannot afford it.
+ */
+export interface Where { field: string; equals: string; max?: number }
 
 /**
  * A cheap fingerprint used to decide whether anything actually changed.

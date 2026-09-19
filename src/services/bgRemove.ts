@@ -54,7 +54,11 @@ export type Progress =
   | { phase: 'composing' }
 
 const MODEL_ID = 'briaai/RMBG-1.4'
-const WORK_MAX = 1400        // cap the photo before we touch it — phone photos are huge
+const WORK_MAX = 1100        // cap the photo before we touch it — phone photos are huge
+                             // (was 1400: compositeOnWhite walks every pixel in
+                             // JavaScript, so this is a squared cost — 1.96M
+                             // pixels became 1.21M, and the model's own input is
+                             // far smaller than either)
 /**
  * The finished square, and what it costs to keep.
  *
@@ -66,7 +70,10 @@ const WORK_MAX = 1400        // cap the photo before we touch it — phone photo
  *
  * 1000px at q0.85 is 140 KB and is still more than any phone or laptop shows.
  */
-const OUT_SIZE = 1000        // final square
+const OUT_SIZE = 800         // final square. Was 1000, which is more than any
+                             // screen in this app shows it at, and it rides in
+                             // the product document — see store/types.ts on why
+                             // document size is the buyer page's speed.
 const OUT_QUALITY = 0.85
 const FILL = 0.82            // product fills 82% of the frame — the e-commerce norm
 

@@ -65,18 +65,17 @@ export default function Impact() {
    * nothing — not a zero, not an average, nothing. That makes the number
    * smaller and makes it a fact rather than a projection.
    */
-  const measurable = delivered.filter(o => {
-    const was = products.find(p => p.id === o.productId)?.usualPrice
-    return typeof was === 'number' && was > 0
-  })
-  const delta = measurable.reduce((n, o) => {
-    const was = products.find(p => p.id === o.productId)!.usualPrice!
-    return n + Math.max(0, o.unitPrice - was) * o.quantity
-  }, 0)
-  const before = measurable.reduce((n, o) => {
-    const was = products.find(p => p.id === o.productId)!.usualPrice!
-    return n + was * o.quantity
-  }, 0)
+  // A lookup table, built once, instead of a linear scan of every product for
+  // every delivered order — three times over, in the render body, on a screen
+  // that redraws whenever any order or product changes.
+  const usualById = new Map<string, number>()
+  for (const p of products) if (typeof p.usualPrice === 'number' && p.usualPrice > 0) usualById.set(p.id, p.usualPrice)
+
+  const measurable = delivered.filter(o => usualById.has(o.productId))
+  const delta = measurable.reduce((n, o) =>
+    n + Math.max(0, o.unitPrice - usualById.get(o.productId)!) * o.quantity, 0)
+  const before = measurable.reduce((n, o) =>
+    n + usualById.get(o.productId)! * o.quantity, 0)
   const uplift = before > 0 ? Math.round((delta / before) * 100) : 0
   const coverage = delivered.length ? Math.round((measurable.length / delivered.length) * 100) : 0
 

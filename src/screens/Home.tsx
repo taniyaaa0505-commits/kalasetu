@@ -4,7 +4,7 @@ import Screen from '../components/Screen'
 import Icon from '../components/Icon'
 import { Gota, Corner } from '../components/Ornament'
 import BigButton from '../components/BigButton'
-import { listProducts, newId, subscribeMyProducts } from '../services/db'
+import { newId, subscribeMyProducts } from '../services/db'
 import { artisanId } from '../services/artisan'
 import { accountAvailable, currentAccount } from '../services/account'
 import { subscribeMyMessages } from '../services/messages'
@@ -356,9 +356,14 @@ export default function Home() {
           <ConfirmRemove
             product={removing}
             onClose={() => setRemoving(null)}
-            onRemoved={async () => {
+            onRemoved={() => {
+              // Just close it. The live subscription above reports the
+              // deletion by itself, and re-reading here did two things wrong:
+              // it pulled every product in the database, photographs and all,
+              // and `listProducts()` is UNFILTERED — so after deleting one pot
+              // her shop filled with strangers' listings until the next
+              // reload.
               setRemoving(null)
-              setProducts(await listProducts())
             }}
           />
         )}
@@ -447,7 +452,10 @@ function ProductCard({
   onRemove: () => void
 }) {
   const live = product.status === 'published'
-  const photo = product.cleanPhoto ?? product.photo
+  // The 420px thumbnail first — these tiles are two to a row on a phone, and
+  // decoding a 1000px square for each one is what makes a full shop scroll
+  // badly. The big cut-out is for screens that show it big.
+  const photo = product.photo ?? product.cleanPhoto
 
   return (
     <li className="relative">
@@ -461,7 +469,8 @@ function ProductCard({
               corner to the curve of the arch. */}
           <div className="arch-deep h-full w-full overflow-hidden bg-surface-2">
             {photo
-              ? <img src={photo} alt="" className="h-full w-full object-cover" />
+              ? <img src={photo} alt="" loading="lazy" decoding="async"
+                     className="h-full w-full object-cover" />
               : <span className="flex h-full w-full items-center justify-center text-4xl opacity-40"><Icon name="box" /></span>}
           </div>
 

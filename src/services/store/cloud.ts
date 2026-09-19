@@ -60,22 +60,47 @@ export function cloudCollection<T extends Stored>(name: string): Collection<T> {
      * "Place order" button. A read that cannot answer is not an error worth
      * stopping a sale for; it is an empty answer.
      */
-    async list() {
+    async list(only) {
       try {
         const { ref } = await coll()
-        const { getDocs } = await import('firebase/firestore')
-        return (await getDocs(ref)).docs.map(d => d.data() as T)
+        const { getDocs, query, where, limit, orderBy, documentId } = await import('firebase/firestore')
+        const parts = []
+        if (only) parts.push(where(only.field, '==', only.equals))
+        // Newest first — see the note in subscribe() below.
+        if (only?.max) parts.push(orderBy(documentId(), 'desc'), limit(only.max))
+        const target = parts.length ? query(ref, ...parts) : ref
+        return (await getDocs(target)).docs.map(d => d.data() as T)
       } catch (err) {
         console.warn(`[store] could not read ${name}`, err)
         return []
       }
     },
 
-    async get(id) {
+    async get(id, from = 'server') {
       try {
         const { db } = await coll()
-        const { doc, getDoc } = await import('firebase/firestore')
-        const snap = await getDoc(doc(db, name, id))
+        const { doc, getDoc, getDocFromCache } = await import('firebase/firestore')
+        const ref = doc(db, name, id)
+
+        /*
+         * Her own product, read back on the phone that wrote it.
+         *
+         * `getDoc` asks the SERVER first and only falls back to the cache once
+         * it gives up — so on a weak signal every "next" on the golden path
+         * sat on a round trip before it could patch the document it had saved
+         * thirty seconds earlier. The answer was already on the device.
+         *
+         * A miss here is ordinary (a buyer opening a link, a fresh install),
+         * and falls through to the server read below.
+         */
+        if (from === 'cache') {
+          try {
+            const hit = await getDocFromCache(ref)
+            if (hit.exists()) return hit.data() as T
+          } catch { /* not cached — ask the server */ }
+        }
+
+        const snap = await getDoc(ref)
         return snap.exists() ? (snap.data() as T) : undefined
       } catch (err) {
         // Offline, and this document is not in the local cache. Firestore
@@ -136,11 +161,28 @@ export function cloudCollection<T extends Stored>(name: string): Collection<T> {
       ;(async () => {
         try {
           const { ref } = await coll()
-          const { onSnapshot, query, where } = await import('firebase/firestore')
+          const { onSnapshot, query, where, limit, orderBy, documentId } = await import('firebase/firestore')
           if (cancelled) return
           // Filtered in Firestore, not in the browser: the point is to not
           // send another artisan's half-megabyte photographs down the wire.
-          const target = only ? query(ref, where(only.field, '==', only.equals)) : ref
+          // `max` is the same argument applied to quantity — see Where.
+          const parts = []
+          if (only) parts.push(where(only.field, '==', only.equals))
+          /*
+           * Newest first, cheaply.
+           *
+           * A capped query with no order is not "the newest few" — Firestore returns
+           * them in document-id order, and ours are `p_<base36 timestamp>_<random>`, so
+           * an unordered limit(24) is the twenty-four OLDEST published products and a
+           * listing made during the demo would never appear. Verified against the live
+           * database: the first three came back 5 Sep, 5 Sep, 6 Sep.
+           *
+           * Ordering by `createdAt` would be the obvious fix and needs a composite index
+           * the project does not have (verified: the query is refused). Ordering by the
+           * document id needs no index at all, and for these ids it IS chronological.
+           */
+          if (only?.max) parts.push(orderBy(documentId(), 'desc'), limit(only.max))
+          const target = parts.length ? query(ref, ...parts) : ref
           stop = onSnapshot(
             target,
             snap => cb(snap.docs.map(d => d.data() as T)),

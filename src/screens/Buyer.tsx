@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Scallop } from '../components/Ornament'
-import { subscribeProducts } from '../services/db'
+import { subscribePublished } from '../services/db'
 import BuyerCard from '../components/BuyerCard'
 import type { Product } from '../types'
 import Empty from '../components/Empty'
@@ -35,7 +35,7 @@ export default function Buyer() {
    * And not something the model looked at and called factory-made. See
    * `handmade` in types.ts.
    */
-  useEffect(() => subscribeProducts(all =>
+  useEffect(() => subscribePublished(all =>
     setItems(all.filter(p => p.status === 'published' && p.artisanId && !p.demo
                              && p.listing?.handmade !== false))), [])
 
