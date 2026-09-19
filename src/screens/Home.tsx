@@ -12,6 +12,7 @@ import { lastSeen } from '../lib/seen'
 import { subscribeMyOrders } from '../services/orders'
 import { speak } from '../lib/speak'
 import Coach from '../components/Coach'
+import { useSay } from '../lib/arrival'
 import { useIdle } from '../lib/idle'
 import { getGuideStep } from '../lib/guide'
 import { advanceGuide, guideEditOnce, restartGuide, useGuideStep } from '../lib/guide'
@@ -132,6 +133,8 @@ export default function Home() {
   const nudge = useIdle() && guide === 'done'
 
   const empty = products.length === 0
+  // See the `say` prop below for why the empty shop says it here instead.
+  useSay(empty ? `${t('tagline')}. ${t('noProducts')}` : undefined)
   const waiting = orders.filter(o => o.status === 'placed').length
   const draft = products.find(p => p.status !== 'published')
 
@@ -150,6 +153,11 @@ export default function Home() {
   return (
     <Screen
       title={t('appName')} brand
+      // Empty: the tagline and "nothing here yet" are already on the page as
+      // speakable lines, so `say` would print them twice — useSay below does
+      // the voice instead. Filled: this is the only line that tells her what
+      // the screen is.
+      say={empty ? undefined : `${t('yourShop')}. ${t('addProduct')}`}
       action={<BigButton icon={<Icon name="camera" />} label={t('addProduct')}
         onClick={startNew} size="lg" beacon={nudge} />}
     >

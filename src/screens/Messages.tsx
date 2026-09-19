@@ -74,7 +74,7 @@ export default function Messages() {
   }, [])
 
   return (
-    <Screen title={t('messages')} onBack={() => {}}>
+    <Screen title={t('messages')} onBack={() => {}} say={t('tourMessagesSub')}>
       {threads.length === 0 && <Empty kind="chat" message={t('noMessages')} />}
 
       <ul className="flex flex-col gap-3">

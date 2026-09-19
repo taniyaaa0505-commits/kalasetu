@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '../components/Screen'
 import Coach from '../components/Coach'
-import { useSay } from '../lib/arrival'
 import { useIdle } from '../lib/idle'
 import { advanceGuide, useGuideStep } from '../lib/guide'
 import Icon from '../components/Icon'
@@ -60,7 +59,6 @@ export default function Price() {
      It used to be the caption on the review screen's next button, so it was
      spoken while she was still looking at her description — describing a
      screen she had not reached. Said on arrival it is what she is looking at. */
-  useSay(`${t('tourPriceStep')}. ${t('tellUsCost')}`)
 
   // The guide has its own ring; two at once is noise.
   // Both hooks called unconditionally. `useIdle() && useGuideStep() === 'done'`
@@ -78,6 +76,7 @@ export default function Price() {
   return (
     <Screen
       title={t('price')} step={5} onBack={() => {}}
+      say={`${t('tourPriceStep')}. ${t('tellUsCost')}`}
       action={<BigButton icon={<Icon name="next" />} label={t('next')} beacon={nudge && usual > 0}
         onClick={() => { advanceGuide('priceNext'); next() }} />}
     >

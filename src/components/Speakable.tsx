@@ -9,12 +9,15 @@ import { asrCode } from '../types'
 import Icon from './Icon'
 
 export default function Speakable({
-  text, lang, className = '', as: Tag = 'p',
+  text, lang, className = '', as: Tag = 'p', align = 'start',
 }: {
   text: string
   lang?: string
   className?: string
   as?: 'p' | 'h2' | 'h3' | 'span'
+  /** `center` for the screens built around one centred sentence — the speaker
+   *  then sits beside it rather than dragging it to the left margin. */
+  align?: 'start' | 'center'
 }) {
   const current = useLang()
   // One voice at a time. Tapping a second line while the first is still being
@@ -25,7 +28,8 @@ export default function Speakable({
     <button
       disabled={talking}
       onClick={() => speak(text, lang ?? asrCode(current))}
-      className="flex w-full min-h-0 items-start gap-2 text-left active:opacity-60 disabled:opacity-45"
+      className={'flex w-full min-h-0 items-start gap-2 active:opacity-60 disabled:opacity-45 ' +
+        (align === 'center' ? 'justify-center text-center' : 'text-left')}
       aria-label={`Hear: ${text}`}
     >
       <Icon name="speak" className="mt-[3px] text-indigo" />
