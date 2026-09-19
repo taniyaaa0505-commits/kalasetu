@@ -138,8 +138,10 @@ function OrderCard({ order: o, product, onAnswer, onOpenChat }: {
     <li className={'rise rounded-panel p-4 shadow-card ' +
       (isNew ? 'border-2 border-indigo bg-wash' : 'border border-line-2/70 bg-surface')}>
       <div className="flex items-start gap-3">
-        {product?.cleanPhoto && (
-          <img src={product.cleanPhoto} alt="" className="h-20 w-20 shrink-0 rounded-card border border-line-2/70 bg-surface-2 object-cover" />
+        {/* The 420px thumbnail, not the 1000px cut-out, for an 80px box. */}
+        {(product?.photo ?? product?.cleanPhoto) && (
+          <img src={product!.photo ?? product!.cleanPhoto} alt="" loading="lazy" decoding="async"
+               className="h-20 w-20 shrink-0 rounded-card border border-line-2/70 bg-surface-2 object-cover" />
         )}
         <div className="min-w-0 flex-1">
           <span className={'inline-block rounded-full border px-2 py-0.5 text-xs font-semibold ' + STATUS_STYLE[o.status]}>

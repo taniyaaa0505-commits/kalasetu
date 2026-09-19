@@ -90,8 +90,9 @@ export default function Messages() {
               }
             >
               <span className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-2">
-                {th.product?.cleanPhoto
-                  ? <img src={th.product.cleanPhoto} alt="" className="h-full w-full object-cover" />
+                {(th.product?.photo ?? th.product?.cleanPhoto)
+                  ? <img src={th.product!.photo ?? th.product!.cleanPhoto} alt=""
+                         loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   : <span className="flex h-full w-full items-center justify-center text-ink-3">
                       <Icon name="chat" />
                     </span>}

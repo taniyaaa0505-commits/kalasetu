@@ -38,12 +38,26 @@ export default function QueueRunner() {
   // screens that wait on one hang. Fetching it once, early, while online puts
   // it in the runtime cache so the offline path has something to load.
   useEffect(() => {
-    // Ask for the identity now, so it is cached long before she takes a
-    // photograph and nothing has to wait on it there.
-    warmArtisanId()
-
-    if (!cloudEnabled() || !isOnline()) return
     let alive = true
+
+    /*
+     * All of this is for LATER — the next screen, the next launch, the first
+     * time she is offline — and none of it is for the screen being painted
+     * right now. It used to run on mount, so an anonymous sign-in round trip
+     * and 900 KB of Firestore were competing for the one core the home screen
+     * was trying to draw with. Waiting for the browser to say it is idle
+     * costs the warm-up nothing and gives the first paint the whole phone.
+     */
+    const soon = (fn: () => void) =>
+      'requestIdleCallback' in window
+        ? (window as unknown as { requestIdleCallback: (f: () => void) => void }).requestIdleCallback(fn)
+        : setTimeout(fn, 600)
+
+    // Ask for the identity, so it is cached long before she takes a
+    // photograph and nothing has to wait on it there.
+    soon(() => { if (alive) warmArtisanId() })
+
+    if (!cloudEnabled() || !isOnline()) return () => { alive = false }
 
     // AFTER the service worker is controlling, not before. On the very first
     // visit the worker installs while the page is already running, so a fetch
@@ -52,7 +66,9 @@ export default function QueueRunner() {
     // import Firestore at all. Waiting for `ready` costs a few hundred
     // milliseconds once and is the difference between working offline on the
     // second run and only on the third.
-    const warm = () => { if (alive) void firestore().catch(() => { /* signal went again */ }) }
+    const warm = () => soon(() => {
+      if (alive) void firestore().catch(() => { /* signal went again */ })
+    })
     if ('serviceWorker' in navigator) navigator.serviceWorker.ready.then(warm).catch(warm)
     else warm()
 

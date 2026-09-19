@@ -20,8 +20,14 @@ export default function BuyerCard({ product: p }: { product: Product }) {
   return (
     <div className="overflow-hidden rounded-b-panel border border-line-2/70 bg-surface
                     text-left shadow-card ring-1 ring-gold-leaf/25">
-      {p.cleanPhoto && (
-        <img src={p.cleanPhoto} alt=""
+      {/* The thumbnail, not the full cut-out. This card is about 220px wide
+          and `cleanPhoto` is a 1000px square — up to 200 KB — so a page of
+          twenty-four of them was several megabytes of image for a phone to
+          decode into cards the size of a matchbox. `photo` is the 420px copy
+          Capture.tsx already makes; the big one is for the product page,
+          where it is actually seen at that size. */}
+      {(p.photo ?? p.cleanPhoto) && (
+        <img src={p.photo ?? p.cleanPhoto} alt="" loading="lazy" decoding="async"
           className="arch aspect-square w-full bg-surface-2 object-cover" />
       )}
       <div className="p-4">

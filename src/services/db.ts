@@ -21,11 +21,18 @@ export async function listProducts(): Promise<Product[]> {
   return (await products.list()).sort((a, b) => b.createdAt - a.createdAt)
 }
 
-/** Hers. Filtered here rather than in Firestore because a one-shot read of a
- *  small collection is not worth a composite index; the live subscription,
- *  which is the one that moves photographs, IS filtered server-side. */
+/**
+ * Hers.
+ *
+ * Filtered on the server, not after the fact. It used to read the WHOLE
+ * products collection and drop the ones that were not hers — and the orders
+ * and messages screens call it from inside a live subscription, so every time
+ * a buyer typed a word the phone re-downloaded every artisan's photographs to
+ * rebuild a lookup for a row of 64px thumbnails.
+ */
 export async function listMyProducts(artisan: string): Promise<Product[]> {
-  return (await listProducts()).filter(p => p.artisanId === artisan)
+  const mine = await products.list({ field: 'artisanId', equals: artisan })
+  return mine.sort((a, b) => b.createdAt - a.createdAt)
 }
 
 export async function getProduct(id: string): Promise<Product | undefined> {
@@ -38,7 +45,9 @@ export async function saveProduct(p: Product): Promise<void> {
 
 /** Merge a few fields into an existing product without rewriting the whole thing. */
 export async function patchProduct(id: string, patch: Partial<Product>): Promise<Product | undefined> {
-  const p = await getProduct(id)
+  // From the cache: this is her own product, on the phone that wrote it, and
+  // she is waiting on a button. See Collection.get in store/types.ts.
+  const p = await products.get(id, 'cache')
   if (!p) return undefined
   const next = { ...p, ...patch }
   await saveProduct(next)
@@ -61,6 +70,29 @@ const byNewest = (items: Product[]) => [...items].sort((a, b) => b.createdAt - a
  */
 export function subscribeProducts(cb: (items: Product[]) => void): () => void {
   return products.subscribe(items => cb(byNewest(items)))
+}
+
+/**
+ * The marketplace feed: published only, and never more than a page of it.
+ *
+ * screens/Buyer.tsx used `subscribeProducts` and threw most of it away in the
+ * browser — drafts, practice pieces, everything unpublished — after paying to
+ * download every one of them. Each product document carries two base64
+ * photographs, so that was six megabytes on a phone before a single card
+ * appeared, and it grew with every listing anyone made.
+ *
+ * `status` is filtered in Firestore and the rest (a maker, not a practice
+ * piece, not held back by the handmade check) stays in the browser, because
+ * Firestore cannot express "field absent or not false" and a composite index
+ * for three of them is not worth minting for a page that shows twenty-four
+ * cards.
+ */
+export function subscribePublished(
+  cb: (items: Product[]) => void, max = 24,
+): () => void {
+  return products.subscribe(
+    items => cb(byNewest(items)), { field: 'status', equals: 'published', max },
+  )
 }
 
 /**

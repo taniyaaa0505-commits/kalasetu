@@ -40,8 +40,14 @@ export default function Capture() {
       setClean(prev => prev ?? p.cleanPhoto)
     })
     // Start fetching the model while she is still framing the shot, so the
-    // wait happens during something she is already doing.
-    preloadModel()
+    // wait happens during something she is already doing — but once this
+    // screen is actually on screen. Kicking off a 23 MB wasm fetch and its
+    // compilation inside the mount effect made the camera button itself slow
+    // to appear, which is the one control the guide is pointing at.
+    const warm = 'requestIdleCallback' in window
+      ? (window as unknown as { requestIdleCallback: (f: () => void) => number }).requestIdleCallback(() => preloadModel())
+      : setTimeout(() => preloadModel(), 500)
+    void warm
     return () => { alive = false }
   }, [id])
 
@@ -70,14 +76,28 @@ export default function Capture() {
     }
 
     const original = await fileToDataUrl(file)
-    setPhoto(original); setClean(undefined); setUsedAI(undefined); setSaved(false)
+
+    /*
+     * Show the SMALL copy, keep the big one only for the model.
+     *
+     * A 12-megapixel phone photograph is several megabytes, and as a base64
+     * data URL in React state it is bigger still. That string used to be what
+     * every <img> on this screen pointed at — the panel behind the progress
+     * bar, then the before/after, then its own 130px inset — so the phone
+     * decoded a 12MP image three times, into boxes a few hundred pixels
+     * across, while the cut-out model was already using the whole processor.
+     * It is the "the app froze while it was thinking" complaint.
+     *
+     * `shrink` runs first now, and everything she looks at is the 420px copy.
+     * `original` never reaches the DOM; it goes to removeBackground, which
+     * genuinely wants the pixels, and is then dropped.
+     */
+    const thumb = await shrink(original)
+    setPhoto(thumb); setClean(undefined); setUsedAI(undefined); setSaved(false)
     setProgress({ phase: 'thinking' })
 
     // Cut out from the FULL-resolution photo — quality matters here.
     const result = await removeBackground(original, setProgress)
-
-    // But store only a small copy of the original; it is just a thumbnail.
-    const thumb = await shrink(original)
 
     // Show her the result at once — the wait is over as far as she is
     // concerned — but hold "next" until it is actually stored. She used to be
