@@ -226,4 +226,10 @@ export const bn: Strings = {
   proofLater: 'পরে',
   proofSaving: 'সংরক্ষণ হচ্ছে…',
   proofDone: 'হয়ে গেছে। ক্রেতারা এখন দেখতে পাবেন যে এটি আপনার নিজের কাজ।',
+  // Said after she signs in — see SignedIn in screens/Account.tsx. The
+  // empty case matters most: recovery that works looks identical to
+  // recovery that failed unless the app says which one happened.
+  shopHasItems: 'আপনার দোকানে {n}টি জিনিস আছে',
+  shopHasNothing: 'এই নম্বরে এখনও কিছু নেই। নতুন জিনিস যোগ করুন, সেটি এখন থেকে সুরক্ষিত থাকবে।',
+  seeMyShop: 'আমার দোকান দেখুন',
 }

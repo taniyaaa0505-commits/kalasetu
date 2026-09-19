@@ -232,4 +232,10 @@ export const ta: Strings = {
   proofLater: 'பிறகு',
   proofSaving: 'சேமிக்கப்படுகிறது…',
   proofDone: 'முடிந்தது. இது உங்கள் சொந்த வேலை என்பதை வாங்குபவர்கள் இப்போது பார்க்க முடியும்.',
+  // Said after she signs in — see SignedIn in screens/Account.tsx. The
+  // empty case matters most: recovery that works looks identical to
+  // recovery that failed unless the app says which one happened.
+  shopHasItems: 'உங்கள் கடையில் {n} பொருட்கள் உள்ளன',
+  shopHasNothing: 'இந்த எண்ணில் இன்னும் எதுவும் இல்லை. ஒரு பொருளைச் சேருங்கள், அது இனி பாதுகாப்பாக இருக்கும்.',
+  seeMyShop: 'என் கடையைப் பாருங்கள்',
 }

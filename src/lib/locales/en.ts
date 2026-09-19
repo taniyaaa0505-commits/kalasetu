@@ -222,4 +222,10 @@ export const en: Strings = {
   proofLater: 'Later',
   proofSaving: 'Saving…',
   proofDone: 'Done. Buyers can now see that this is your own work.',
+  // Said after she signs in — see SignedIn in screens/Account.tsx. The
+  // empty case matters most: recovery that works looks identical to
+  // recovery that failed unless the app says which one happened.
+  shopHasItems: 'Your shop has {n} products',
+  shopHasNothing: 'There is nothing on this number yet. Add a product and it will be kept safe from now on.',
+  seeMyShop: 'See my shop',
 }
