@@ -4,11 +4,11 @@ import Screen from '../components/Screen'
 import Icon from '../components/Icon'
 import { Gota } from '../components/Ornament'
 import Coach from '../components/Coach'
-import { useSay } from '../lib/arrival'
 import { useIdle } from '../lib/idle'
 import { getGuideStep } from '../lib/guide'
 import { advanceGuide } from '../lib/guide'
 import BigButton from '../components/BigButton'
+import Speakable from '../components/Speakable'
 import { getProduct, patchProduct } from '../services/db'
 import { speak } from '../lib/speak'
 import PriceInNotes from '../components/PriceInNotes'
@@ -38,7 +38,6 @@ export default function Publish() {
 
   // The last instruction in the flow. `published` is spoken by publish()
   // itself, so this only covers the arrival.
-  useSay(t('tourPublishSub'), !done)
   const nudge = useIdle() && getGuideStep() === 'done'
 
   const demo = Boolean(p?.demo)
@@ -88,9 +87,8 @@ export default function Publish() {
         <img src="./icons/icon-192.png" alt="" aria-hidden width={128} height={128}
           className="rise block rounded-3xl shadow-card ring-1 ring-gold-leaf/40" />
         <Gota className="w-40" />
-        <p className="font-display text-2xl font-semibold leading-snug">
-          {demo ? t('demoStays') : held ? t('notHandmadeStays') : t('published')}
-        </p>
+        <Speakable as="p" align="center" className="font-display text-2xl font-semibold leading-snug"
+          text={demo ? t('demoStays') : held ? t('notHandmadeStays') : t('published')} />
         {demo && (
           <div className="w-full max-w-xs">
             <BigButton icon={<Icon name="market" />} label={t('demoGoLive')}
@@ -103,7 +101,7 @@ export default function Publish() {
 
   return (
     <Screen
-      title={t('screenSend')} step={6} onBack={() => {}}
+      title={t('screenSend')} step={6} onBack={() => {}} say={t('tourPublishSub')}
       action={<BigButton icon="✅" label={t('publish')} variant="good" onClick={publish} beacon={nudge} />}
     >
       <Coach step="publishSend" target="action" mode="tap"

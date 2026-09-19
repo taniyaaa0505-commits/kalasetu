@@ -64,7 +64,8 @@ export default function Orders() {
   }
 
   return (
-    <Screen title={t('orders')} onBack={() => {}}>
+    <Screen title={t('orders')} onBack={() => {}}
+            say={`${t('tourOrders')}. ${t('tourOrdersSub')}`}>
       {orders.length === 0 && (
         <Empty kind="orders" message={t('noOrders')} />
       )}

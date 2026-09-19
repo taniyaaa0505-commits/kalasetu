@@ -23,7 +23,7 @@
  *     a page she has already left. Screen.tsx stops the voice on the way out.
  */
 import { useEffect, useRef } from 'react'
-import { speak } from './speak'
+import { isSpeaking, speak } from './speak'
 import { getGuideStep } from './guide'
 import { useLang } from './i18n'
 import { asrCode } from '../types'
@@ -42,7 +42,28 @@ export function useSay(text: string | undefined, ready = true) {
   useEffect(() => {
     if (!ready || !text || said.current === text) return
     if (getGuideStep() !== 'done') return   // the ring is already talking
+
+    /*
+     * A fourth rule, from giving the orders and messages screens a voice:
+     *
+     *  4. NEVER OVER SOMETHING MORE IMPORTANT. Those screens announce the
+     *     thing that just happened — "an order has come" — from a live
+     *     subscription, and React runs a child's effects before its parent's,
+     *     so this line would land a moment later and cut it off. `speak`
+     *     cancels whatever came before it, which is right for a new screen and
+     *     wrong here. The one-line answer: if the app is already saying
+     *     something, it is saying something better than "this is the orders
+     *     screen".
+     *
+     * The wait is for the same reason in the other direction — a subscription
+     * that answers from cache lands within a frame or two of mount, and
+     * without it this would win that race by being first rather than by being
+     * more useful.
+     */
     said.current = text
-    speak(text, asrCode(lang))
+    const timer = setTimeout(() => {
+      if (!isSpeaking()) speak(text, asrCode(lang))
+    }, 200)
+    return () => clearTimeout(timer)
   }, [text, ready, lang])
 }

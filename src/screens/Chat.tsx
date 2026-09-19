@@ -102,7 +102,7 @@ export default function Chat() {
 
   return (
     <Screen
-      title={t('messages')} onBack={() => {}}
+      title={t('messages')} onBack={() => {}} say={t('tourMessagesSub')}
       action={
         <BigButton
           icon={<Icon name={recording ? 'stop' : 'mic'} />}

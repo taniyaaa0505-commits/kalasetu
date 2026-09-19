@@ -9,14 +9,33 @@ import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { stopSpeaking } from '../lib/speak'
+import { useSay } from '../lib/arrival'
+import Speakable from './Speakable'
 import Thread from './Thread'
 import { Scallop } from './Ornament'
 import LangButton from './LangButton'
 
 export default function Screen({
-  title, step, onBack, action, brand, children,
+  title, say, step, onBack, action, brand, children,
 }: {
   title?: string
+  /**
+   * The one sentence this screen is about — spoken when she arrives, and
+   * printed at the top of it with a speaker on it so she can hear it again.
+   *
+   * It lives here rather than in each screen because it kept being left out.
+   * Half the app announced itself and half of it opened in silence, and the
+   * silent half included the two screens a buyer's message and a buyer's
+   * order land on. A screen whose text only exists in the voice is a screen
+   * she cannot re-read; a screen whose text only exists on the page is one
+   * she cannot read at all. It has to be both, and the way to make it both
+   * everywhere is to make it one prop of the frame every screen already uses.
+   *
+   * `useSay` stays quiet while the guide is running — the ring is already
+   * saying something about this screen — and says it again if she changes
+   * language. See lib/arrival.ts.
+   */
+  say?: string
   step?: number                 // 1..6, shows the progress dots
   onBack?: () => void | false   // omit for no back button
   action?: ReactNode            // the one big button at the bottom
@@ -40,6 +59,8 @@ export default function Screen({
    * before the next screen's effects.
    */
   useEffect(() => () => stopSpeaking(), [])
+
+  useSay(say)
 
   return (
     <div className="mx-auto flex h-full max-w-[480px] flex-col bg-paper">
@@ -72,7 +93,10 @@ export default function Screen({
 
       {step && <StepDots step={step} />}
 
-      <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5">{children}</main>
+      <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5">
+        {say && <Speakable text={say} className="mb-4 text-base leading-relaxed text-ink-2" />}
+        {children}
+      </main>
 
       {/* data-guide: every screen's primary action lives in this one footer,
           so the guide can ring "the button you press next" without knowing
