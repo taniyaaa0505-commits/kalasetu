@@ -232,6 +232,10 @@ export const hi = {
   shopHasItems: 'आपकी दुकान में {n} सामान हैं',
   shopHasNothing: 'इस नंबर पर अभी कोई सामान नहीं है। नया सामान जोड़िए, वह हमेशा के लिए सुरक्षित रहेगा।',
   seeMyShop: 'मेरी दुकान देखिए',
+  // Shown instead of a white screen — see components/Rescue.tsx. Her shop
+  // being safe is the only fact that matters at that moment.
+  rescueSaid: 'ऐप थोड़ा अटक गया। आपकी दुकान सुरक्षित है।',
+  rescueRetry: 'फिर से खोलिए',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

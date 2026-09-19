@@ -236,4 +236,8 @@ export const gu: Strings = {
   shopHasItems: 'તમારી દુકાનમાં {n} વસ્તુઓ છે',
   shopHasNothing: 'આ નંબર પર હજી કંઈ નથી. નવી વસ્તુ ઉમેરો, તે હવેથી સુરક્ષિત રહેશે.',
   seeMyShop: 'મારી દુકાન જુઓ',
+  // Shown instead of a white screen — see components/Rescue.tsx. Her shop
+  // being safe is the only fact that matters at that moment.
+  rescueSaid: 'એપ થોડી અટકી ગઈ. તમારી દુકાન સુરક્ષિત છે.',
+  rescueRetry: 'ફરીથી ખોલો',
 }

@@ -234,4 +234,8 @@ export const mr: Strings = {
   shopHasItems: 'तुमच्या दुकानात {n} वस्तू आहेत',
   shopHasNothing: 'या नंबरवर अजून काहीही नाही. नवीन वस्तू टाका, ती आतापासून सुरक्षित राहील.',
   seeMyShop: 'माझे दुकान पाहा',
+  // Shown instead of a white screen — see components/Rescue.tsx. Her shop
+  // being safe is the only fact that matters at that moment.
+  rescueSaid: 'ॲप थोडे अडकले. तुमचे दुकान सुरक्षित आहे.',
+  rescueRetry: 'पुन्हा उघडा',
 }

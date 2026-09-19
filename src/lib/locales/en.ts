@@ -228,4 +228,8 @@ export const en: Strings = {
   shopHasItems: 'Your shop has {n} products',
   shopHasNothing: 'There is nothing on this number yet. Add a product and it will be kept safe from now on.',
   seeMyShop: 'See my shop',
+  // Shown instead of a white screen — see components/Rescue.tsx. Her shop
+  // being safe is the only fact that matters at that moment.
+  rescueSaid: 'The app got stuck for a moment. Your shop is safe.',
+  rescueRetry: 'Open it again',
 }

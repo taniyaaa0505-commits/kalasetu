@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './screens/Home'
+import Rescue, { watchForStaleChunks } from './components/Rescue'
 import StorageError from './components/StorageError'
 import QueueRunner from './components/QueueRunner'
 
@@ -84,6 +85,10 @@ function Waiting() {
  * The golden path, as routes. Read top to bottom and you have the demo:
  *   capture -> speak -> review -> price -> publish
  */
+// Before React renders anything: a chunk that cannot be fetched fires this
+// long before any component would notice. See components/Rescue.tsx.
+watchForStaleChunks()
+
 export default function App() {
   useEffect(warm, [])
 
@@ -91,6 +96,10 @@ export default function App() {
     <HashRouter>
       <StorageError />
       <QueueRunner />
+      {/* Outside Suspense, so it catches a screen that fails to LOAD as well
+          as one that fails to render. A crash used to unmount the whole app
+          and leave a white screen with nothing on it. */}
+      <Rescue>
       <Suspense fallback={<Waiting />}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -111,6 +120,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+      </Rescue>
     </HashRouter>
   )
 }
