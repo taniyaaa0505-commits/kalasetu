@@ -232,4 +232,8 @@ export const bn: Strings = {
   shopHasItems: 'আপনার দোকানে {n}টি জিনিস আছে',
   shopHasNothing: 'এই নম্বরে এখনও কিছু নেই। নতুন জিনিস যোগ করুন, সেটি এখন থেকে সুরক্ষিত থাকবে।',
   seeMyShop: 'আমার দোকান দেখুন',
+  // Shown instead of a white screen — see components/Rescue.tsx. Her shop
+  // being safe is the only fact that matters at that moment.
+  rescueSaid: 'অ্যাপটি একটু আটকে গেছে। আপনার দোকান সুরক্ষিত আছে।',
+  rescueRetry: 'আবার খুলুন',
 }

@@ -238,4 +238,8 @@ export const ta: Strings = {
   shopHasItems: 'உங்கள் கடையில் {n} பொருட்கள் உள்ளன',
   shopHasNothing: 'இந்த எண்ணில் இன்னும் எதுவும் இல்லை. ஒரு பொருளைச் சேருங்கள், அது இனி பாதுகாப்பாக இருக்கும்.',
   seeMyShop: 'என் கடையைப் பாருங்கள்',
+  // Shown instead of a white screen — see components/Rescue.tsx. Her shop
+  // being safe is the only fact that matters at that moment.
+  rescueSaid: 'ஆப் சற்று நின்றுவிட்டது. உங்கள் கடை பாதுகாப்பாக உள்ளது.',
+  rescueRetry: 'மீண்டும் திறக்கவும்',
 }
