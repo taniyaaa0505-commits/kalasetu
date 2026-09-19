@@ -219,4 +219,11 @@ export const bn: Strings = {
   tourKeepSub: 'কখনো অ্যাপ মুছে গেলে বা নতুন ফোন হলে, আপনার দোকান ফিরিয়ে আনতে এখানে চাপুন আর আপনার ফোন নম্বর দিন। আপনার সব জিনিস ফিরে আসবে।',
   // Said before the rewritten listing is read back — see rewrite() in screens/Review.tsx.
   newListing: 'এই যে নতুন বিবরণ, আপনার কথাগুলো সহ',
+  // The proof-of-making photograph — see components/CraftProof.tsx.
+  proofTitle: 'আপনার হাতের কাজ দেখান',
+  proofWhy: 'আপনি কাজ করছেন এমন একটি ছবি তুলুন — আপনার হাত, যন্ত্রপাতি, বা আধা-তৈরি জিনিস। ক্রেতারা দেখতে পাবেন যে এটি সত্যিই আপনি বানিয়েছেন। এটি একবারই জিজ্ঞাসা করা হবে।',
+  proofTake: 'ছবি তুলুন',
+  proofLater: 'পরে',
+  proofSaving: 'সংরক্ষণ হচ্ছে…',
+  proofDone: 'হয়ে গেছে। ক্রেতারা এখন দেখতে পাবেন যে এটি আপনার নিজের কাজ।',
 }

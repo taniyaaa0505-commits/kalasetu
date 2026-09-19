@@ -47,8 +47,9 @@ export const CHANNELS: Channel[] = [
     name: 'ONDC',
     format: 'beckn on_search catalogue (JSON), built to the published ONDC retail schema',
     gaps: [
-      'A registered business entity, GST and PAN — an SHG federation or cluster society qualifies; a student team does not',
-      'A network subscriber id and signing keys, issued on registration',
+      'A registered business entity with GSTIN and a current account — an SHG federation or cluster society qualifies; a student team does not',
+      'A domain with a valid SSL certificate: the subscriber id on this network IS a domain name',
+      'A subscriber id whitelisted on the staging registry, then signing keys, a demo to the ONDC team, and a probationary period on production',
       'The seller’s GPS and postal address — we ship the cluster’s, not hers, and never her home',
       'Image hosting: the photographs travel in this bundle, and need a public URL before a buyer app can render them',
     ],
@@ -57,8 +58,24 @@ export const CHANNELS: Channel[] = [
     id: 'gem',
     name: 'GeM',
     format: 'Bulk catalogue sheet (CSV) + photographs',
+    /*
+     * The one channel she can reach WITHOUT anybody else.
+     *
+     * Checked, because we had this wrong and it is the difference between
+     * "we need a company" and "she can do this on Monday": GeM admits
+     * individual artisans, self-help groups, cooperatives and societies, not
+     * only registered companies. Aadhaar, PAN and a bank account, and GST is
+     * not required for sellers under the threshold or in exempt categories —
+     * which is most handicraft sellers.
+     *
+     * So this bundle is not waiting on a legal entity at all. It is waiting on
+     * a seller account that an SHG in Madhubani can open this week, and the
+     * catalogue it would otherwise take them a month to write is the thing
+     * this app just produced in an afternoon of voice notes.
+     */
     gaps: [
-      'A GeM seller account, which requires a registered entity and Udyam registration',
+      'A GeM seller account — an individual artisan, an SHG or a cooperative can open one with Aadhaar, PAN and a bank account; no company needed',
+      'GST only if she is above the threshold — handicraft sellers below it register on PAN alone',
       'GeM category codes: handicrafts sit under several, and the right one is chosen per craft at upload',
     ],
   },
