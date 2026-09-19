@@ -10,6 +10,7 @@
 import { readFileSync } from 'node:fs'
 const acc     = readFileSync('src/services/account.ts', 'utf8')
 const artisan = readFileSync('src/services/artisan.ts', 'utf8')
+const screen  = readFileSync('src/screens/Account.tsx', 'utf8')
 const home    = readFileSync('src/screens/Home.tsx', 'utf8')
 const verify  = readFileSync('src/services/verify.ts', 'utf8')
 const buyer   = readFileSync('src/screens/BuyerProduct.tsx', 'utf8')
@@ -71,6 +72,23 @@ check(/AUA\/KUA|licence|license/.test(verify),
   'and the file says why, so nobody re-opens the question on demo morning')
 check(/verifiedBy/.test(buyer),
   'the badge is shown to the BUYER, which is the only place it earns anything')
+
+// --- and she can leave the screen, and knows what came back ---
+//
+// Both from one report with a screenshot: she signed in, the app said her
+// shop was safe on …3210, and the back arrow did nothing. Screen runs onBack
+// and then nav(-1) unless onBack says it handled it — so "go home" went home
+// and immediately one step further back, which on a fresh install is this
+// screen again.
+check(/onBack=\{\(\) => \{ nav\('\/'\); return false \}\}/.test(screen),
+  'the back arrow says it handled the navigation, so the app does not go back twice')
+check(/seeMyShop/.test(screen),
+  'and once signed in there is a button to her shop — this screen had nothing to press')
+// The same report's second half: recovery WORKED and looked broken, because
+// the number belonged to an account with nothing in it and the screen said
+// the same sentence either way.
+check(/shopHasItems/.test(screen) && /shopHasNothing/.test(screen),
+  'it says how much came back, and says plainly when the answer is nothing')
 
 console.log(bad ? `\n${bad} failed` : '\nall good')
 process.exit(bad ? 1 : 0)

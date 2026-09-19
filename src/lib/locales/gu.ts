@@ -230,4 +230,10 @@ export const gu: Strings = {
   proofLater: 'પછી',
   proofSaving: 'સાચવાઈ રહ્યું છે…',
   proofDone: 'થઈ ગયું. હવે ખરીદનાર જોઈ શકશે કે આ તમારું પોતાનું કામ છે.',
+  // Said after she signs in — see SignedIn in screens/Account.tsx. The
+  // empty case matters most: recovery that works looks identical to
+  // recovery that failed unless the app says which one happened.
+  shopHasItems: 'તમારી દુકાનમાં {n} વસ્તુઓ છે',
+  shopHasNothing: 'આ નંબર પર હજી કંઈ નથી. નવી વસ્તુ ઉમેરો, તે હવેથી સુરક્ષિત રહેશે.',
+  seeMyShop: 'મારી દુકાન જુઓ',
 }

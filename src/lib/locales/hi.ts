@@ -226,6 +226,12 @@ export const hi = {
   proofLater: 'बाद में',
   proofSaving: 'सहेजा जा रहा है…',
   proofDone: 'हो गया। अब खरीदार देख सकेगा कि यह आपका अपना काम है।',
+  // Said after she signs in — see SignedIn in screens/Account.tsx. The
+  // empty case matters most: recovery that works looks identical to
+  // recovery that failed unless the app says which one happened.
+  shopHasItems: 'आपकी दुकान में {n} सामान हैं',
+  shopHasNothing: 'इस नंबर पर अभी कोई सामान नहीं है। नया सामान जोड़िए, वह हमेशा के लिए सुरक्षित रहेगा।',
+  seeMyShop: 'मेरी दुकान देखिए',
 }
 /** The shape every locale must fill. */
 export type Strings = typeof hi

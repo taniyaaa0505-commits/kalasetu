@@ -21,6 +21,8 @@ import {
   signInWithGoogle, signOutAccount, toE164, type Pending, type Outcome,
 } from '../services/account'
 import { artisanId } from '../services/artisan'
+import { listMyProducts } from '../services/db'
+import { useSay } from '../lib/arrival'
 import { getVerification, redeemVoucher, verifyAvailable } from '../services/verify'
 import { speak } from '../lib/speak'
 import { t, tf, getLang } from '../lib/i18n'
@@ -45,8 +47,18 @@ export default function Account() {
 
   useEffect(() => { speak(t('keepWhy'), asrCode(getLang())) }, [])
 
+  /*
+   * `return false` is the whole fix for a screen she could not leave.
+   *
+   * Screen's back button runs onBack and then, unless it is told the
+   * navigation was handled, does nav(-1) as well. This one navigated home
+   * itself and did not say so, so every tap went home and immediately one
+   * step further back — which, from a freshly installed app, is this screen
+   * again. She signed in, saw that her shop was safe, and could not get out.
+   * Reported from a phone, with a screenshot.
+   */
   return (
-    <Screen title={t('keepTitle')} onBack={() => { nav('/') }}>
+    <Screen title={t('keepTitle')} onBack={() => { nav('/'); return false }}>
       <div className="flex min-h-full flex-col gap-6">
         <Speakable text={t('keepWhy')} className="text-base leading-relaxed text-ink-2" />
 
@@ -209,11 +221,51 @@ function SignIn({ disabled, onDone }: { disabled: boolean; onDone: () => void })
 /* ---------------- signed in, and the badge ---------------- */
 
 function SignedIn({ label }: { label: string }) {
+  const nav = useNavigate()
+
+  /*
+   * How much came back.
+   *
+   * Without this the screen says "your shop is safe on …3210" and stops, and
+   * that sentence reads exactly the same whether her forty listings just came
+   * back or the number belongs to an account with nothing in it. That is not
+   * a hypothetical: it is what happened on the first real test — the number
+   * had been linked the night before, from a session that never published
+   * anything, so recovery worked perfectly and looked broken.
+   *
+   * So: count them, say the number out loud, and when it is zero say THAT
+   * plainly rather than leaving her to guess.
+   */
+  const [count, setCount] = useState<number>()
+  useEffect(() => {
+    let gone = false
+    void artisanId()
+      .then(listMyProducts)
+      .then(ps => { if (!gone) setCount(ps.length) })
+      .catch(() => { /* offline: the count is the least of it */ })
+    return () => { gone = true }
+  }, [])
+
+  useSay(count === undefined ? undefined
+    : count > 0 ? tf('shopHasItems', { n: count }) : t('shopHasNothing'))
+
   return (
     <>
       <p className="rounded-card border-2 border-good bg-sage-wash px-4 py-3 text-sm font-semibold text-good">
         {tf('keepSignedIn', { label })}
       </p>
+
+      {count !== undefined && (
+        <Speakable
+          text={count > 0 ? tf('shopHasItems', { n: count }) : t('shopHasNothing')}
+          className="text-base leading-relaxed text-ink-2"
+        />
+      )}
+
+      {/* The way out. This screen had a sign-out button on it, which was the
+          only thing to press, and removing that left her looking at a green
+          line with nowhere to go. */}
+      <BigButton icon={<Icon name="back" />} label={t('seeMyShop')} onClick={() => nav('/')} />
 
       {/* Off. Typing a coordinator's code was one more thing to ask of a
           woman who came here to sell a pot. Verification belongs on the

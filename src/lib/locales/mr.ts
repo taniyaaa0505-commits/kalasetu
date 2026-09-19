@@ -228,4 +228,10 @@ export const mr: Strings = {
   proofLater: 'नंतर',
   proofSaving: 'जतन होत आहे…',
   proofDone: 'झाले. आता खरेदीदार पाहू शकतील की हे तुमचे स्वतःचे काम आहे.',
+  // Said after she signs in — see SignedIn in screens/Account.tsx. The
+  // empty case matters most: recovery that works looks identical to
+  // recovery that failed unless the app says which one happened.
+  shopHasItems: 'तुमच्या दुकानात {n} वस्तू आहेत',
+  shopHasNothing: 'या नंबरवर अजून काहीही नाही. नवीन वस्तू टाका, ती आतापासून सुरक्षित राहील.',
+  seeMyShop: 'माझे दुकान पाहा',
 }
