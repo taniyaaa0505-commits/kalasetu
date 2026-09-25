@@ -106,7 +106,14 @@ export default function Capture() {
     // gotPhoto false. That is how a listing ends up written from her words
     // with her picture missing.
     setClean(result.dataUrl); setUsedAI(result.usedAI); setProgress(undefined)
-    await patchProduct(id, { photo: thumb, cleanPhoto: result.dataUrl })
+
+    // A small copy of the CUT-OUT, for the cards that cannot afford the big
+    // one. Without it every small card fell back to `photo` and showed the
+    // background she had just watched the app remove -- on the publish
+    // preview most of all, which is the last thing she sees before "send it".
+    // Cheap, and after the heavy work: a 420px canvas draw, not a model.
+    const cleanThumb = await shrink(result.dataUrl)
+    await patchProduct(id, { photo: thumb, cleanPhoto: result.dataUrl, cleanThumb })
     setSaved(true)
   }
 
