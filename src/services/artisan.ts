@@ -62,6 +62,16 @@ export function forgetAdoptedId() {
   pending = null
 }
 
+/**
+ * The id this install falls back to, whatever auth is doing.
+ *
+ * Exported because services/account.ts has to answer "what was her work
+ * stamped with before she signed in", and the honest answer is often this and
+ * not an anonymous uid — `artisanId()` gives auth six seconds and then comes
+ * here, so a slow first launch stamps everything `local_…`.
+ */
+export function deviceId(): string { return localId() }
+
 /** Same shape as an auth uid, for the no-cloud path. */
 function localId(): string {
   try {

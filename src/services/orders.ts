@@ -28,6 +28,23 @@ export async function pendingOrders(): Promise<Order[]> {
   return (await listOrders()).filter(o => o.status === 'placed')
 }
 
+/**
+ * Move her orders onto a new id, alongside the products. See
+ * services/db.ts reassignProducts — same reasoning, and the income figure on
+ * the impact screen is built from these, so leaving them behind would reset
+ * the one number the whole project is judged on.
+ */
+export async function reassignOrders(from: string, to: string): Promise<number> {
+  if (!from || !to || from === to) return 0
+  const mine = await orders.list({ field: 'artisanId', equals: from })
+  let moved = 0
+  for (const o of mine) {
+    try { await orders.put({ ...o, artisanId: to }); moved++ }
+    catch (err) { console.warn('[orders] could not reassign', o.id, err) }
+  }
+  return moved
+}
+
 export async function getOrder(id: string): Promise<Order | undefined> {
   return orders.get(id)
 }

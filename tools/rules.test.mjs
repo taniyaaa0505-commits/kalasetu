@@ -75,5 +75,41 @@ await seed('t_note',{...base('t_note'),buyerId:S(BUYER)})
 check('noteLocal write still allowed',
   await patch('t_note',STRANGER,{noteLocal:S('hindi text')}),200)
 
+// --- products moving onto a real uid when she registers her shop.
+//     services/account.ts claimDeviceWork depends on exactly this being
+//     allowed for local_ rows and refused for somebody else's.
+const PBASE=`http://127.0.0.1:8080/v1/projects/${PROJECT}/databases/(default)/documents`
+async function seedP(id, artisan){
+  const fields={id:S(id),createdAt:I(1),status:S('draft'),lang:S('hi-IN')}
+  if(artisan!==null) fields.artisanId=S(artisan)
+  const r=await fetch(`${PBASE}/products?documentId=${id}`,{method:'POST',
+    headers:{'Content-Type':'application/json',Authorization:`Bearer ${OWNER}`},
+    body:JSON.stringify({fields})})
+  if(!r.ok) throw new Error('seedP failed '+r.status)
+}
+async function restamp(id, uid, to){
+  const r=await fetch(`${PBASE}/products/${id}?updateMask.fieldPaths=artisanId`,{method:'PATCH',
+    headers:{'Content-Type':'application/json',Authorization:`Bearer ${tok(uid)}`},
+    body:JSON.stringify({fields:{artisanId:S(to)}})})
+  return r.status
+}
+const HER='uid_her_real', SOMEONE='uid_someone_else'
+await seedP('p_local','local_abc123')
+check('she can claim her own local_ product on registering',
+  await restamp('p_local',HER,HER),200)
+
+await seedP('p_theirs',SOMEONE)
+check('she CANNOT steal a product owned by a real uid',
+  await restamp('p_theirs',HER,HER),403)
+
+// Not a looseness after all, and worth having written down: reading a field
+// that is ABSENT errors inside a rule, and an erroring rule denies. So the
+// seven artisan-less products in the live project cannot be updated by
+// anybody, ever -- not claimed, not corrected. claimDeviceWork never reaches
+// them because it only asks for rows stamped with THIS device's local id.
+await seedP('p_none',null)
+check('a product with no artisan at all is frozen for everyone',
+  await restamp('p_none',HER,HER),403)
+
 console.log(`\n  ${pass} passed, ${fail} failed`)
 process.exit(fail?1:0)
