@@ -113,7 +113,32 @@ service cloud.firestore {
        */
       allow update: if ownedByMe(resource.data.artisanId)
         || (signedIn()
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['noteLocal']));
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['noteLocal']))
+        /*
+         * He closes the loop: "Mark received".
+         *
+         * This was missing, and the button on the buyer page had never worked
+         * for a real buyer. `delivered` is the ONLY status the artisan's
+         * income figure counts, and the artisan's own screen never writes it
+         * -- accept, decline, ship, and that is all she is offered. So the
+         * last step in the system belonged to a rule that refused it.
+         *
+         * It looked like it worked because the whole flow gets tested in one
+         * browser, where the buyer and the artisan are the same anonymous
+         * uid and the first clause above passes. Five delivered orders in the
+         * live database got through exactly that way. Put a real buyer on a
+         * second device and the write is denied, the row stays on "Shipped",
+         * and her income stops moving with no sign of why.
+         *
+         * Narrow deliberately: the one transition, and only the two fields
+         * that transition touches. It cannot reprice an order, change its
+         * quantity, or move it anywhere else.
+         */
+        || (ownedByMe(resource.data.get('buyerId', null))
+            && resource.data.status == 'shipped'
+            && request.resource.data.status == 'delivered'
+            && request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['status', 'updatedAt']));
       allow delete: if false;
     }
 
