@@ -56,8 +56,22 @@ function reloadOnce(): boolean {
  */
 export function watchForStaleChunks() {
   window.addEventListener('vite:preloadError', e => {
-    e.preventDefault()          // stop it becoming an unhandled rejection
-    reloadOnce()
+    // ORDER MATTERS, and getting it wrong cost us the blank page this file
+    // exists to prevent. preventDefault() used to run first, unconditionally:
+    // it tells Vite not to throw, so the dynamic import never rejects, React
+    // never sees a failure and the boundary below never gets to run. Paired
+    // with a reloadOnce() that DECLINES -- because the guard was already spent
+    // on an earlier rescue this session -- the result was the worst of both
+    // nets: nothing reloaded, nothing threw, and Suspense sat on a screen
+    // with nothing on it and nothing to press.
+    //
+    // So: only swallow the error if we are actually doing something about it.
+    if (reloadOnce()) {
+      e.preventDefault()        // we are reloading; no need to throw as well
+      return
+    }
+    // We are not reloading, so let it through. It becomes a real error, the
+    // boundary catches it, and she gets a button.
   })
   // Clear the guard once a page has run for a while. Without this, one rescue
   // in the morning spends the only reload she gets all day.

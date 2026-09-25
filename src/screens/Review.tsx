@@ -80,7 +80,25 @@ export default function Review() {
       // for ever, which is the worst possible way to have no signal.
       try {
       const p = await getProduct(id)
-      if (!p) { setBusy(false); return }
+      // Not found is not nothing.
+      //
+      // This used to `setBusy(false)` and return, which left every banner
+      // false, `listing` undefined and `error` unset -- so the screen rendered
+      // its header, its Next button and NOTHING in between, for ever. That is
+      // the blank page people reported, and it is the worst shape a bug can
+      // take here: no spinner, no message, no reason, and she cannot read the
+      // URL to see that anything is wrong.
+      //
+      // Products live in Firestore, so the common way to get here is signal:
+      // offline, with this one not in the local cache, the read answers
+      // `undefined` rather than throwing, and the offline branch below never
+      // runs because we have already returned. So say which of the two it is.
+      if (!p) {
+        if (!isOnline()) setParked('offline')
+        else setError(`product ${id} not found`)
+        setBusy(false)
+        return
+      }
       answersRef.current = p.answers ?? []
       setAnswers(p.answers ?? [])
       setPhoto(p.cleanPhoto ?? p.photo)
@@ -531,7 +549,12 @@ export default function Review() {
           {/* The anti-hallucination rule made visible: anything the AI was not
               sure about becomes a question, never a guess — and she can answer
               it out loud, which is the only half of this she can actually do. */}
-          {listing.questions.length > 0 && (
+          {/* `?? []` like everywhere else in this file. A listing whose
+              questions field is missing -- an older saved draft, or a model
+              that answers the schema loosely -- threw here MID-RENDER, and a
+              React error during render unmounts the tree: another blank page,
+              from the one screen that must never go blank. */}
+          {(listing.questions ?? []).length > 0 && (
             /* The guide rings THIS, not the chip above that scrolls to it.
                The chip is at the top of a long screen; by the time she had
                scrolled down to answer, the ring was somewhere off the top of
@@ -544,7 +567,7 @@ export default function Review() {
                 {t('tellUsMore')}
               </p>
               <div className="flex flex-col gap-4">
-                {listing.questions.map(q => (
+                {(listing.questions ?? []).map(q => (
                   <Question
                     key={q}
                     question={q}
