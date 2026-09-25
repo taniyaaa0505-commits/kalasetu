@@ -11,6 +11,7 @@ import { translate } from './gemini'
 import { isOnline } from './queue'
 import type { Order, OrderStatus, LangCode } from '../types'
 import { getProduct } from './db'
+import { artisanId } from './artisan'
 
 /** Status is the only field a screen redraws for. */
 const orders = collection<Order>(ORDER_STORE, o => `${o.id}:${o.status}`)
@@ -69,10 +70,16 @@ export async function placeOrder(opts: {
    */
   const owner = opts.artisanId ?? (await getProduct(productId))?.artisanId
 
+  // And who is buying. Same call the artisan side uses for her own id — on
+  // this page it answers with the BUYER's uid, because it only ever means
+  // "whoever is holding this device". Needed so that "Mark received", which
+  // is his write and nobody else's, can be told apart from a stranger's.
+  const buyer = await artisanId()
+
   const now = Date.now()
   const order = await put({
     id: `o_${now.toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
-    productId, artisanId: owner, createdAt: now, updatedAt: now, status: 'placed',
+    productId, artisanId: owner, buyerId: buyer, createdAt: now, updatedAt: now, status: 'placed',
     quantity, unitPrice, total: quantity * unitPrice,
     buyerName, buyerOrg, note, needBy,
   })

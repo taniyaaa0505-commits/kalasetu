@@ -227,6 +227,19 @@ export interface Order {
 
   buyerName: string
   buyerOrg?: string
+  /**
+   * WHICH buyer, as an auth uid — not the typed name, which is just text.
+   *
+   * "Mark received" is the buyer's write and the only one that ever sets
+   * `delivered`, so the rules have to be able to tell that it is him. Without
+   * this the only honest rule was "anybody signed in", because an order knew
+   * its artisan and not its buyer.
+   *
+   * Optional: orders placed before this field existed do not have one, and
+   * `local_…` is possible here for the same reason it is on a product — see
+   * `unowned` in firestore.rules.
+   */
+  buyerId?: string
   /** The buyer's note, kept in both languages like a chat message. */
   note?: string
   noteLocal?: string
