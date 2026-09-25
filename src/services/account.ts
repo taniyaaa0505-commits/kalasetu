@@ -28,7 +28,9 @@
  * wrong and the feature silently does the opposite of its job.
  */
 import { firebaseAuth, cloudEnabled } from './firebase'
-import { adoptArtisanId, forgetAdoptedId } from './artisan'
+import { adoptArtisanId, forgetAdoptedId, deviceId } from './artisan'
+import { reassignProducts } from './db'
+import { reassignOrders } from './orders'
 
 /** What we remember locally so the UI can render before auth has woken up. */
 export interface Account {
@@ -88,6 +90,48 @@ export type Outcome =
   | 'restored'
 
 /**
+ * Bring her work with her.
+ *
+ * The header above claims that linking keeps her uid so "every product
+ * already stamped with it stays hers and nothing migrates". That is true of a
+ * product stamped with the ANONYMOUS uid — and the live database says that is
+ * not the common case. `artisanId()` gives auth six seconds and then falls
+ * back to a `local_…` device id, so on any slow first launch her work is
+ * stamped with that instead. Fourteen of the nineteen products in the live
+ * project are `local_…` or have no artisan at all.
+ *
+ * So she photographs, speaks, prices, publishes — all of it stamped
+ * `local_…` — then registers her shop, identity resolves to a real uid, and
+ * her shop queries for that uid and finds nothing. She reported it exactly
+ * that way: put something up for sale, register, everything from before is
+ * gone. Nothing was deleted; it was orphaned one field at a time.
+ *
+ * firestore.rules makes this fixable: `unowned()` keeps `local_…` rows
+ * writable by anyone signed in, which is the one deliberate hole in that file
+ * and this is the thing it was left open for.
+ *
+ * Never throws. It runs immediately after a sign-in that has already
+ * succeeded, and a failed write here must not turn that into an error she
+ * sees — a shop that is half-moved is recoverable, a registration that
+ * appears to have failed is not.
+ */
+async function claimDeviceWork(uid: string): Promise<number> {
+  try {
+    const from = deviceId()
+    if (from === uid) return 0
+    const [products, orders] = await Promise.all([
+      reassignProducts(from, uid),
+      reassignOrders(from, uid),
+    ])
+    if (products || orders) console.info(`[account] moved ${products} products and ${orders} orders to ${uid}`)
+    return products + orders
+  } catch (err) {
+    console.warn('[account] could not move this device\'s work across', err)
+    return 0
+  }
+}
+
+/**
  * Link if we can, sign in if we must.
  *
  * See the header. `linkWithCredential` is the happy path and keeps the uid —
@@ -114,8 +158,20 @@ async function settle(
     try {
       const out = await linkWithCredential(user, cred)
       remember({ uid: out.user.uid, label, kind })
-      // Same uid as a second ago. Nothing to adopt and nothing to reload: her
-      // products are already hers and every subscription is already right.
+      await claimDeviceWork(out.user.uid)
+      /*
+       * This used to return here, reasoning that the uid had not changed so
+       * there was nothing to adopt and nothing to reload. Both halves were
+       * wrong whenever the six-second fallback had fired: her work was under
+       * a `local_…` id, so it HAD to be moved, and the screens were
+       * subscribed to that id, so they had to be re-plumbed to this one.
+       *
+       * Adopting also pins the uid. Without it the next cold start races auth
+       * again, falls back to `local_…` a second time, and her shop — now
+       * correctly stamped with a real uid — disappears all over again. That
+       * race is the actual root of this bug, and this is what closes it.
+       */
+      adoptArtisanId(out.user.uid)   // reloads; nothing below this line runs
       return 'kept'
     } catch (err) {
       const code = (err as { code?: string }).code
@@ -127,6 +183,9 @@ async function settle(
 
   const out = await signInWithCredential(auth, cred)
   remember({ uid: out.user.uid, label, kind })
+  // Her old shop is already under this uid. Anything this install made while
+  // it was waiting on auth is not, so bring that across too.
+  await claimDeviceWork(out.user.uid)
   adoptArtisanId(out.user.uid)   // reloads; nothing below this line runs
   return 'restored'
 }

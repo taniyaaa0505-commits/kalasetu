@@ -35,6 +35,30 @@ export async function listMyProducts(artisan: string): Promise<Product[]> {
   return mine.sort((a, b) => b.createdAt - a.createdAt)
 }
 
+/**
+ * Re-stamp every product carrying `from` so that it carries `to`.
+ *
+ * This is what stops her shop emptying itself when she registers. See
+ * services/account.ts for why `from` is usually a `local_…` device id: the
+ * firestore.rules `unowned()` hole exists precisely so those rows stay
+ * writable, which is what makes this possible at all.
+ *
+ * Best effort, one document at a time. A row that will not move is left where
+ * it is and the rest still arrive — half her shop is worse than all of it but
+ * it is very much better than none, and this runs directly after a successful
+ * sign-in that must not be undone by a failed write.
+ */
+export async function reassignProducts(from: string, to: string): Promise<number> {
+  if (!from || !to || from === to) return 0
+  const mine = await products.list({ field: 'artisanId', equals: from })
+  let moved = 0
+  for (const p of mine) {
+    try { await products.put({ ...p, artisanId: to }); moved++ }
+    catch (err) { console.warn('[db] could not reassign', p.id, err) }
+  }
+  return moved
+}
+
 export async function getProduct(id: string): Promise<Product | undefined> {
   return products.get(id)
 }
