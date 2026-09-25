@@ -1,7 +1,10 @@
 node_modules
 dist
-.env
-.env.local
+# Every .env variant, not just these two. A `.env.bak` left behind by an
+# editor or a script is the same secret in a file git was still willing to
+# commit — which is how keys leak. The example file is the one exception.
+.env*
+!.env.example
 .DS_Store
 *.log
 # The tools folder is scratch — benchmarks, one-off scripts, an orders dump
@@ -31,3 +34,9 @@ android/app/src/main/assets/capacitor.plugins.json
 
 # Firebase CLI deploy cache.
 .firebase
+
+# Sends the REAL listing body — photo, schema, thinkingBudget — to every key
+# and prints which model is willing. This is what found gemini-3.5-flash
+# answering 503 on all of them while models.list still advertised it. Last
+# here on purpose: it has to out-rank the `tools/*` and `probe.mjs` lines.
+!tools/probe-listing.mjs
