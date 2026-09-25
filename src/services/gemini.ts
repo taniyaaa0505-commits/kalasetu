@@ -42,9 +42,24 @@ import { LANGS, type Answer, type Listing, type LangCode } from '../types'
  * a screen that cannot write her listing.
  */
 const LISTING_MODELS = [
-  'gemini-3.5-flash',        // benchmarked: 2.9s, the one we actually want
+  // Re-measured 2026-09-25 across 6 keys, with the real photo + schema body
+  // (tools/probe-listing.mjs). The old order put gemini-3.5-flash first and
+  // that is now the WORST entry, not the best: it answered 503 "experiencing
+  // high demand" on all six keys and took between 4s and 163s to say so. With
+  // three patient retries on top, her listing sat on a spinner for minutes
+  // before the chain moved on — which reads as "the title and description do
+  // not work", because in practice they did not.
+  //
+  //   gemini-3-flash-preview   200 on 6/6 keys, 2.5-6.8s   <- new primary
+  //   gemini-3.6-flash         200 on 3/6 keys, 4.2-14.2s
+  //   gemini-3.5-flash         503 on 6/6 keys             <- kept last-but-one
+  //   gemini-3.5-flash-lite    400 on 6/6 keys with schema + thinkingBudget
+  //
+  // Re-run the probe before the demo. If 3.5-flash comes back, it belongs at
+  // the front again — but never put a model there without measuring it.
+  'gemini-3-flash-preview',  // measured: 200 on every key, the fastest too
   'gemini-3.6-flash',
-  'gemini-3-flash-preview',
+  'gemini-3.5-flash',        // was primary; currently 503 everywhere
   'gemini-3.5-flash-lite',   // last resort: weaker, but it can still see
 ] as const
 
@@ -97,6 +112,16 @@ function liveKeys(): string[] {
  * else's capacity.
  */
 const RETRYABLE = new Set([408, 500, 502, 503, 504])
+
+/**
+ * How long we wait for ONE model before giving the next one a turn.
+ *
+ * 20s is chosen against the measurement, not taste: a healthy listing call
+ * answers in 2.5-7s, so anything past 20s is a model in trouble and the
+ * cheapest thing we can do for her is stop waiting for it. Four models x
+ * three attempts is still bounded, and the happy path never sees this.
+ */
+const REQUEST_TIMEOUT_MS = 20_000
 
 export class GeminiError extends Error {
   readonly status: number
@@ -158,19 +183,36 @@ async function post(url: string, body: unknown, attempts = 3): Promise<Response>
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     let res: Response
+    const ac = new AbortController()
+    // Measured: a 503 from an overloaded model took 163 SECONDS to arrive.
+    // There was no timeout here at all, so one sick model could hold the
+    // Review screen on a spinner past the point where anyone still believes
+    // the app works — and the chain behind it never got a turn. Cut it off
+    // and let the next model answer instead. AbortController rather than
+    // AbortSignal.timeout: this also has to run in an old Android WebView.
+    const bell = setTimeout(() => ac.abort(), REQUEST_TIMEOUT_MS)
     try {
       res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: ac.signal,
       })
     } catch (err) {
       // The request never left the phone. Treat it as transient — it usually
       // is — but let the caller see it is a network problem, not a refusal.
-      last = new GeminiError(0, err instanceof Error ? err.message : String(err))
+      const aborted = ac.signal.aborted
+      last = new GeminiError(
+        0,
+        aborted
+          ? `no answer in ${Math.round(REQUEST_TIMEOUT_MS / 1000)}s`
+          : err instanceof Error ? err.message : String(err),
+      )
       if (attempt === attempts - 1) throw last
       await sleep(700 * 2 ** attempt + Math.random() * 400)
       continue
+    } finally {
+      clearTimeout(bell)
     }
 
     if (res.ok) return res
