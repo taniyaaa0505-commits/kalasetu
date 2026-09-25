@@ -55,7 +55,9 @@ export default function ProductIdentity() {
       const out = await registerProduct({
         productId: id, photo, makerId: me,
         title: p.listing?.titleEn, craft: p.listing?.craft, material: p.listing?.material,
-        thumb: p.photo ?? p.cleanPhoto,
+        // Public: PublicCard.tsx renders this to whoever scans the QR, so it
+        // is the cut-out, never the raw photograph.
+        thumb: p.cleanThumb ?? p.cleanPhoto,
       })
       setReg(out.registration)
       setConflicts(out.conflicts)

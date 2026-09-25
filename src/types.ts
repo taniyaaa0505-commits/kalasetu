@@ -134,8 +134,25 @@ export interface Product {
   demo?: boolean
   lang: LangCode
 
+  /*
+   * Three images, and which one a screen picks is a correctness question,
+   * not a taste one.
+   *
+   *   photo       420px thumb of what her camera saw, background and all.
+   *               ONLY for the before/after on the capture screen, which is
+   *               meaningless if "before" is not the real before.
+   *   cleanPhoto  the full 1000px cut-out. The product page, and exports.
+   *   cleanThumb  420px thumb OF THE CUT-OUT. Anything small and public.
+   *
+   * The bug this field fixes: every small card used `photo`, so the publish
+   * preview and the whole marketplace grid showed the UN-removed photograph
+   * while the product page showed the cut-out. The thumbnail was the right
+   * idea -- a 200 KB square in a 220px card is waste -- it was just a
+   * thumbnail of the wrong picture.
+   */
   photo?: string           // original, as a data URL
   cleanPhoto?: string      // background removed, white bg
+  cleanThumb?: string      // the cut-out, at 420px, for small public cards
   transcript?: string      // what she said, as text
   answers?: Answer[]       // what she added after reading back the first draft
   cost?: CostInput
